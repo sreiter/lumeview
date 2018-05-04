@@ -7,13 +7,36 @@
 #include <glad/glad.h>	// include before other OpenGL related includes
 #include <GLFW/glfw3.h>
 
+#include "stl_reader/stl_reader.h"
+
 
 #define THROW(msg)	{std::stringstream ss; ss << msg; throw(std::runtime_error(ss.str()));}
 #define COND_THROW(cond, msg)	if(cond){THROW(msg);}
 
-const char* SHADER_PATH = "../shaders/";
+const std::string SHADER_PATH = "../shaders/";
+const std::string MESH_PATH = "../meshes/";
+
+using uint = unsigned int;
 
 using namespace std;
+
+
+struct VisMesh {
+	VisMesh () : vao (0), numVrts (0), numTris (0) {}
+	VisMesh (uint _vao, uint _numVrts, uint _numTris) :
+		vao (_vao), numVrts (_numVrts), numTris (_numTris) {}
+
+	uint vao;
+	uint numVrts;
+	uint numTris;
+};
+
+
+void HandleGLFWError (int error, const char* description)
+{
+	THROW ("GLFW ERROR (code " << error << "):\n" <<
+	       description);
+}
 
 
 void ResizeFramebuffer (GLFWwindow* window, int width, int height)
@@ -42,8 +65,46 @@ string LoadStringFromFile (const char* filename)
 	return std::move(buffer);
 }
 
+string LoadStringFromFile (const std::string& filename)
+{
+	return LoadStringFromFile (filename.c_str());
+}
 
-unsigned int CreateSampleVAO ()
+
+VisMesh CreateVisMeshFromStl (const char* filename)
+{
+	stl_reader::StlMesh<float, uint> mesh (MESH_PATH + filename);
+
+//	VAO stores the buffer and the attribute pointers and whether they are enabled.
+	uint VAO;
+	glGenVertexArrays (1, &VAO);
+	glBindVertexArray (VAO);
+
+	uint VBO;
+	glGenBuffers (1, &VBO);
+	glBindBuffer (GL_ARRAY_BUFFER, VBO);
+	glBufferData (GL_ARRAY_BUFFER,
+	              mesh.num_vrts() * 3 * sizeof(float),
+	              mesh.raw_coords(),
+	              GL_STATIC_DRAW);
+
+	glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray (0);
+
+	uint EBO;
+	glGenBuffers (1, &EBO);
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+	              mesh.num_tris() * 3 * sizeof(uint),
+	              mesh.raw_tris(),
+	              GL_STATIC_DRAW);
+
+	return VisMesh(VAO,
+	               static_cast<uint>(mesh.num_vrts()),
+	               static_cast<uint>(mesh.num_tris()));
+}
+
+uint CreateSampleVAO ()
 {
 	float vertices[] = {
 		 0.5f,	 0.5f,	0.0f,
@@ -51,42 +112,41 @@ unsigned int CreateSampleVAO ()
 		 -0.5f,	-0.5f,	0.0f,
 		 -0.5f,	0.5f,	0.0f };
 
-	unsigned int indices[] = {
+	uint indices[] = {
 		0, 1, 3,
 		1, 2, 3 };
 
 //	VAO stores the buffer and the attribute pointers and whether they are enabled.
-	unsigned int VAO;
+	uint VAO;
 	glGenVertexArrays (1, &VAO);
 	glBindVertexArray (VAO);
 
-	unsigned int VBO;
+	uint VBO;
 	glGenBuffers (1, &VBO);
 	glBindBuffer (GL_ARRAY_BUFFER, VBO);
-
 	glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray (0);
 
-	unsigned int EBO;
+	uint EBO;
 	glGenBuffers (1, &EBO);
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+	glBindVertexArray (0);
 	return VAO;
 }
 
 
-unsigned int CreateShader (const char* filename, GLenum shaderType)
+uint CreateShader (const char* filename, GLenum shaderType)
 {
 //	load the sources from a file
-	string fullFilename = string(SHADER_PATH).append(filename);
-	string shaderSrc = LoadStringFromFile (fullFilename.c_str());
+	string shaderSrc = LoadStringFromFile (SHADER_PATH + filename);
 	const char* shaderSrcCStr = shaderSrc.c_str();
 
 //	create the shader object and compile the sources
-	unsigned int shader;
+	uint shader;
 	shader = glCreateShader (shaderType);
 	glShaderSource (shader, 1, &shaderSrcCStr, NULL);
 	glCompileShader (shader);
@@ -104,25 +164,25 @@ unsigned int CreateShader (const char* filename, GLenum shaderType)
 }
 
 
-unsigned int CreateVertexShader (const char* filename)
+uint CreateVertexShader (const char* filename)
 {
 	return CreateShader (filename, GL_VERTEX_SHADER);
 }
 
 
-unsigned int CreateFragmentShader (const char* filename)
+uint CreateFragmentShader (const char* filename)
 {
 	return CreateShader (filename, GL_FRAGMENT_SHADER);
 }
 
 
-unsigned int CreateShaderProgramVF (	const char* vertexShaderFilename,
+uint CreateShaderProgramVF (	const char* vertexShaderFilename,
                                     	const char* fragmentShaderFilename)
 {
-	unsigned int vertexShader = CreateVertexShader (vertexShaderFilename);
-	unsigned int fragmentShader = CreateFragmentShader (fragmentShaderFilename);
+	uint vertexShader = CreateVertexShader (vertexShaderFilename);
+	uint fragmentShader = CreateFragmentShader (fragmentShaderFilename);
 
-	unsigned int shaderProg;
+	uint shaderProg;
 	shaderProg = glCreateProgram ();
 	glAttachShader (shaderProg, vertexShader);
 	glAttachShader (shaderProg, fragmentShader);
@@ -150,11 +210,13 @@ unsigned int CreateShaderProgramVF (	const char* vertexShaderFilename,
 
 int main (int argc, char** argv)
 {
-	glfwInit ();
 	try {
-		glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwSetErrorCallback (HandleGLFWError);
+		glfwInit ();
+		glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, USE_GL_VERSION_MAJOR);
+		glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, USE_GL_VERSION_MINOR);
+		if((USE_GL_VERSION_MAJOR >= 3) && (USE_GL_VERSION_MINOR >= 2))
+			glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//	add for OSX:
 		//glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -178,22 +240,25 @@ int main (int argc, char** argv)
 		ResizeFramebuffer (window, 800, 600);
 		glfwSetFramebufferSizeCallback (window, ResizeFramebuffer);
 
-		unsigned int vertexArray = CreateSampleVAO ();
+		glEnable (GL_DEPTH_TEST);
 
-		unsigned int shaderProgram =
-			CreateShaderProgramVF ("vertex-shader-0.glsl",
-			                       "fragment-shader-0.glsl");
+		//uint vertexArray = CreateSampleVAO ();
+		VisMesh visMesh = CreateVisMeshFromStl ("sphere.stl");
+
+		uint shaderProgram =
+			CreateShaderProgramVF ("vertex-shader-0.vs",
+			                       "fragment-shader-0.fs");
 
 		while (!glfwWindowShouldClose (window)) {
 			ProcessInput (window);
 
 			glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
-			glClear (GL_COLOR_BUFFER_BIT);
+			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glUseProgram (shaderProgram);
-			glBindVertexArray (vertexArray);
+			glBindVertexArray (visMesh.vao);
 
-			glDrawElements (GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawElements (GL_TRIANGLES, visMesh.numTris * 3, GL_UNSIGNED_INT, 0);
 
 			glfwSwapBuffers (window);
 			glfwPollEvents ();
