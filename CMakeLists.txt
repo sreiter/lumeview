@@ -8,7 +8,15 @@ set (GLAD_PATH	"glad/glad-${GL_VERSION_MAJOR}.${GL_VERSION_MINOR}")
 
 
 set (sources	${GLAD_PATH}/src/glad.c
-     			gltests-0.cpp)
+
+     			camera/arc_ball.cpp
+     			gltests-0.cpp
+
+     			imgui/imgui.cpp
+     			imgui/imgui_demo.cpp
+     			imgui/imgui_draw.cpp
+     			imgui/imgui_impl_glfw_gl3.cpp
+     			)
 
 
 add_definitions (-DUSE_GL_VERSION_MAJOR=${GL_VERSION_MAJOR})
@@ -21,6 +29,7 @@ set ( GLFW_LIBS "${GLFW_PATH}/lib/glfw3.lib")
 
 include_directories (${GLFW_INCLUDE})
 include_directories (${GLAD_PATH}/include)
+include_directories (glm/glm-0.9.8.5)
 
 set (exeName "gltests-0-gl${GL_VERSION_MAJOR}.${GL_VERSION_MINOR}")
 

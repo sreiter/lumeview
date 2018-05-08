@@ -1,14 +1,19 @@
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <sstream>
 
 #include <glad/glad.h>	// include before other OpenGL related includes
 #include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw_gl3.h"
 #include "stl_reader/stl_reader.h"
 
+#include "camera/arc_ball.h"
 
 #define THROW(msg)	{std::stringstream ss; ss << msg; throw(std::runtime_error(ss.str()));}
 #define COND_THROW(cond, msg)	if(cond){THROW(msg);}
@@ -17,8 +22,20 @@ const std::string SHADER_PATH = "../shaders/";
 const std::string MESH_PATH = "../meshes/";
 
 using uint = unsigned int;
-
 using namespace std;
+
+class WindowData {
+  public:
+	WindowData () : io (ImGui::GetIO())
+	{
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+	    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+	}
+
+	ArcBall arcBall;
+	ImGuiIO& io;
+};
+
 
 
 struct VisMesh {
@@ -32,6 +49,13 @@ struct VisMesh {
 };
 
 
+WindowData& GetWindowData (GLFWwindow* window)
+{
+	WindowData* windowData = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer (window));
+	COND_THROW (!windowData, "No window data is associated with the specifed glfw window.");
+	return *windowData;
+}
+
 void HandleGLFWError (int error, const char* description)
 {
 	THROW ("GLFW ERROR (code " << error << "):\n" <<
@@ -42,6 +66,7 @@ void HandleGLFWError (int error, const char* description)
 void ResizeFramebuffer (GLFWwindow* window, int width, int height)
 {
 	glViewport (0, 0, width, height);
+	GetWindowData (window).arcBall.set_frame (glm::vec2(width, height));
 }
 
 
@@ -49,6 +74,48 @@ void ProcessInput (GLFWwindow* window)
 {
 	if (glfwGetKey (window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose (window, true);
+}
+
+void CursorPositionCallback(GLFWwindow* window, double x, double y)
+{
+	ArcBall& arcBall = GetWindowData (window).arcBall;
+	if(arcBall.dragging())
+		arcBall.drag_to (glm::vec2(x, y));
+}
+
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	if(button == 0){
+		ArcBall& arcBall = GetWindowData (window).arcBall;
+		switch(action) {
+			case GLFW_PRESS: {
+				double x, y;
+				glfwGetCursorPos(window, &x, &y);
+				arcBall.begin_drag (glm::vec2(x, y));
+			} break;
+
+			case GLFW_RELEASE: {
+				if(arcBall.dragging ())
+					arcBall.end_drag ();
+			} break;
+		}
+	}
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+}
+
+void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+}
+
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+}
+
+void CharCallback(GLFWwindow* window, unsigned int c)
+{
+	ImGui_ImplGlfw_CharCallback(window, c);
 }
 
 
@@ -219,8 +286,9 @@ int main (int argc, char** argv)
 			glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//	add for OSX:
-		//glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
+		#ifdef __APPLE__
+			glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		#endif
 
 	//	Set up window
 		GLFWwindow* window = glfwCreateWindow (800, 600, "OpenGL3-Tests-0", NULL, NULL);
@@ -228,13 +296,32 @@ int main (int argc, char** argv)
 		            "Failed to create glfw window");
 
 		glfwMakeContextCurrent (window);
+		glfwSwapInterval(1);
 
+		auto windowData = make_unique<WindowData> ();
+		glfwSetWindowUserPointer (window, windowData.get());
 
 	//	initialize GLAD
 		if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
-			cout << "Failed to initialize GLAD" << endl;
-			return -1;
+			THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 		}
+
+
+	//	init IMGUI
+		// Setup Dear ImGui binding
+	    IMGUI_CHECKVERSION();
+	    ImGui::CreateContext();
+	    ImGui_ImplGlfwGL3_Init(window, false);
+
+	    glfwSetCursorPosCallback (window, CursorPositionCallback);
+	    glfwSetMouseButtonCallback (window, MouseButtonCallback);
+	    glfwSetScrollCallback (window, ScrollCallback);
+	    glfwSetKeyCallback (window, KeyCallback);
+	    glfwSetCharCallback (window, CharCallback);
+
+	    // Setup style
+	    ImGui::StyleColorsDark();
+	    //ImGui::StyleColorsClassic();
 
 	//	setup view
 		ResizeFramebuffer (window, 800, 600);
@@ -243,22 +330,38 @@ int main (int argc, char** argv)
 		glEnable (GL_DEPTH_TEST);
 
 		//uint vertexArray = CreateSampleVAO ();
-		VisMesh visMesh = CreateVisMeshFromStl ("sphere.stl");
+		VisMesh visMesh = CreateVisMeshFromStl ("box.stl");
 
 		uint shaderProgram =
 			CreateShaderProgramVF ("vertex-shader-0.vs",
 			                       "fragment-shader-0.fs");
 
-		while (!glfwWindowShouldClose (window)) {
+		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+
+		while (!glfwWindowShouldClose (window))
+		{
+			ImGui_ImplGlfwGL3_NewFrame();
+
+			ImGui::Begin("First window");
+			ImGui::Text("Hello world!");
+			ImGui::End();
+
 			ProcessInput (window);
 
 			glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
 			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			glm::mat4 rotMat = windowData->arcBall.rotation_matrix ();
+
 			glUseProgram (shaderProgram);
+			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(rotMat));
+
 			glBindVertexArray (visMesh.vao);
 
 			glDrawElements (GL_TRIANGLES, visMesh.numTris * 3, GL_UNSIGNED_INT, 0);
+
+			ImGui::Render();
+        	ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
 			glfwSwapBuffers (window);
 			glfwPollEvents ();
