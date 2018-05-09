@@ -298,6 +298,12 @@ int main (int argc, char** argv)
 		glfwMakeContextCurrent (window);
 		glfwSwapInterval(1);
 
+		//	init IMGUI
+		// Setup Dear ImGui binding
+	    IMGUI_CHECKVERSION();
+	    ImGui::CreateContext();
+	    ImGui_ImplGlfwGL3_Init(window, false);
+
 		auto windowData = make_unique<WindowData> ();
 		glfwSetWindowUserPointer (window, windowData.get());
 
@@ -306,12 +312,6 @@ int main (int argc, char** argv)
 			THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 		}
 
-
-	//	init IMGUI
-		// Setup Dear ImGui binding
-	    IMGUI_CHECKVERSION();
-	    ImGui::CreateContext();
-	    ImGui_ImplGlfwGL3_Init(window, false);
 
 	    glfwSetCursorPosCallback (window, CursorPositionCallback);
 	    glfwSetMouseButtonCallback (window, MouseButtonCallback);

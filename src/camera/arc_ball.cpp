@@ -1,10 +1,9 @@
 #include "arc_ball.h"
 #include <glm/gtc/quaternion.hpp>
-#include <iostream>
 #include <glm/gtx/io.hpp>
 
 ArcBall::ArcBall() :
-	m_rotQuat (1.f, 0.f, 0.f, 0.f), // y = 1, rest 0
+	m_rotQuat (1.f, 0.f, 0.f, 0.f), // w = 1, rest 0
 	m_dragging (false)
 {
 }
@@ -30,7 +29,6 @@ void ArcBall::set_frame(const glm::vec2& size, float radius, const glm::vec2& of
 	m_frame = size;
 	m_offset = offset;
 	m_radius = radius;
-	std::cout << "frame: " << m_frame << std::endl;
 }
 
 void ArcBall::begin_drag(const glm::vec2& c)
@@ -44,11 +42,6 @@ void ArcBall::begin_drag(const glm::vec2& c)
 	m_dragging = true;
 
 	using namespace std;
-	// cout << "begin_drag frame: " << m_frame << endl;
-	cout << "begin_drag ball-pos: " << m_beginDragPos << endl;
-	cout << "begin_drag quat: " << m_beginDragQuat << endl;
-	// cout << "begin_drag mat: " << endl;
-	// cout << rotation_matrix() << endl;
 }
 
 void ArcBall::drag_to(const glm::vec2& c)
@@ -63,9 +56,6 @@ void ArcBall::drag_to(const glm::vec2& c)
 void ArcBall::end_drag()
 {
 	using namespace std;
-	cout << "end_drag quat: " << m_rotQuat << endl;
-	// cout << "end_drag mat: " << endl;
-	// cout << rotation_matrix() << endl;
 	m_dragging = false;
 }
 
