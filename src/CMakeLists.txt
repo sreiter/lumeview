@@ -7,8 +7,12 @@ set (GL_VERSION_MINOR "3")
 
 
 set (sources
+    	arc_ball.cpp
+    	arc_ball_view.cpp
+    	camera.cpp
+    	input_listener.cpp
      	main.cpp
-    	camera/arc_ball.cpp
+    	view.cpp
     )
 
 

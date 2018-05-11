@@ -1,3 +1,4 @@
+#include <chrono>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -7,16 +8,20 @@
 
 #include <glad/glad.h>	// include before other OpenGL related includes
 #include <GLFW/glfw3.h>
+
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/io.hpp>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include "stl_reader/stl_reader.h"
 
-#include "camera/arc_ball.h"
 
-#define THROW(msg)	{std::stringstream ss; ss << msg; throw(std::runtime_error(ss.str()));}
-#define COND_THROW(cond, msg)	if(cond){THROW(msg);}
+#include "cond_throw.h"
+#include "imgui_log.h"
+#include "arc_ball_view.h"
+
 
 const std::string SHADER_PATH = "../shaders/";
 const std::string MESH_PATH = "../meshes/";
@@ -24,18 +29,14 @@ const std::string MESH_PATH = "../meshes/";
 using uint = unsigned int;
 using namespace std;
 
+
+ArcBallView g_arcBallView;
+InputListener* g_inputListener = &g_arcBallView;
+
+
 class WindowData {
   public:
-	WindowData () : io (ImGui::GetIO())
-	{
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-	    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-	}
-
-	ArcBall arcBall;
-	ImGuiIO& io;
 };
-
 
 
 struct VisMesh {
@@ -65,8 +66,7 @@ void HandleGLFWError (int error, const char* description)
 
 void ResizeFramebuffer (GLFWwindow* window, int width, int height)
 {
-	glViewport (0, 0, width, height);
-	GetWindowData (window).arcBall.set_frame (glm::vec2(width, height));
+	g_arcBallView.set_viewport (glm::ivec4(0, 0, width, height));
 }
 
 
@@ -78,34 +78,22 @@ void ProcessInput (GLFWwindow* window)
 
 void CursorPositionCallback(GLFWwindow* window, double x, double y)
 {
-	ArcBall& arcBall = GetWindowData (window).arcBall;
-	if(arcBall.dragging())
-		arcBall.drag_to (glm::vec2(x, y));
+	if(g_inputListener)
+		g_inputListener->mouse_move (glm::vec2(x, y));
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	if(button == 0){
-		ArcBall& arcBall = GetWindowData (window).arcBall;
-		switch(action) {
-			case GLFW_PRESS: {
-				double x, y;
-				glfwGetCursorPos(window, &x, &y);
-				arcBall.begin_drag (glm::vec2(x, y));
-			} break;
-
-			case GLFW_RELEASE: {
-				if(arcBall.dragging ())
-					arcBall.end_drag ();
-			} break;
-		}
-	}
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+	if(g_inputListener)
+		g_inputListener->mouse_button (button, action, mods);
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+	if(g_inputListener)
+		g_inputListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
 }
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -117,7 +105,6 @@ void CharCallback(GLFWwindow* window, unsigned int c)
 {
 	ImGui_ImplGlfw_CharCallback(window, c);
 }
-
 
 string LoadStringFromFile (const char* filename)
 {
@@ -136,7 +123,6 @@ string LoadStringFromFile (const std::string& filename)
 {
 	return LoadStringFromFile (filename.c_str());
 }
-
 
 VisMesh CreateVisMeshFromStl (const char* filename)
 {
@@ -336,25 +322,21 @@ int main (int argc, char** argv)
 			CreateShaderProgramVF ("vertex-shader-0.vs",
 			                       "fragment-shader-0.fs");
 
-		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+		unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
 
 		while (!glfwWindowShouldClose (window))
 		{
 			ImGui_ImplGlfwGL3_NewFrame();
 
-			ImGui::Begin("First window");
-			ImGui::Text("Hello world!");
-			ImGui::End();
+			DefLog().draw("log");
 
 			ProcessInput (window);
 
 			glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
 			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glm::mat4 rotMat = windowData->arcBall.rotation_matrix ();
-
 			glUseProgram (shaderProgram);
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(rotMat));
+			g_arcBallView.view().apply(viewLoc);
 
 			glBindVertexArray (visMesh.vao);
 
@@ -377,3 +359,4 @@ int main (int argc, char** argv)
 	glfwTerminate ();
 	return 0;
 }
+

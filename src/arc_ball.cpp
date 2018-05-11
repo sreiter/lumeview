@@ -1,11 +1,50 @@
 #include "arc_ball.h"
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/io.hpp>
 
 ArcBall::ArcBall() :
 	m_rotQuat (1.f, 0.f, 0.f, 0.f), // w = 1, rest 0
+	m_frame (1.f, 1.f),
+	m_offset (0.f, 0.f),
+	m_radius (1.f),
 	m_dragging (false)
 {
+}
+
+void ArcBall::
+set_frame(const glm::vec2& frame)
+{
+	m_frame = frame;
+}
+
+void ArcBall::
+set_radius (const float radius)
+{
+	m_radius = radius;
+}
+
+void ArcBall::
+set_offset (const glm::vec2& offset)
+{
+	m_offset = offset;
+}
+
+
+const glm::vec2& ArcBall::
+frame () const
+{
+	return m_frame;
+}
+
+float ArcBall::
+radius () const
+{
+	return m_radius;
+}
+
+const glm::vec2& ArcBall::
+offset () const
+{
+	return m_offset;
 }
 
 const glm::quat& ArcBall::rotation_quaternion() const
@@ -19,18 +58,6 @@ void ArcBall::set_rotation_quaternion(const glm::quat& q)
 	m_rotQuat = q;
 }
 
-void ArcBall::set_frame(float width, float height, float radius, float offsetX, float offsetY)
-{
-	set_frame(glm::vec2(width, height), radius, glm::vec2(offsetX, offsetY));
-}
-
-void ArcBall::set_frame(const glm::vec2& size, float radius, const glm::vec2& offset)
-{
-	m_frame = size;
-	m_offset = offset;
-	m_radius = radius;
-}
-
 void ArcBall::begin_drag(const glm::vec2& c)
 {
 	if(m_dragging)
@@ -40,8 +67,6 @@ void ArcBall::begin_drag(const glm::vec2& c)
 	m_beginDragPos = get_ball_point_from_frame_coords(glm::vec2(c.x, m_frame.y - c.y));
 
 	m_dragging = true;
-
-	using namespace std;
 }
 
 void ArcBall::drag_to(const glm::vec2& c)
@@ -49,13 +74,12 @@ void ArcBall::drag_to(const glm::vec2& c)
 	if(m_dragging)
 	{
 		glm::vec3 v = get_ball_point_from_frame_coords(glm::vec2(c.x, m_frame.y - c.y));
-		m_rotQuat = get_quat_from_ball_points(m_beginDragPos, v) * m_beginDragQuat;
+		m_rotQuat = m_beginDragQuat * get_quat_from_ball_points(m_beginDragPos, v);
 	}
 }
 
 void ArcBall::end_drag()
 {
-	using namespace std;
 	m_dragging = false;
 }
 

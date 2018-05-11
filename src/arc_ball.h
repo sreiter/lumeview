@@ -9,8 +9,14 @@ class ArcBall
 {
   public:
 	ArcBall();
-	void set_frame (float width, float height, float radius = 0.9f, float offsetX = 0, float offsetY = 0);
-	void set_frame(const glm::vec2& size, float radius = 0.9f, const glm::vec2& offset = glm::vec2(0, 0));
+
+	void set_frame(const glm::vec2& frame);
+	void set_radius (const float radius);
+	void set_offset (const glm::vec2& offset);
+
+	const glm::vec2& frame () const;
+	float radius () const;
+	const glm::vec2& offset () const;
 
 	inline const glm::mat4 rotation_matrix () const	{return glm::mat4_cast(m_rotQuat);}
 	const glm::quat& rotation_quaternion () const;
