@@ -41,6 +41,12 @@ include_directories (${GLAD_PATH}/include)
 include_directories (deps/glm-0.9.8.5)
 include_directories (deps)
 
+find_package(OpenGL REQUIRED)
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/EHsc")
+endif ()
+
 if (GLFW)
     set (glfwSources    main.cpp
                         deps/imgui/imgui_impl_glfw_gl3.cpp
@@ -56,7 +62,7 @@ if (GLFW)
     add_subdirectory(${GLFW_PATH})
 
     set ( GLFW_INCLUDE "${GLFW_PATH}/include")
-    set ( GLFW_LIBS "${CMAKE_BINARY_DIR}/src/deps/glfw-3.2.1/src/glfw3.lib")
+    link_directories ("${CMAKE_BINARY_DIR}/src/deps/glfw-3.2.1/src/")
 
     include_directories (${GLFW_INCLUDE})
 
@@ -64,7 +70,7 @@ if (GLFW)
 
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)
-    target_link_libraries (${exeName} ${GLFW_LIBS} opengl32.lib)
+    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${OPENGL_LIBRARIES})
 
     file(COPY "../shaders" DESTINATION "${CMAKE_BINARY_DIR}/src")
     file(COPY "../meshes" DESTINATION "${CMAKE_BINARY_DIR}/src")
@@ -78,5 +84,5 @@ if (JNI)
     include_directories(${JNI_INCLUDE_DIRS})
 
     add_library(vrl_native_opengl_binding SHARED ${jniSources} ${sources} ${depSources})
-    target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} opengl32.lib)
+    target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} ${OPENGL_LIBRARIES})
 endif ()
