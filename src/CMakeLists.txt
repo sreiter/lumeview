@@ -60,6 +60,7 @@ if (GLFW)
     set(GLFW_INSTALL OFF CACHE BOOL "Build GLFW install" FORCE)
 
     add_subdirectory(${GLFW_PATH})
+    get_target_property(glfw_LibDeps glfw INTERFACE_LINK_LIBRARIES)
 
     set ( GLFW_INCLUDE "${GLFW_PATH}/include")
     link_directories ("${CMAKE_BINARY_DIR}/src/deps/glfw-3.2.1/src/")
@@ -70,7 +71,7 @@ if (GLFW)
 
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)
-    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${OPENGL_LIBRARIES})
+    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${glfw_LibDeps} ${OPENGL_LIBRARIES})
 
     file(COPY "../shaders" DESTINATION "${CMAKE_BINARY_DIR}/src")
     file(COPY "../meshes" DESTINATION "${CMAKE_BINARY_DIR}/src")
