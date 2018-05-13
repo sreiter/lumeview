@@ -1,10 +1,11 @@
-#ifndef __H__input_listener
-#define __H__input_listener
+#ifndef __H__window_event_listener
+#define __H__window_event_listener
 
 #include <vector>
 #include <chrono>
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 enum MouseButton {
 	LEFT = 0,
@@ -22,16 +23,23 @@ enum MouseButtonAction {
 	NUM_ACTIONS
 };
 
-/** When you override a virtual method from this class in a derived class,
+/** 
+ * \note All buttons, keys, actions, mods, etc correspond to glfw
+ *
+ * When you override a virtual method from this class in a derived class,
  * make sure to first call the base class implementation before any other
  * operation. This makes sure, that helper methods return the correct values
- * (e.g. 'was_double_click' or 'cursor_position')
+ * (e.g. 'was_double_click' or 'cursor_position').
+ * An exception may be that you want to compare to a previous state. In that
+ * case it could make sense to store the current state of the base class before
+ * calling the corresponding base class method.
  */
-class InputListener {
+class WindowEventListener {
 public:
-	InputListener ();
-	virtual ~InputListener ();
+	WindowEventListener ();
+	virtual ~WindowEventListener ();
 
+//	mouse
 	virtual void mouse_button (int button, int action, int mods);
   	virtual void mouse_move (const glm::vec2& c);
   	virtual void mouse_scroll (const glm::vec2& o);
@@ -42,6 +50,12 @@ public:
   	bool mouse_button_is_down (int button) const;
   	glm::vec2 mouse_button_down_pos (int button) const;
 
+//	window
+  	virtual void set_viewport (const glm::ivec4& vp);
+
+//	keyboard
+  	virtual void key (int key, int scancode, int action, int mods);
+  	virtual void character (unsigned int c);
 
 private:
 	using clock = std::chrono::steady_clock;
@@ -58,4 +72,4 @@ private:
 	std::vector<MouseBtnInfo>	m_mouseBtnInfo;
 };
 
-#endif	//__H__input_listener
+#endif	//__H__window_event_listener

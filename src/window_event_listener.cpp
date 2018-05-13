@@ -1,8 +1,8 @@
-#include "input_listener.h"
+#include "window_event_listener.h"
 
 using namespace std;
 
-InputListener::MouseBtnInfo::MouseBtnInfo () :
+WindowEventListener::MouseBtnInfo::MouseBtnInfo () :
 		downPos (0),
 		isDown (false),
 		wasDoubleClick (false)
@@ -10,18 +10,18 @@ InputListener::MouseBtnInfo::MouseBtnInfo () :
 }
 
 
-InputListener::InputListener () :
+WindowEventListener::WindowEventListener () :
 	m_cursorPos (0)
 {
 }
 
-InputListener::~InputListener ()
+WindowEventListener::~WindowEventListener ()
 {
 
 }
 
 
-void InputListener::mouse_button (int btn, int action, int mods)
+void WindowEventListener::mouse_button (int btn, int action, int mods)
 {
 	static const double dblClickInterval = 250.0;
 	if (btn < 0)
@@ -45,38 +45,50 @@ void InputListener::mouse_button (int btn, int action, int mods)
 	}
 }
 
-void InputListener::mouse_move (const glm::vec2& c)
+void WindowEventListener::mouse_move (const glm::vec2& c)
 {
 	m_cursorPos = c;
 }
 
-void InputListener::mouse_scroll (const glm::vec2& o)
+void WindowEventListener::mouse_scroll (const glm::vec2& o)
 {
 
 }
 
-glm::vec2 InputListener::cursor_position () const
+glm::vec2 WindowEventListener::cursor_position () const
 {
 	return m_cursorPos;
 }
 
-bool InputListener::was_double_click (int btn) const
+bool WindowEventListener::was_double_click (int btn) const
 {
 	if (btn >= 0 && btn < m_mouseBtnInfo.size ())
 		return m_mouseBtnInfo [btn].wasDoubleClick;
 	return false;
 }
 
-bool InputListener::mouse_button_is_down (int btn) const
+bool WindowEventListener::mouse_button_is_down (int btn) const
 {
 	if (btn >= 0 && btn < m_mouseBtnInfo.size ())
 		return m_mouseBtnInfo [btn].isDown;
 	return false;
 }
 
-glm::vec2 InputListener::mouse_button_down_pos (int btn) const
+glm::vec2 WindowEventListener::mouse_button_down_pos (int btn) const
 {
 	if (btn >= 0 && btn < m_mouseBtnInfo.size ())
 		return m_mouseBtnInfo [btn].downPos;
 	return glm::vec2(0);
+}
+
+void WindowEventListener::set_viewport (const glm::ivec4& vp)
+{
+}
+
+void WindowEventListener::key (int key, int scancode, int action, int mods)
+{
+}
+
+void WindowEventListener::character (unsigned int c)
+{
 }

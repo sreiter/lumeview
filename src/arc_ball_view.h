@@ -3,15 +3,15 @@
 
 #include "arc_ball.h"
 #include "camera.h"
-#include "input_listener.h"
+#include "window_event_listener.h"
 #include "view.h"
 
-class ArcBallView : public InputListener{
+class ArcBallView : public WindowEventListener {
 public:
 	ArcBallView ();
 	const View& view () const;
 
-  	void set_viewport (const glm::ivec4& vp);
+  	void set_viewport (const glm::ivec4& vp) override;
   	const glm::ivec4& viewport () const;
 	
 	void mouse_button (int button, int action, int mods) override;
@@ -19,7 +19,7 @@ public:
 	void mouse_scroll (const glm::vec2& o) override;
 
 private:
-	using base_t = InputListener;
+	using base_t = WindowEventListener;
 	
 	View 		m_view;
   	ArcBall 	m_arcBall;

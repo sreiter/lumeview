@@ -1,61 +1,20 @@
-#include <chrono>
-#include <exception>
-#include <fstream>
 #include <iostream>
-#include <memory>
-#include <string>
-#include <sstream>
 
 #include <glad/glad.h>	// include before other OpenGL related includes
 #include <GLFW/glfw3.h>
 
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/io.hpp>
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
-#include "stl_reader/stl_reader.h"
 
-
-#include "cond_throw.h"
 #include "imgui_log.h"
-#include "arc_ball_view.h"
+#include "cond_throw.h"
+#include "renderer.h"
 
-
-const std::string SHADER_PATH = "../shaders/";
-const std::string MESH_PATH = "../meshes/";
-
-using uint = unsigned int;
 using namespace std;
 
 
-ArcBallView g_arcBallView;
-InputListener* g_inputListener = &g_arcBallView;
+static WindowEventListener* g_eventListener = nullptr;
 
-
-class WindowData {
-  public:
-};
-
-
-struct VisMesh {
-	VisMesh () : vao (0), numVrts (0), numTris (0) {}
-	VisMesh (uint _vao, uint _numVrts, uint _numTris) :
-		vao (_vao), numVrts (_numVrts), numTris (_numTris) {}
-
-	uint vao;
-	uint numVrts;
-	uint numTris;
-};
-
-
-WindowData& GetWindowData (GLFWwindow* window)
-{
-	WindowData* windowData = reinterpret_cast<WindowData*>(glfwGetWindowUserPointer (window));
-	COND_THROW (!windowData, "No window data is associated with the specifed glfw window.");
-	return *windowData;
-}
 
 void HandleGLFWError (int error, const char* description)
 {
@@ -66,7 +25,8 @@ void HandleGLFWError (int error, const char* description)
 
 void ResizeFramebuffer (GLFWwindow* window, int width, int height)
 {
-	g_arcBallView.set_viewport (glm::ivec4(0, 0, width, height));
+	if(g_eventListener)
+		g_eventListener->set_viewport (glm::ivec4(0, 0, width, height));
 }
 
 
@@ -78,22 +38,22 @@ void ProcessInput (GLFWwindow* window)
 
 void CursorPositionCallback(GLFWwindow* window, double x, double y)
 {
-	if(g_inputListener)
-		g_inputListener->mouse_move (glm::vec2(x, y));
+	if(g_eventListener)
+		g_eventListener->mouse_move (glm::vec2(x, y));
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-	if(g_inputListener)
-		g_inputListener->mouse_button (button, action, mods);
+	if(g_eventListener)
+		g_eventListener->mouse_button (button, action, mods);
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-	if(g_inputListener)
-		g_inputListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
+	if(g_eventListener)
+		g_eventListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
 }
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -104,160 +64,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void CharCallback(GLFWwindow* window, unsigned int c)
 {
 	ImGui_ImplGlfw_CharCallback(window, c);
-}
-
-string LoadStringFromFile (const char* filename)
-{
-	ifstream t(filename);
-	COND_THROW (!t, "FILE::LOAD_FROM_STRING" << endl <<
-	            "Couldn't find file " << filename);
-	t.seekg(0, ios::end);
-	size_t size = t.tellg();
-	string buffer(size, ' ');
-	t.seekg(0);
-	t.read(&buffer[0], size);
-	return std::move(buffer);
-}
-
-string LoadStringFromFile (const std::string& filename)
-{
-	return LoadStringFromFile (filename.c_str());
-}
-
-VisMesh CreateVisMeshFromStl (const char* filename)
-{
-	stl_reader::StlMesh<float, uint> mesh (MESH_PATH + filename);
-
-//	VAO stores the buffer and the attribute pointers and whether they are enabled.
-	uint VAO;
-	glGenVertexArrays (1, &VAO);
-	glBindVertexArray (VAO);
-
-	uint VBO;
-	glGenBuffers (1, &VBO);
-	glBindBuffer (GL_ARRAY_BUFFER, VBO);
-	glBufferData (GL_ARRAY_BUFFER,
-	              mesh.num_vrts() * 3 * sizeof(float),
-	              mesh.raw_coords(),
-	              GL_STATIC_DRAW);
-
-	glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray (0);
-
-	uint EBO;
-	glGenBuffers (1, &EBO);
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-	              mesh.num_tris() * 3 * sizeof(uint),
-	              mesh.raw_tris(),
-	              GL_STATIC_DRAW);
-
-	return VisMesh(VAO,
-	               static_cast<uint>(mesh.num_vrts()),
-	               static_cast<uint>(mesh.num_tris()));
-}
-
-uint CreateSampleVAO ()
-{
-	float vertices[] = {
-		 0.5f,	 0.5f,	0.0f,
-		 0.5f,	-0.5f,	0.0f,
-		 -0.5f,	-0.5f,	0.0f,
-		 -0.5f,	0.5f,	0.0f };
-
-	uint indices[] = {
-		0, 1, 3,
-		1, 2, 3 };
-
-//	VAO stores the buffer and the attribute pointers and whether they are enabled.
-	uint VAO;
-	glGenVertexArrays (1, &VAO);
-	glBindVertexArray (VAO);
-
-	uint VBO;
-	glGenBuffers (1, &VBO);
-	glBindBuffer (GL_ARRAY_BUFFER, VBO);
-	glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray (0);
-
-	uint EBO;
-	glGenBuffers (1, &EBO);
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glBindVertexArray (0);
-	return VAO;
-}
-
-
-uint CreateShader (const char* filename, GLenum shaderType)
-{
-//	load the sources from a file
-	string shaderSrc = LoadStringFromFile (SHADER_PATH + filename);
-	const char* shaderSrcCStr = shaderSrc.c_str();
-
-//	create the shader object and compile the sources
-	uint shader;
-	shader = glCreateShader (shaderType);
-	glShaderSource (shader, 1, &shaderSrcCStr, NULL);
-	glCompileShader (shader);
-
-//	check for errors
-	int success;
-	glGetShaderiv (shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		char infoLog[512];
-		glGetShaderInfoLog (shader, 512, NULL, infoLog);
-		THROW("SHADER::COMPILATION_FAILED in '" << filename << "'\n" << infoLog);
-	}
-
-	return shader;
-}
-
-
-uint CreateVertexShader (const char* filename)
-{
-	return CreateShader (filename, GL_VERTEX_SHADER);
-}
-
-
-uint CreateFragmentShader (const char* filename)
-{
-	return CreateShader (filename, GL_FRAGMENT_SHADER);
-}
-
-
-uint CreateShaderProgramVF (	const char* vertexShaderFilename,
-                                    	const char* fragmentShaderFilename)
-{
-	uint vertexShader = CreateVertexShader (vertexShaderFilename);
-	uint fragmentShader = CreateFragmentShader (fragmentShaderFilename);
-
-	uint shaderProg;
-	shaderProg = glCreateProgram ();
-	glAttachShader (shaderProg, vertexShader);
-	glAttachShader (shaderProg, fragmentShader);
-	glLinkProgram (shaderProg);
-
-//	check for errors
-	int success;
-	glGetProgramiv (shaderProg, GL_LINK_STATUS, &success);
-
-	glDeleteShader (vertexShader);
-	glDeleteShader (fragmentShader);
-
-	if (!success) {
-		char infoLog[512];
-		glGetProgramInfoLog (shaderProg, 512, NULL, infoLog);
-		THROW("SHADER_PROGRAM::LINK_FAILED for\n"
-		      "  vertex shader:   '" << vertexShaderFilename << "'\n" <<
-		      "  fragment shader: '"  << "'\n" <<
-		      infoLog);
-	}
-
-	return shaderProg;
 }
 
 
@@ -290,20 +96,14 @@ int main (int argc, char** argv)
 	    ImGui::CreateContext();
 	    ImGui_ImplGlfwGL3_Init(window, false);
 
-		auto windowData = make_unique<WindowData> ();
-		glfwSetWindowUserPointer (window, windowData.get());
-
-	//	initialize GLAD
-		if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
-			THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
-		}
-
-
 	    glfwSetCursorPosCallback (window, CursorPositionCallback);
 	    glfwSetMouseButtonCallback (window, MouseButtonCallback);
 	    glfwSetScrollCallback (window, ScrollCallback);
 	    glfwSetKeyCallback (window, KeyCallback);
 	    glfwSetCharCallback (window, CharCallback);
+
+	    RendererInit ();
+	    g_eventListener = RendererGetEventListener ();
 
 	    // Setup style
 	    ImGui::StyleColorsDark();
@@ -313,16 +113,6 @@ int main (int argc, char** argv)
 		ResizeFramebuffer (window, 800, 600);
 		glfwSetFramebufferSizeCallback (window, ResizeFramebuffer);
 
-		glEnable (GL_DEPTH_TEST);
-
-		//uint vertexArray = CreateSampleVAO ();
-		VisMesh visMesh = CreateVisMeshFromStl ("box.stl");
-
-		uint shaderProgram =
-			CreateShaderProgramVF ("vertex-shader-0.vs",
-			                       "fragment-shader-0.fs");
-
-		unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
 
 		while (!glfwWindowShouldClose (window))
 		{
@@ -332,15 +122,7 @@ int main (int argc, char** argv)
 
 			ProcessInput (window);
 
-			glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
-			glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			glUseProgram (shaderProgram);
-			g_arcBallView.view().apply(viewLoc);
-
-			glBindVertexArray (visMesh.vao);
-
-			glDrawElements (GL_TRIANGLES, visMesh.numTris * 3, GL_UNSIGNED_INT, 0);
+			RendererDraw ();
 
 			ImGui::Render();
         	ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
