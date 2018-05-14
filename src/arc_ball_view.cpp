@@ -13,6 +13,7 @@ using namespace std;
 ArcBallView::ArcBallView ()
 {
 	m_camera.set_rotation (m_arcBall.rotation_quaternion ());
+	m_view.set_view_matrix (m_camera.view_matrix());
 }
 
 
@@ -26,9 +27,10 @@ void ArcBallView::set_viewport (const glm::ivec4& vp)
 {
     COND_THROW((vp.x == vp.z) || (vp.y == vp.w),
                "Bad viewport spefified: " << vp);
-    m_view.set_viewport (vp);
     m_arcBall.set_frame (glm::vec2(vp.z - vp.x, vp.w - vp.y));
     m_arcBall.set_offset (glm::vec2(vp.x, vp.y));
+    m_view.set_viewport (vp);
+    m_view.set_view_matrix (m_camera.view_matrix());
 }
 
 

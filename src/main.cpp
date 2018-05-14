@@ -38,21 +38,21 @@ void ProcessInput (GLFWwindow* window)
 
 void CursorPositionCallback(GLFWwindow* window, double x, double y)
 {
-	if(g_eventListener)
+	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
 		g_eventListener->mouse_move (glm::vec2(x, y));
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-	if(g_eventListener)
+	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
 		g_eventListener->mouse_button (button, action, mods);
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-	if(g_eventListener)
+	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
 		g_eventListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
 }
 

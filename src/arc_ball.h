@@ -1,3 +1,5 @@
+#ifndef __H__arc_ball
+#define __H__arc_ball
 
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
@@ -51,3 +53,5 @@ class ArcBall
 
 	bool	m_dragging;
 };
+
+#endif	//__H__arc_ball

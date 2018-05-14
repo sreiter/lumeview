@@ -35,4 +35,4 @@ class Camera {
   	glm::vec3	m_trans;
 };
 
-#endif __H__CAMERA_
+#endif  //__H__CAMERA_
