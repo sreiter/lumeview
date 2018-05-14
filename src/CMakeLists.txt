@@ -22,6 +22,16 @@ set (sources
     )
 
 
+set (shaders
+        flat-shading.gs
+        fragment-shader-0.fs
+        vertex-shader-0.vs)
+
+set (meshes
+        box.stl
+        sphere.stl)
+
+
 set (GLAD_PATH	"deps/glad/glad-${GL_VERSION_MAJOR}.${GL_VERSION_MINOR}")
 
 set (depSources
@@ -76,9 +86,6 @@ if (GLFW)
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)
     target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${glfw_LibDeps} ${OPENGL_LIBRARIES})
-
-    file(COPY "../shaders" DESTINATION "${CMAKE_BINARY_DIR}/src")
-    file(COPY "../meshes" DESTINATION "${CMAKE_BINARY_DIR}/src")
 endif ()
 
 if (JNI)
@@ -91,3 +98,12 @@ if (JNI)
     add_library(vrl_native_opengl_binding SHARED ${jniSources} ${sources} ${depSources})
     target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} ${OPENGL_LIBRARIES})
 endif ()
+
+
+foreach (file IN LISTS shaders)
+    configure_file("../shaders/${file}" "${CMAKE_BINARY_DIR}/src/shaders/${file}" COPYONLY)
+endforeach (file)
+
+foreach (file IN LISTS meshes)
+    configure_file("../meshes/${file}" "${CMAKE_BINARY_DIR}/src/meshes/${file}" COPYONLY)
+endforeach (file)

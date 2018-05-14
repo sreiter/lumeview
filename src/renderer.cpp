@@ -106,6 +106,12 @@ uint CreateVertexShader (const char* filename)
 }
 
 
+uint CreateGeometryShader (const char* filename)
+{
+	return CreateShader (filename, GL_GEOMETRY_SHADER);
+}
+
+
 uint CreateFragmentShader (const char* filename)
 {
 	return CreateShader (filename, GL_FRAGMENT_SHADER);
@@ -113,14 +119,17 @@ uint CreateFragmentShader (const char* filename)
 
 
 uint CreateShaderProgramVF (const char* vertexShaderFilename,
+                            const char* geometryShaderFilename,
                             const char* fragmentShaderFilename)
 {
 	uint vertexShader = CreateVertexShader (vertexShaderFilename);
+	uint geometryShader = CreateGeometryShader (geometryShaderFilename);
 	uint fragmentShader = CreateFragmentShader (fragmentShaderFilename);
 
 	uint shaderProg;
 	shaderProg = glCreateProgram ();
 	glAttachShader (shaderProg, vertexShader);
+	glAttachShader (shaderProg, geometryShader);
 	glAttachShader (shaderProg, fragmentShader);
 	glLinkProgram (shaderProg);
 
@@ -129,6 +138,7 @@ uint CreateShaderProgramVF (const char* vertexShaderFilename,
 	glGetProgramiv (shaderProg, GL_LINK_STATUS, &success);
 
 	glDeleteShader (vertexShader);
+	glDeleteShader (geometryShader);
 	glDeleteShader (fragmentShader);
 
 	if (!success) {
@@ -136,7 +146,8 @@ uint CreateShaderProgramVF (const char* vertexShaderFilename,
 		glGetProgramInfoLog (shaderProg, 512, NULL, infoLog);
 		THROW("SHADER_PROGRAM::LINK_FAILED for\n"
 		      "  vertex shader:   '" << vertexShaderFilename << "'\n" <<
-		      "  fragment shader: '"  << "'\n" <<
+		      "  geometry shader:   '" << geometryShaderFilename << "'\n" <<
+		      "  fragment shader: '"  << fragmentShaderFilename << "'\n" <<
 		      infoLog);
 	}
 
@@ -154,10 +165,11 @@ void RendererInit ()
 	}
 
 	//uint vertexArray = CreateSampleVAO ();
-	g_visMesh = CreateVisMeshFromStl ("box.stl");
+	g_visMesh = CreateVisMeshFromStl ("sphere.stl");
 
 	g_shaderProgram =
 		CreateShaderProgramVF ("vertex-shader-0.vs",
+		                       "flat-shading.gs",
 		                       "fragment-shader-0.fs");
 }
 
