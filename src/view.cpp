@@ -6,17 +6,18 @@
 
 #include "cond_throw.h"
 #include "view.h"
+#include "shader.h"
 
 View::View () :
     m_viewMat (1.f),
     m_viewport (0, 0, 1, 1)
 {}
 
-void View::apply (unsigned int viewLoc) const
+void View::apply (const Shader& shader) const
 {
     const glm::ivec4& vp = m_viewport;
     glViewport (vp.x, vp.y, vp.z, vp.w);
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_viewMat));
+    shader.set_uniform ("view", m_viewMat);
 }
 
 void View::set_viewport (const glm::ivec4& vp)

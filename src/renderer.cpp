@@ -16,6 +16,8 @@
 #include "types.h"
 #include "mesh/topology.h"
 
+#include "shader.h"
+
 using namespace std;
 
 
@@ -36,10 +38,10 @@ const std::string MESH_PATH = "meshes/";
 static ArcBallView g_arcBallView;
 
 static VisMesh g_visMesh;
-static uint g_shaderProgram = 0;
+static Shader g_solidShader;
 
 static VisMesh g_wireVisMesh;
-static uint g_wireShaderProgram = 0;
+static Shader g_wireShader;
 
 
 WindowEventListener* RendererGetEventListener ()
@@ -145,103 +147,6 @@ VisMesh CreateWireVisMeshFromStl (const char* filename)
 	               GL_LINES);
 }
 
-uint CreateShader (const char* filename, GLenum shaderType)
-{
-//	load the sources from a file
-	string shaderSrc = LoadStringFromFile (SHADER_PATH + filename);
-	const char* shaderSrcCStr = shaderSrc.c_str();
-
-//	create the shader object and compile the sources
-	uint shader;
-	shader = glCreateShader (shaderType);
-	glShaderSource (shader, 1, &shaderSrcCStr, NULL);
-	glCompileShader (shader);
-
-//	check for errors
-	int success;
-	glGetShaderiv (shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		char infoLog[512];
-		glGetShaderInfoLog (shader, 512, NULL, infoLog);
-		THROW("SHADER::COMPILATION_FAILED in '" << filename << "'\n" << infoLog);
-	}
-
-	return shader;
-}
-
-
-uint CreateVertexShader (const char* filename)
-{
-	return CreateShader (filename, GL_VERTEX_SHADER);
-}
-
-
-uint CreateGeometryShader (const char* filename)
-{
-	return CreateShader (filename, GL_GEOMETRY_SHADER);
-}
-
-
-uint CreateFragmentShader (const char* filename)
-{
-	return CreateShader (filename, GL_FRAGMENT_SHADER);
-}
-
-uint CreateShaderProgramVGF (const char* vertexShaderFilename,
-                            const char* geometryShaderFilename,
-                            const char* fragmentShaderFilename)
-{
-	uint shaderProg;
-	shaderProg = glCreateProgram ();
-
-	uint vertexShader = 0;
-	uint geometryShader = 0;
-	uint fragmentShader = 0;
-
-	if(vertexShaderFilename) {
-		vertexShader = CreateVertexShader (vertexShaderFilename);
-		glAttachShader (shaderProg, vertexShader);
-	}
-	
-	if(geometryShaderFilename) {
-		geometryShader = CreateGeometryShader (geometryShaderFilename);
-		glAttachShader (shaderProg, geometryShader);
-	}
-	
-	if(fragmentShaderFilename) {
-		fragmentShader = CreateFragmentShader (fragmentShaderFilename);
-		glAttachShader (shaderProg, fragmentShader);
-	}
-
-	glLinkProgram (shaderProg);
-
-//	check for errors
-	int success;
-	glGetProgramiv (shaderProg, GL_LINK_STATUS, &success);
-
-	if(vertexShaderFilename)
-		glDeleteShader (vertexShader);
-	if(geometryShaderFilename)
-		glDeleteShader (geometryShader);
-	if(fragmentShaderFilename)
-		glDeleteShader (fragmentShader);
-
-	if (!success) {
-		char infoLog[512];
-		glGetProgramInfoLog (shaderProg, 512, NULL, infoLog);
-		if(!vertexShaderFilename)	vertexShaderFilename = "";
-		if(!geometryShaderFilename)	geometryShaderFilename = "";
-		if(!fragmentShaderFilename)	fragmentShaderFilename = "";
-		THROW("SHADER_PROGRAM::LINK_FAILED for\n"
-		      "  vertex shader:   '" << vertexShaderFilename << "'\n" <<
-		      "  geometry shader:   '" << geometryShaderFilename << "'\n" <<
-		      "  fragment shader: '"  << fragmentShaderFilename << "'\n" <<
-		      infoLog);
-	}
-
-	return shaderProg;
-}
-
 void RendererInit ()
 {
 	// if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
@@ -253,28 +158,26 @@ void RendererInit ()
 	}
 
 
-	g_visMesh = CreateVisMeshFromStl ("bunny.stl");
-	g_shaderProgram =
-		CreateShaderProgramVGF ("vertex-shader-0.vs",
-		                       "flat-shading.gs",
-		                       "light-intensity.fs");
+	g_visMesh = CreateVisMeshFromStl ("sphere.stl");
+	g_solidShader.add_source_vs (SHADER_PATH + "vertex-shader-0.vs");
+	g_solidShader.add_source_gs (SHADER_PATH + "flat-shading.gs");
+	g_solidShader.add_source_fs (SHADER_PATH + "light-intensity.fs");
+	g_solidShader.link();
 
-	g_wireVisMesh = CreateWireVisMeshFromStl ("bunny.stl");
-	g_wireShaderProgram =
-		CreateShaderProgramVGF ("vertex-shader-0.vs",
-		                        NULL,
-		                        "wireframe.fs");
+
+	g_wireVisMesh = CreateWireVisMeshFromStl ("sphere.stl");
+	g_wireShader.add_source_vs (SHADER_PATH + "vertex-shader-0.vs");
+	g_wireShader.add_source_fs (SHADER_PATH + "wireframe.fs");
+	g_wireShader.link();
 
 	// msh::impl::PrintGrobDescs ();
 }
 
 
-void ActivateShader (const uint shaderProg)
+void ActivateShader (const Shader& shader)
 {
-	glUseProgram (shaderProg);
-
-	const uint viewLoc = glGetUniformLocation(shaderProg, "view");
-	g_arcBallView.view().apply(viewLoc);
+	shader.use ();
+	g_arcBallView.view().apply(shader);
 }
 
 
@@ -285,11 +188,11 @@ void RendererDraw ()
 	glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	ActivateShader (g_shaderProgram);
+	ActivateShader (g_solidShader);
 	glBindVertexArray (g_visMesh.vao);
 	glDrawElements (g_visMesh.primitiveType, g_visMesh.numIndices, GL_UNSIGNED_INT, 0);
 
-	ActivateShader (g_wireShaderProgram);
+	ActivateShader (g_wireShader);
 	glBindVertexArray (g_wireVisMesh.vao);
 	glDrawElements (g_wireVisMesh.primitiveType, g_wireVisMesh.numIndices, GL_UNSIGNED_INT, 0);
 }

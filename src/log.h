@@ -2,6 +2,7 @@
 #define __H__imgui_log
 
 #include <sstream>
+#include "iostream_util.h"
 #include "imgui/imgui.h"
 
 #define LOG(msg) {std::stringstream ss; ss << msg; DefLog().add (ss.str().c_str());}

@@ -7,11 +7,13 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "fwds.h"
+
 class View {
 public:
     View ();
     
-    void apply (unsigned int viewLoc) const;
+    void apply (const Shader& shader) const;
 
     void set_viewport (const glm::ivec4& vp);
     const glm::ivec4& viewport () const;
@@ -28,7 +30,7 @@ public:
     float depth_at_screen_coord (const glm::vec2& c) const;
 
 private:
-    glm::mat4 m_viewMat;
+    glm::mat4   m_viewMat;
     glm::ivec4  m_viewport;
 };
 
