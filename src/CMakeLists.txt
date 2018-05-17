@@ -16,20 +16,27 @@ set (sources
     	arc_ball_view.cpp
     	camera.cpp
         file_util.cpp
+        geometry.cpp
         renderer.cpp
         view.cpp
     	window_event_listener.cpp
+
+        mesh/grob.cpp
+        mesh/topology.cpp
     )
 
 
 set (shaders
+        wireframe.fs
         flat-shading.gs
-        fragment-shader-0.fs
+        light-intensity.fs
         vertex-shader-0.vs)
 
 set (meshes
         box.stl
-        sphere.stl)
+        bunny.stl
+        sphere.stl
+        quad.stl)
 
 
 set (GLAD_PATH	"deps/glad/glad-${GL_VERSION_MAJOR}.${GL_VERSION_MINOR}")

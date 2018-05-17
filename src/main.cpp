@@ -6,7 +6,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
-#include "imgui_log.h"
+#include "log.h"
 #include "cond_throw.h"
 #include "renderer.h"
 

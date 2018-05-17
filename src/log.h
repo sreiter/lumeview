@@ -1,7 +1,11 @@
 #ifndef __H__imgui_log
 #define __H__imgui_log
 
+#include <sstream>
 #include "imgui/imgui.h"
+
+#define LOG(msg) {std::stringstream ss; ss << msg; DefLog().add (ss.str().c_str());}
+#define LOGT(tag, msg) {std::stringstream ss; ss << "<" << #tag << "> " << msg; DefLog().add (ss.str().c_str());}
 
 struct AppLog
 {
@@ -65,7 +69,7 @@ struct AppLog
     }
 };
 
-AppLog& DefLog()
+inline AppLog& DefLog()
 {
 	static AppLog log;
 	return log;

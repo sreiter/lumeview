@@ -17,7 +17,7 @@ void main ()
 	vec3 v0 = (vrts[1].viewPos - vrts[0].viewPos).xyz;
 	vec3 v1 = (vrts[2].viewPos - vrts[0].viewPos).xyz;
 
-	lightIntensity = ambient + (1.0f - ambient) * normalize(cross (v0, v1)).z;
+	lightIntensity = ambient + (1.0f - ambient) * abs(normalize(cross (v0, v1)).z);
 	
 	for (int i = 0; i < 3; ++i) {
 		gl_Position = gl_in[i].gl_Position; 
