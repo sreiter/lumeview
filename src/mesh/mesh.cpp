@@ -7,18 +7,19 @@ namespace msh {
 
 std::shared_ptr <Mesh> CreateMeshFromFile (std::string filename)
 {
-	auto vrts = make_shared <VertexArray> (3);
+	auto vrts = make_shared <CoordArray> (3);
 	auto mesh = make_shared <Mesh> (msh::TRI, vrts);
 	std::vector <real_t> normals;
 	std::vector <index_t> solids;
 
 	stl_reader::ReadStlFile (filename.c_str(),
-	                         vrts->coords(),
+	                         vrts->data(),
 							 normals,
-							 mesh->inds(),
+							 mesh->inds()->data(),
 							 solids);
 
 	mesh->set_grob_type (msh::TRI);
+	mesh->inds()->set_tuple_size (3);
 	return mesh;
 }
 

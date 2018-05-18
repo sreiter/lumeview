@@ -39,7 +39,7 @@ public:
 
 	//	check whether we can reuse buffer objects
 		for(auto& stage : m_stages) {
-			if (stage.mesh->vrts() == mesh->vrts()) {
+			if (stage.mesh->coords() == mesh->coords()) {
 				newStage.vrtBuf = stage.vrtBuf;
 			}
 
@@ -57,8 +57,8 @@ public:
 		}
 		else {
 			newStage.vrtBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-			newStage.vrtBuf->set_data (mesh->vrts()->raw_coords(),
-			                           sizeof(real_t) * mesh->vrts()->num_coords());
+			newStage.vrtBuf->set_data (mesh->coords()->raw_data(),
+			                           sizeof(real_t) * mesh->num_coords());
 			glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (0);
 		}
@@ -67,7 +67,7 @@ public:
 			newStage.indBuf->bind ();
 		else {
 			newStage.indBuf = std::make_shared <GLBuffer> (GL_ELEMENT_ARRAY_BUFFER);
-			newStage.indBuf->set_data (mesh->raw_inds(),
+			newStage.indBuf->set_data (mesh->inds()->raw_data(),
 			                           sizeof(index_t) * mesh->num_inds());
 		}
 

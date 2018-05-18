@@ -44,21 +44,21 @@ void RendererInit ()
 	}
 
 	auto triMesh = msh::CreateMeshFromFile (MESH_PATH + "sphere.stl");
-	auto lineMesh = make_shared <msh::Mesh> (msh::EDGE, triMesh->vrts());
-	msh::UniqueSidesToIndexArray (lineMesh->inds(),
-	                         	  triMesh->raw_inds(),
+	auto lineMesh = make_shared <msh::Mesh> (msh::EDGE, triMesh->coords());
+	msh::UniqueSidesToIndexArray (lineMesh->inds()->data(),
+	                         	  triMesh->inds()->raw_data(),
 								  triMesh->num_inds(),
 								  msh::TRI,
 								  1);
 
-	Box box = BoxFromCoordinates (triMesh->vrts()->raw_coords(),
-	                              triMesh->vrts()->num_coords(),
-								  triMesh->vrts()->tuple_size());
+	Box box = BoxFromCoordinates (triMesh->coords()->raw_data(),
+	                              triMesh->coords()->size(),
+								  triMesh->coords()->tuple_size());
 
 	LOGT(mesh, "Loaded mesh '" << MESH_PATH + "sphere.stl" << "'\n");
-	LOGT(mesh, "  #vertices:    " << triMesh->vrts()->num_coords() / triMesh->vrts()->tuple_size() << std::endl);
-	LOGT(mesh, "  #triangles:   " << triMesh->num_inds() / 3 << std::endl);
-	LOGT(mesh, "  #edges:       " << lineMesh->num_inds() / 2 << std::endl);
+	LOGT(mesh, "  #vertices:    " << triMesh->coords()->num_tuples() << std::endl);
+	LOGT(mesh, "  #triangles:   " << triMesh->inds()->num_tuples() << std::endl);
+	LOGT(mesh, "  #edges:       " << lineMesh->inds()->num_tuples() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 
