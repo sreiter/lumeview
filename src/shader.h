@@ -1,8 +1,10 @@
 #ifndef __H__shader
 #define __H__shader
 
-#include <glad/glad.h>	// include before other OpenGL related includes
+#include <memory>
 #include <string>
+
+#include <glad/glad.h>	// include before other OpenGL related includes
 
 #include <glm/fwd.hpp>
 #include <glm/vec2.hpp>
@@ -19,36 +21,33 @@
 class Shader
 {
 public:
-	Shader() : m_shaderProg (0), m_linked (false)
+	Shader ()
 	{
+		m_shaderData = std::make_shared <ShaderData> ();
 	}
 
-	~Shader()
-	{
-		for(auto shader : m_shaders) {
-			glDeleteShader (shader);
-		}
-	}
+	explicit operator bool () const	{return data().m_shaderProg != 0;}
+	bool operator ! () const		{return data().m_shaderProg == 0;}
 	
 	void use () {
-		if (!m_linked)
+		if (!data().m_linked)
 			link ();
-		glUseProgram (m_shaderProg);
+		glUseProgram (data().m_shaderProg);
 	}
 
 	void use () const {
-		COND_THROW (!m_linked, "The shader has not been linked yet, and thus can't be used.");
-		glUseProgram (m_shaderProg);
+		COND_THROW (!data().m_linked, "The shader has not been linked yet, and thus can't be used.");
+		glUseProgram (data().m_shaderProg);
 	}
 
 	uint get_uniform_location (const char* name) const
 	{
-		return glGetUniformLocation(m_shaderProg, name);
+		return glGetUniformLocation(data().m_shaderProg, name);
 	}
 
 	void add_source (std::string filename, GLenum shaderType) {
-		if (!m_shaderProg)
-			m_shaderProg = glCreateProgram ();
+		if (!data().m_shaderProg)
+			data().m_shaderProg = glCreateProgram ();
 
 	//	load the sources from a file
 		std::string shaderSrc = LoadStringFromFile (filename);
@@ -69,11 +68,11 @@ public:
 			THROW("SHADER::COMPILATION_FAILED in '" << filename << "'\n" << infoLog);
 		}
 
-		glAttachShader (m_shaderProg, shader);
-		m_linked = false;
-		m_shaders.push_back (shader);
-		m_shaderNames.push_back (filename);
-		m_shaderTypes.push_back (shaderType);
+		glAttachShader (data().m_shaderProg, shader);
+		data().m_linked = false;
+		data().m_shaders.push_back (shader);
+		data().m_shaderNames.push_back (filename);
+		data().m_shaderTypes.push_back (shaderType);
 	}
 
 	void add_source_vs (std::string filename)
@@ -92,40 +91,69 @@ public:
 	}
 
 	void link () {
-		if (m_linked)
+		if (data().m_linked)
 			return;
 
-		m_linked = true;
+		data().m_linked = true;
 
-		if (!m_shaderProg)
-			m_shaderProg = glCreateProgram ();
+		if (!data().m_shaderProg)
+			data().m_shaderProg = glCreateProgram ();
 
-		glLinkProgram (m_shaderProg);
+		glLinkProgram (data().m_shaderProg);
 
 		int success;
-		glGetProgramiv (m_shaderProg, GL_LINK_STATUS, &success);
+		glGetProgramiv (data().m_shaderProg, GL_LINK_STATUS, &success);
 
 		if (!success) {
 			char infoLog[512];
-			glGetProgramInfoLog (m_shaderProg, 512, NULL, infoLog);
+			glGetProgramInfoLog (data().m_shaderProg, 512, NULL, infoLog);
 			THROW("SHADER_PROGRAM::LINK_FAILED for shaders\n" <<
-			      m_shaderNames << "\n" <<
+			      data().m_shaderNames << "\n" <<
 			      infoLog);
 		}
 	}
 
 	void set_uniform (const char* name, const glm::mat4& m) const
 	{
-    	glUniformMatrix4fv(glGetUniformLocation(m_shaderProg, name),
+    	glUniformMatrix4fv(glGetUniformLocation(data().m_shaderProg, name),
     	                   1, GL_FALSE, glm::value_ptr(m));
 	}
 
 private:
-	uint m_shaderProg;
-	std::vector<uint>			m_shaders;
-	std::vector<std::string>	m_shaderNames;
-	std::vector<GLenum>			m_shaderTypes;
-	bool m_linked;
+	struct ShaderData {
+		ShaderData () : m_shaderProg (0), m_linked (false)
+		{
+		}
+
+		// ShaderData (ShaderData&& s) :
+		// 	m_shaderProg (std::exchange (s.m_shaderProg, 0)),
+		// 	m_shaders (std::exchange (s.m_shaders, std::vector<uint>())),
+		// 	m_shaderNames (std::move (s.m_shaderNames)),
+		// 	m_shaderTypes (std::move (s.m_shaderTypes)),
+		// 	m_linked (std::move (s.m_linked))
+		// {}
+
+		~ShaderData()
+		{
+			if (m_shaderProg)
+				glDeleteProgram (m_shaderProg);
+
+			for(auto shader : m_shaders) {
+				glDeleteShader (shader);
+			}
+		}
+
+		uint m_shaderProg;
+		std::vector<uint>			m_shaders;
+		std::vector<std::string>	m_shaderNames;
+		std::vector<GLenum>			m_shaderTypes;
+		bool m_linked;
+	};
+
+	ShaderData& data ()					{return *m_shaderData;}
+	const ShaderData& data () const		{return *m_shaderData;}
+
+	std::shared_ptr <ShaderData>	m_shaderData;
 };
 
 #endif	//__H__shader

@@ -22,6 +22,7 @@ set (sources
     	window_event_listener.cpp
 
         mesh/grob.cpp
+        mesh/mesh.cpp
         mesh/topology.cpp
     )
 
