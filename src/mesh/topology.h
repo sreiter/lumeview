@@ -1,5 +1,5 @@
-#ifndef __H__topology
-#define __H__topology
+#ifndef __H__msh__topology
+#define __H__msh__topology
 
 #include <vector>
 #include "grob.h"
@@ -36,4 +36,4 @@ void UniqueSidesToIndexArray (std::vector <index_t>& indArrayInOut,
                               const index_t sideDim);
 }//	end of namespace msh
 
-#endif	//__H__topology
+#endif	//__H__msh__topology

@@ -1,5 +1,5 @@
-#ifndef __H__grob
-#define __H__grob
+#ifndef __H__msh__grob
+#define __H__msh__grob
 
 #include <cstdint>
 #include <unordered_set>
@@ -401,8 +401,10 @@ namespace std
         {
         	const index_t numCorners = grob.num_corners();
         	std::size_t h = 0;
-        	for(index_t i = 0; i < numCorners; ++i)
-        		h += grob.corner(i)^2;
+        	for(index_t i = 0; i < numCorners; ++i){
+        		const index_t c = grob.corner(i);
+        		h += c * c;
+        	}
         	return h;
         }
     };
@@ -412,4 +414,4 @@ namespace msh {
 using GrobHash = std::unordered_set <Grob>;
 }//	end of namespace msh
 
-#endif	//__H__grob
+#endif	//__H__msh__grob

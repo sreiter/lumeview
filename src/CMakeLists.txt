@@ -21,6 +21,7 @@ set (sources
         view.cpp
     	window_event_listener.cpp
 
+        mesh/geometry.cpp
         mesh/grob.cpp
         mesh/mesh.cpp
         mesh/topology.cpp
@@ -28,15 +29,17 @@ set (sources
 
 
 set (shaders
-        wireframe.fs
         flat-shading.gs
         light-intensity.fs
-        vertex-shader-0.vs)
+        smooth-shading.vs
+        vertex-shader-0.vs
+        wireframe.fs)
 
 set (meshes
         box.stl
         bunny.stl
         sphere.stl
+        pyra.stl
         quad.stl)
 
 

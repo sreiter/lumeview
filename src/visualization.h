@@ -37,32 +37,59 @@ public:
 		// glGenVertexArrays (1, &newStage.vao);
 		glBindVertexArray (newStage.vao);
 
+		const bool curMeshHasVrtNormals = mesh->has_data("vrtNormals");
+		
 	//	check whether we can reuse buffer objects
 		for(auto& stage : m_stages) {
 			if (stage.mesh->coords() == mesh->coords()) {
-				newStage.vrtBuf = stage.vrtBuf;
+				newStage.coordBuf = stage.coordBuf;
+			}
+
+			if (curMeshHasVrtNormals && mesh->has_data("vrtNormals")
+			    && stage.mesh->data("vrtNormals") == mesh->data("vrtNormals"))
+			{
+				newStage.normBuf = stage.normBuf;
 			}
 
 			if (stage.mesh == mesh) {
-				newStage.vrtBuf = stage.vrtBuf;
+				newStage.coordBuf = stage.coordBuf;
+				newStage.normBuf = stage.normBuf;
 				newStage.indBuf = stage.indBuf;
 				break;
 			}
 		}
 
-		if (newStage.vrtBuf){
-			newStage.vrtBuf->bind ();
+		//	coordinates
+		if (newStage.coordBuf){
+			newStage.coordBuf->bind ();
 			glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (0);
 		}
 		else {
-			newStage.vrtBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-			newStage.vrtBuf->set_data (mesh->coords()->raw_data(),
+			newStage.coordBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
+			newStage.coordBuf->set_data (mesh->coords()->raw_data(),
 			                           sizeof(real_t) * mesh->num_coords());
 			glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (0);
 		}
 
+		//	normals
+		if (newStage.normBuf){
+			newStage.normBuf->bind ();
+			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray (1);
+		}
+		else if (curMeshHasVrtNormals){
+			newStage.normBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
+			newStage.normBuf->set_data (mesh->data("vrtNormals")->raw_data(),
+			                            sizeof(real_t) * mesh->data("vrtNormals")->size());
+			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray (1);
+		}
+		else
+			glDisableVertexAttribArray (1);
+
+		//	indices
 		if (newStage.indBuf)
 			newStage.indBuf->bind ();
 		else {
@@ -113,13 +140,15 @@ public:
 
 			case SOLID_FLAT:
 				s.add_source_vs (m_shaderPath + "vertex-shader-0.vs");
+				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
 				s.add_source_gs (m_shaderPath + "flat-shading.gs");
 				s.add_source_fs (m_shaderPath + "light-intensity.fs");
 				s.link();
 				return s;
 
 			case WIRE_NONE:
-				s.add_source_vs (m_shaderPath + "vertex-shader-0.vs");
+				// s.add_source_vs (m_shaderPath + "vertex-shader-0.vs");
+				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
 				s.add_source_fs (m_shaderPath + "wireframe.fs");
 				s.link();
 				return s;
@@ -140,7 +169,8 @@ public:
 			mesh (std::move (s.mesh)),
 			shader (std::move (s.shader)),
 			vao (std::exchange (s.vao, 0)),
-			vrtBuf (std::move (s.vrtBuf)),
+			coordBuf (std::move (s.coordBuf)),
+			normBuf (std::move (s.normBuf)),
 			indBuf (std::move (s.indBuf)),
 			primType (std::move (s.primType))
 		{}
@@ -152,7 +182,8 @@ public:
 		Shader						shader;
 
 		uint 						vao;
-		std::shared_ptr <GLBuffer>	vrtBuf;
+		std::shared_ptr <GLBuffer>	coordBuf;
+		std::shared_ptr <GLBuffer>	normBuf;
 		std::shared_ptr <GLBuffer>	indBuf;
 		GLenum						primType;
 	};

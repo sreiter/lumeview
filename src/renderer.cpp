@@ -16,7 +16,7 @@
 #include "types.h"
 #include "mesh/mesh.h"
 #include "mesh/topology.h"
-
+#include "mesh/geometry.h"
 #include "visualization.h"
 
 using namespace std;
@@ -43,8 +43,13 @@ void RendererInit ()
 		THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 	}
 
-	auto triMesh = msh::CreateMeshFromFile (MESH_PATH + "sphere.stl");
+	string meshFilename = MESH_PATH + "bunny.stl";
+
+	auto triMesh = msh::CreateMeshFromFile (meshFilename);
+	msh::ComputeVertexNormals3 (*triMesh, "vrtNormals");
+
 	auto lineMesh = make_shared <msh::Mesh> (msh::EDGE, triMesh->coords());
+	lineMesh->set_data ("vrtNormals", triMesh->data("vrtNormals"));
 	msh::UniqueSidesToIndexArray (lineMesh->inds()->data(),
 	                         	  triMesh->inds()->raw_data(),
 								  triMesh->num_inds(),
@@ -55,7 +60,7 @@ void RendererInit ()
 	                              triMesh->coords()->size(),
 								  triMesh->coords()->tuple_size());
 
-	LOGT(mesh, "Loaded mesh '" << MESH_PATH + "sphere.stl" << "'\n");
+	LOGT(mesh, "Loaded mesh '" << meshFilename << "'\n");
 	LOGT(mesh, "  #vertices:    " << triMesh->coords()->num_tuples() << std::endl);
 	LOGT(mesh, "  #triangles:   " << triMesh->inds()->num_tuples() << std::endl);
 	LOGT(mesh, "  #edges:       " << lineMesh->inds()->num_tuples() << std::endl);
@@ -64,6 +69,24 @@ void RendererInit ()
 
 	g_visualization.add_stage ("solid", triMesh);
 	g_visualization.add_stage ("wire", lineMesh);
+
+	{
+		auto& normals = *triMesh->data("vrtNormals");
+		const real_t* data = normals.raw_data();
+		const index_t stride = normals.tuple_size();
+		LOGT(mesh, "normals:\n");
+		for(index_t i = 0; i < normals.size(); i+=stride) {
+			LOG(i/stride << ":\t(");
+			for(index_t j = 0; j < stride; ++j) {
+				LOG(data[i+j]);
+				if (j+1 < stride){
+					LOG(", ");
+				}
+			}
+			LOG(")\n");
+		}
+		LOG("\n");
+	}
 }
 
 

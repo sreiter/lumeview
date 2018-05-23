@@ -1,6 +1,7 @@
-#ifndef __H__mesh
-#define __H__mesh
+#ifndef __H__msh__mesh
+#define __H__msh__mesh
 
+#include <map>
 #include <memory>
 #include <vector>
 #include <string>
@@ -69,10 +70,42 @@ public:
 	grob_t grob_type () const							{return m_grobType;}
 	void set_grob_type (const grob_t gt)				{m_grobType = gt;}
 
+	bool has_data (const std::string& id)				{return m_dataMap[id].get() != nullptr;}
+
+	///	returns the data array for the given id. If none was present, a new one will be created.
+	std::shared_ptr <DataArray <real_t>> data (const std::string& id)
+	{
+		auto d = m_dataMap[id];
+		if(!d)
+			m_dataMap[id] = d = std::make_shared <DataArray <real_t>> ();
+		return d;
+	}
+
+	///	explicitly set a data array of a mesh
+	void set_data (const std::string& id, std::shared_ptr <DataArray <real_t>> data)
+	{
+		m_dataMap[id] = data;
+	}
+
+	// std::shared_ptr <const DataArray <real_t>> data (const std::string& id) const
+	// {
+	// 	 std::shared_ptr <const DataArray <real_t>> d = m_dataMap[id];
+	// 	COND_THROW(!d, "Queried data '" << id << "'not available in the mesh.");
+	// 	return d;
+	// }
+
+	///	removes a data array from a mesh.
+	/** This will decrement the shared_ptr but not necessarily delete the array.*/
+	void remove_data (const std::string& id)
+	{
+		m_dataMap.erase (id);
+	}
+
 private:
-	std::shared_ptr <const CoordArray>	m_coords;
-	std::shared_ptr <IndexArray>		m_inds;
-	grob_t								m_grobType;
+	std::shared_ptr <const CoordArray>								m_coords;
+	std::shared_ptr <IndexArray>									m_inds;
+	std::map <std::string, std::shared_ptr <DataArray <real_t>>>	m_dataMap;
+	grob_t															m_grobType;
 };
 
 
@@ -80,4 +113,4 @@ std::shared_ptr <Mesh> CreateMeshFromFile (std::string filename);
 
 }// end of namespace msh
 
-#endif	//__H__mesh
+#endif	//__H__msh__mesh
