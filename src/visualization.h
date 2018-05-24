@@ -9,10 +9,12 @@
 #include "shader.h"
 #include "mesh/mesh.h"
 
-enum ShaderPreset {
-	NONE,
-	SOLID_FLAT,
-	WIRE_NONE
+enum ShaderHint {
+	NONE		= 0,
+	FLAT		= 1,
+	SMOOTH		= 1 << 1,
+	LINES		= 1 << 2,
+	TRIANGLES	= 1 << 3
 };
 
 
@@ -28,24 +30,29 @@ public:
 	Visualization (const Visualization&) = delete;
 
 	void add_stage (std::string name,
-	                std::shared_ptr <msh::Mesh> mesh)
+	                std::shared_ptr <msh::Mesh> mesh,
+	                uint shaderHints)
 	{
 		Stage newStage;
 		newStage.mesh = mesh;
 
-	//	create the vertex array object for this stage
-		// glGenVertexArrays (1, &newStage.vao);
+		//	create the vertex array object for this stage
 		glBindVertexArray (newStage.vao);
 
-		const bool curMeshHasVrtNormals = mesh->has_data("vrtNormals");
-		
-	//	check whether we can reuse buffer objects
+		const bool curMeshNeedsVrtNormals =
+					(shaderHints & SMOOTH)
+				||	(mesh->grob_type() == msh::EDGE && (shaderHints & FLAT));
+
+		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data("vrtNormals"),
+		           "Requested shader needs normal information!");
+
+		//	check whether we can reuse buffer objects
 		for(auto& stage : m_stages) {
 			if (stage.mesh->coords() == mesh->coords()) {
 				newStage.coordBuf = stage.coordBuf;
 			}
 
-			if (curMeshHasVrtNormals && mesh->has_data("vrtNormals")
+			if (curMeshNeedsVrtNormals && stage.mesh->has_data("vrtNormals")
 			    && stage.mesh->data("vrtNormals") == mesh->data("vrtNormals"))
 			{
 				newStage.normBuf = stage.normBuf;
@@ -79,7 +86,7 @@ public:
 			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (1);
 		}
-		else if (curMeshHasVrtNormals){
+		else if (curMeshNeedsVrtNormals){
 			newStage.normBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
 			newStage.normBuf->set_data (mesh->data("vrtNormals")->raw_data(),
 			                            sizeof(real_t) * mesh->data("vrtNormals")->size());
@@ -102,12 +109,16 @@ public:
 		switch (newStage.mesh->grob_type()) {
 			case msh::EDGE:
 				newStage.primType = GL_LINES;
-				newStage.shader = get_shader (WIRE_NONE);
+				newStage.shader = get_shader (shaderHints | ShaderHint::LINES);
+				newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 1.0f);
+				newStage.zfac = 0.99f;
 				break;
 			
 			case msh::TRI:
 				newStage.primType = GL_TRIANGLES;
-				newStage.shader = get_shader (SOLID_FLAT);
+				newStage.shader = get_shader (shaderHints | ShaderHint::TRIANGLES);
+				newStage.color = glm::vec4 (1.0f, 1.0f, 1.0f, 1.0f);
+				newStage.zfac = 1.0f;
 				break;
 			default:
 				THROW("Visualization::ad_stage: Unsupported grid object type in specified mesh.");
@@ -122,40 +133,59 @@ public:
 		for(auto& stage : m_stages) {
 			stage.shader.use ();
 			view.apply (stage.shader);
+			stage.shader.set_uniform("color", stage.color);
+			stage.shader.set_uniform("zfac", stage.zfac);
 			glBindVertexArray (stage.vao);
 			glDrawElements (stage.primType, stage.mesh->num_inds(), GL_UNSIGNED_INT, 0);
 		}
 	}
 
 // private:
-	Shader get_shader (ShaderPreset preset)
+	Shader get_shader (uint preset)
 	{
 		Shader& s = m_shaders [preset];
 		if (s)
 			return s;
 
-		switch (preset) {
-			case NONE:
-				return s;
-
-			case SOLID_FLAT:
-				s.add_source_vs (m_shaderPath + "vertex-shader-0.vs");
+		if (preset & TRIANGLES) {
+			if (preset & SMOOTH){
 				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
-				s.add_source_gs (m_shaderPath + "flat-shading.gs");
-				s.add_source_fs (m_shaderPath + "light-intensity.fs");
-				s.link();
-				return s;
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
+			else if (preset & FLAT){
+				s.add_source_vs (m_shaderPath + "no-shading.vs");
+				s.add_source_gs (m_shaderPath + "flat-tri-shading.gs");
+				s.add_source_fs (m_shaderPath + "flat-shading.fs");
+			}
+			else{
+				s.add_source_vs (m_shaderPath + "no-shading.vs");
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
 
-			case WIRE_NONE:
-				// s.add_source_vs (m_shaderPath + "vertex-shader-0.vs");
+			s.link();
+			return s;
+		}
+
+		if (preset & LINES) {
+			if (preset & SMOOTH){
 				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
-				s.add_source_fs (m_shaderPath + "wireframe.fs");
-				s.link();
-				return s;
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
+			else if (preset & FLAT){
+				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
+				s.add_source_gs (m_shaderPath + "flat-edge-shading.gs");
+				s.add_source_fs (m_shaderPath + "flat-shading.fs");
+			}
+			else{
+				s.add_source_vs (m_shaderPath + "no-shading.vs");
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
 
-			default:
-				THROW ("Shader preset " << preset << " not yet supported.");
-		};
+			s.link();
+			return s;
+		}
+
+		THROW ("Shader preset " << preset << " not yet supported.");
 
 		return s;
 	}
@@ -168,6 +198,8 @@ public:
 			name (std::move (s.name)),
 			mesh (std::move (s.mesh)),
 			shader (std::move (s.shader)),
+			color (std::move (s.color)),
+			zfac (std::move (s.zfac)),
 			vao (std::exchange (s.vao, 0)),
 			coordBuf (std::move (s.coordBuf)),
 			normBuf (std::move (s.normBuf)),
@@ -180,6 +212,8 @@ public:
 		std::string 				name;
 		std::shared_ptr <msh::Mesh>	mesh;
 		Shader						shader;
+		glm::vec4					color;
+		float						zfac;
 
 		uint 						vao;
 		std::shared_ptr <GLBuffer>	coordBuf;
@@ -189,7 +223,7 @@ public:
 	};
 
 	std::vector <Stage> 			m_stages;
-	std::map <ShaderPreset, Shader>	m_shaders;
+	std::map <uint, Shader>			m_shaders;
 	std::string						m_shaderPath;
 
 };

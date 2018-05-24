@@ -29,11 +29,12 @@ set (sources
 
 
 set (shaders
-        flat-shading.gs
-        light-intensity.fs
-        smooth-shading.vs
-        vertex-shader-0.vs
-        wireframe.fs)
+        flat-edge-shading.gs
+        flat-shading.fs
+        flat-tri-shading.gs
+        no-shading.vs
+        smooth-shading.fs
+        smooth-shading.vs)
 
 set (meshes
         box.stl

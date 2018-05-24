@@ -43,7 +43,7 @@ void RendererInit ()
 		THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 	}
 
-	string meshFilename = MESH_PATH + "bunny.stl";
+	string meshFilename = MESH_PATH + "pyra.stl";
 
 	auto triMesh = msh::CreateMeshFromFile (meshFilename);
 	msh::ComputeVertexNormals3 (*triMesh, "vrtNormals");
@@ -67,8 +67,8 @@ void RendererInit ()
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 
-	g_visualization.add_stage ("solid", triMesh);
-	g_visualization.add_stage ("wire", lineMesh);
+	g_visualization.add_stage ("solid", triMesh, FLAT);
+	g_visualization.add_stage ("wire", lineMesh, FLAT);
 
 	{
 		auto& normals = *triMesh->data("vrtNormals");
