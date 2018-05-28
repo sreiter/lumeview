@@ -1,3 +1,4 @@
+#include "mesh.h"
 #include "topology.h"
 #include "../log.h"
 
@@ -73,6 +74,25 @@ void UniqueSidesToIndexArray (std::vector <index_t>& indArrayInOut,
 	GrobHash hash;
 	FindUniqueSides (hash, cornerInds, numCornerInds, grobType, sideDim);
 	GrobHashToIndexArray (indArrayInOut, hash);
+}
+
+void CreateEdgeInds (Mesh& mesh)
+{
+	const std::vector<grob_t> grobs = mesh.grob_types();
+
+	GrobHash hash;
+	for(auto gt : grobs) {
+		if(GrobDesc(gt).dim() > 1) {
+			FindUniqueSides (hash,
+							 mesh.inds(gt)->raw_data(),
+							 mesh.inds(gt)->size(),
+							 gt,
+							 1);
+		}
+	}
+	
+	mesh.inds(msh::EDGE)->data().clear();
+	GrobHashToIndexArray (mesh.inds(msh::EDGE)->data(), hash);
 }
 
 }//	end of namespace

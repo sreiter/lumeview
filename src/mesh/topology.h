@@ -6,6 +6,8 @@
 
 namespace msh {
 
+class Mesh;
+
 ///	Collects all sides of the *grobs* specified by `cornerInds` and `grobType`.
 /** \note	It is assumed, that `cornerInds` holds the corner indices of one or
 *			more *grobs* of the same `grobType` in sequential order.
@@ -34,6 +36,9 @@ void UniqueSidesToIndexArray (std::vector <index_t>& indArrayInOut,
                               const index_t numCornerInds,
                               const grob_t grobType,
                               const index_t sideDim);
+
+void CreateEdgeInds (Mesh& mesh);
+
 }//	end of namespace msh
 
 #endif	//__H__msh__topology

@@ -39,8 +39,7 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 				VecAppend (&normalsOut [tri [i]*3], n, 3);
 		}
 
-		for(index_t i = 0; i < numCoords; i+=3)
-			VecNormalize (normalsOut + i, 3);
+		VecTupNormalize (normalsOut, numCoords, 3);
 	}
 	else {
 		THROW("VertexNormals3 is currently only implemented for triangle meshes");
@@ -49,19 +48,19 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 
 
 std::shared_ptr <DataArray <real_t>>
-ComputeVertexNormals3 (Mesh& mesh,
-					   std::string normalId)
+ComputeTriVertexNormals3 (Mesh& mesh,
+						  std::string normalId)
 {
-	auto normals = mesh.data (std::move(normalId));
+	auto normals = mesh.data<real_t> (std::move(normalId));
 	normals->set_tuple_size (3);
 	normals->data().resize (mesh.num_coords());
 
 	ComputeVertexNormals3 (normals->raw_data(),
 	            		   mesh.coords()->raw_data(),
 	            		   mesh.num_coords(),
-	            		   mesh.inds()->raw_data(),
-	            		   mesh.num_inds(),
-	            		   mesh.grob_type());
+	            		   mesh.inds(msh::TRI)->raw_data(),
+	            		   mesh.inds(msh::TRI)->size(),
+	            		   msh::TRI);
 	return normals;
 }
 

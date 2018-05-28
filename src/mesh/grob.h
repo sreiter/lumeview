@@ -138,7 +138,7 @@ static const index_t GROB_DESC_OFFSETS[] = {
 };
 
 ///	returns the name of a grob
-const char* GrobName (grob_t grob);
+const std::string& GrobName (grob_t grob);
 
 /// Logs all grob-descs in a human readable way.
 void PrintGrobDescs ();
@@ -162,7 +162,7 @@ public:
 	{}
 
 	inline grob_t type () const						{return static_cast<grob_t>(impl::GROB_DESCS [m_offset]);}
-	const char* name () const						{return impl::GrobName (type());}
+	const std::string& name () const				{return impl::GrobName (type());}
 	inline index_t dim () const						{return impl::GROB_DESCS [m_offset + 1];}
 	inline index_t num_corners () const				{return impl::GROB_DESCS [side_offset (0)];}
 

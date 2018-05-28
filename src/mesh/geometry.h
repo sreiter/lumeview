@@ -39,8 +39,8 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 
 ///	computes the vertex normals of a mesh and stores them in the specified data array
 std::shared_ptr <DataArray <real_t>>
-ComputeVertexNormals3 (Mesh& meshInOut,
-                	   std::string normalId = "vrtNormals");
+ComputeTriVertexNormals3 (Mesh& meshInOut,
+                		  std::string normalId = "vrtNormals");
 
 }// end of namespace msh
 

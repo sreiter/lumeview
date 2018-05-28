@@ -5,14 +5,14 @@ using namespace std;
 namespace msh {
 namespace impl {
 
-const char* GrobName (grob_t grob)
+const std::string& GrobName (grob_t grob)
 {
-	static const char* names [] = {
-		"VERTEX",
-		"EDGE",
-		"TRI",
-		"QUAD",
-		"INVALID"
+	static const std::string names [] = {
+		std::string ("vertex"),
+		std::string ("edge"),
+		std::string ("tri"),
+		std::string ("quad"),
+		std::string ("invalid")
 	};
 
 	return names[grob];

@@ -17,6 +17,7 @@
 #include "mesh/mesh.h"
 #include "mesh/topology.h"
 #include "mesh/geometry.h"
+#include "mesh/vec_math_raw.h"
 #include "visualization.h"
 
 using namespace std;
@@ -33,6 +34,26 @@ WindowEventListener* RendererGetEventListener ()
 	return &g_arcBallView;
 }
 
+msh::SPMesh LoadMeshWithEdges (std::string filename)
+{
+	auto mesh = msh::CreateMeshFromFile (filename);
+	msh::ComputeTriVertexNormals3 (*mesh, "vrtNormals");
+	CreateEdgeInds (*mesh);
+
+	Box box = BoxFromCoordinates (mesh->coords()->raw_data(),
+	                              mesh->coords()->size(),
+								  mesh->coords()->tuple_size());
+
+	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
+	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
+	LOGT(mesh, "  #triangles:   " << mesh->inds(msh::TRI)->num_tuples() << std::endl);
+	LOGT(mesh, "  #edges:       " << mesh->inds(msh::EDGE)->num_tuples() << std::endl);
+	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
+	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
+
+	return mesh;
+}
+
 void RendererInit ()
 {
 	// if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
@@ -43,50 +64,47 @@ void RendererInit ()
 		THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 	}
 
-	string meshFilename = MESH_PATH + "pyra.stl";
-
-	auto triMesh = msh::CreateMeshFromFile (meshFilename);
-	msh::ComputeVertexNormals3 (*triMesh, "vrtNormals");
-
-	auto lineMesh = make_shared <msh::Mesh> (msh::EDGE, triMesh->coords());
-	lineMesh->set_data ("vrtNormals", triMesh->data("vrtNormals"));
-	msh::UniqueSidesToIndexArray (lineMesh->inds()->data(),
-	                         	  triMesh->inds()->raw_data(),
-								  triMesh->num_inds(),
-								  msh::TRI,
-								  1);
-
-	Box box = BoxFromCoordinates (triMesh->coords()->raw_data(),
-	                              triMesh->coords()->size(),
-								  triMesh->coords()->tuple_size());
-
-	LOGT(mesh, "Loaded mesh '" << meshFilename << "'\n");
-	LOGT(mesh, "  #vertices:    " << triMesh->coords()->num_tuples() << std::endl);
-	LOGT(mesh, "  #triangles:   " << triMesh->inds()->num_tuples() << std::endl);
-	LOGT(mesh, "  #edges:       " << lineMesh->inds()->num_tuples() << std::endl);
-	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
-	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
-
-	g_visualization.add_stage ("solid", triMesh, FLAT);
-	g_visualization.add_stage ("wire", lineMesh, FLAT);
+	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
+	g_visualization.add_stage ("solid", mainMesh, msh::TRI, FLAT);
+	g_visualization.add_stage ("wire", mainMesh, msh::EDGE, FLAT);
 
 	{
-		auto& normals = *triMesh->data("vrtNormals");
-		const real_t* data = normals.raw_data();
-		const index_t stride = normals.tuple_size();
-		LOGT(mesh, "normals:\n");
-		for(index_t i = 0; i < normals.size(); i+=stride) {
-			LOG(i/stride << ":\t(");
-			for(index_t j = 0; j < stride; ++j) {
-				LOG(data[i+j]);
-				if (j+1 < stride){
-					LOG(", ");
-				}
-			}
-			LOG(")\n");
-		}
-		LOG("\n");
+		auto sphereMesh = LoadMeshWithEdges (MESH_PATH + "sphere.stl");
+		auto meshCoords = mainMesh->coords();
+		auto sphere = SphereFromCoordinates (meshCoords->raw_data(),
+		                                     meshCoords->size(),
+											 meshCoords->tuple_size());
+
+		auto sphereCoords = sphereMesh->coords();
+		msh::VecScale (sphereCoords->raw_data(),
+		               sphere.radius,
+		               sphereCoords->size());
+
+		msh::VecTupAppend (sphereCoords->raw_data(),
+		            	   glm::value_ptr (sphere.center),
+		            	   sphereCoords->size(),
+		            	   sphereCoords->tuple_size());
+
+		g_visualization.add_stage ("wireSphere", sphereMesh, msh::EDGE, FLAT);
 	}
+
+	// {
+	// 	auto& normals = *mesh->data("vrtNormals");
+	// 	const real_t* data = normals.raw_data();
+	// 	const index_t stride = normals.tuple_size();
+	// 	LOGT(mesh, "normals:\n");
+	// 	for(index_t i = 0; i < normals.size(); i+=stride) {
+	// 		LOG(i/stride << ":\t(");
+	// 		for(index_t j = 0; j < stride; ++j) {
+	// 			LOG(data[i+j]);
+	// 			if (j+1 < stride){
+	// 				LOG(", ");
+	// 			}
+	// 		}
+	// 		LOG(")\n");
+	// 	}
+	// 	LOG("\n");
+	// }
 }
 
 

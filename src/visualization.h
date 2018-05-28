@@ -31,6 +31,7 @@ public:
 
 	void add_stage (std::string name,
 	                std::shared_ptr <msh::Mesh> mesh,
+	                msh::grob_t grobType,
 	                uint shaderHints)
 	{
 		Stage newStage;
@@ -41,9 +42,9 @@ public:
 
 		const bool curMeshNeedsVrtNormals =
 					(shaderHints & SMOOTH)
-				||	(mesh->grob_type() == msh::EDGE && (shaderHints & FLAT));
+				||	(grobType == msh::EDGE && (shaderHints & FLAT));
 
-		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data("vrtNormals"),
+		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("vrtNormals"),
 		           "Requested shader needs normal information!");
 
 		//	check whether we can reuse buffer objects
@@ -52,15 +53,13 @@ public:
 				newStage.coordBuf = stage.coordBuf;
 			}
 
-			if (curMeshNeedsVrtNormals && stage.mesh->has_data("vrtNormals")
-			    && stage.mesh->data("vrtNormals") == mesh->data("vrtNormals"))
+			if (curMeshNeedsVrtNormals && stage.mesh->has_data<real_t>("vrtNormals")
+			    && stage.mesh->data<real_t>("vrtNormals") == mesh->data<real_t>("vrtNormals"))
 			{
 				newStage.normBuf = stage.normBuf;
 			}
 
-			if (stage.mesh == mesh) {
-				newStage.coordBuf = stage.coordBuf;
-				newStage.normBuf = stage.normBuf;
+			if (stage.mesh == mesh && stage.grobType == grobType) {
 				newStage.indBuf = stage.indBuf;
 				break;
 			}
@@ -88,8 +87,8 @@ public:
 		}
 		else if (curMeshNeedsVrtNormals){
 			newStage.normBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-			newStage.normBuf->set_data (mesh->data("vrtNormals")->raw_data(),
-			                            sizeof(real_t) * mesh->data("vrtNormals")->size());
+			newStage.normBuf->set_data (mesh->data<real_t>("vrtNormals")->raw_data(),
+			                            sizeof(real_t) * mesh->data<real_t>("vrtNormals")->size());
 			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (1);
 		}
@@ -101,16 +100,16 @@ public:
 			newStage.indBuf->bind ();
 		else {
 			newStage.indBuf = std::make_shared <GLBuffer> (GL_ELEMENT_ARRAY_BUFFER);
-			newStage.indBuf->set_data (mesh->inds()->raw_data(),
-			                           sizeof(index_t) * mesh->num_inds());
+			newStage.indBuf->set_data (mesh->inds(grobType)->raw_data(),
+			                           sizeof(index_t) * mesh->inds(grobType)->size());
 		}
 
 	//todo: create shader
-		switch (newStage.mesh->grob_type()) {
+		switch (grobType) {
 			case msh::EDGE:
 				newStage.primType = GL_LINES;
 				newStage.shader = get_shader (shaderHints | ShaderHint::LINES);
-				newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 1.0f);
+				newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
 				newStage.zfac = 0.99f;
 				break;
 			
@@ -121,22 +120,27 @@ public:
 				newStage.zfac = 1.0f;
 				break;
 			default:
-				THROW("Visualization::ad_stage: Unsupported grid object type in specified mesh.");
+				THROW("Visualization::add_stage: Unsupported grid object type in specified mesh.");
 		}
 
+		newStage.numInds = mesh->inds(grobType)->size();
 		newStage.name = std::move (name);
+		newStage.grobType = grobType;
 		m_stages.push_back (std::move(newStage));
 	}
 
 	void render (const View& view)
 	{
+		glEnable (GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		for(auto& stage : m_stages) {
 			stage.shader.use ();
 			view.apply (stage.shader);
 			stage.shader.set_uniform("color", stage.color);
 			stage.shader.set_uniform("zfac", stage.zfac);
 			glBindVertexArray (stage.vao);
-			glDrawElements (stage.primType, stage.mesh->num_inds(), GL_UNSIGNED_INT, 0);
+			glDrawElements (stage.primType, stage.numInds, GL_UNSIGNED_INT, 0);
 		}
 	}
 
@@ -204,7 +208,9 @@ public:
 			coordBuf (std::move (s.coordBuf)),
 			normBuf (std::move (s.normBuf)),
 			indBuf (std::move (s.indBuf)),
-			primType (std::move (s.primType))
+			primType (std::move (s.primType)),
+			numInds (std::move (s.numInds)),
+			grobType (std::move (s.grobType))
 		{}
 
 		~Stage ()	{if (vao) glDeleteVertexArrays (1, &vao);}
@@ -220,6 +226,8 @@ public:
 		std::shared_ptr <GLBuffer>	normBuf;
 		std::shared_ptr <GLBuffer>	indBuf;
 		GLenum						primType;
+		GLsizei						numInds;
+		msh::grob_t					grobType;
 	};
 
 	std::vector <Stage> 			m_stages;
