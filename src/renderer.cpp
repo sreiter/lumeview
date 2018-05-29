@@ -14,10 +14,10 @@
 #include "log.h"
 #include "renderer.h"
 #include "types.h"
-#include "mesh/mesh.h"
-#include "mesh/topology.h"
-#include "mesh/geometry.h"
-#include "mesh/vec_math_raw.h"
+#include "mesh.h"
+#include "topology.h"
+#include "shapes.h"
+#include "vec_math_raw.h"
 #include "visualization.h"
 
 using namespace std;

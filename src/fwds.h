@@ -3,6 +3,5 @@
 
 class Shader;
 class View;
-class VisMesh;
 
 #endif	//__H__fwds

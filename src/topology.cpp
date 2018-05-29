@@ -1,6 +1,6 @@
 #include "mesh.h"
 #include "topology.h"
-#include "../log.h"
+#include "log.h"
 
 namespace msh {
 

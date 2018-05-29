@@ -16,15 +16,15 @@ set (sources
     	arc_ball_view.cpp
     	camera.cpp
         file_util.cpp
-        geometry.cpp
+        shapes.cpp
         renderer.cpp
         view.cpp
     	window_event_listener.cpp
 
-        mesh/geometry.cpp
-        mesh/grob.cpp
-        mesh/mesh.cpp
-        mesh/topology.cpp
+        geometry.cpp
+        grob.cpp
+        mesh.cpp
+        topology.cpp
     )
 
 

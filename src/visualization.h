@@ -7,7 +7,7 @@
 
 #include "gl_buffer.h"
 #include "shader.h"
-#include "mesh/mesh.h"
+#include "mesh.h"
 
 enum ShaderHint {
 	NONE		= 0,

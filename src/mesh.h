@@ -6,8 +6,8 @@
 #include <vector>
 #include <string>
 
-#include "../cond_throw.h"
-#include "../types.h"
+#include "cond_throw.h"
+#include "types.h"
 #include "grob.h"
 
 namespace msh {

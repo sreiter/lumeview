@@ -2,7 +2,7 @@
 #define __H__msh__vec_math_raw
 
 #include <cmath>
-#include "../types.h"
+#include "types.h"
 
 namespace msh {
 
