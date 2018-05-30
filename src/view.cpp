@@ -8,6 +8,8 @@
 #include "view.h"
 #include "shader.h"
 
+namespace slimesh {
+
 View::View () :
     m_viewMat (1.f),
     m_viewport (0, 0, 1, 1)
@@ -79,3 +81,5 @@ float View::depth_at_screen_coord (const glm::vec2& c) const
                   GL_DEPTH_COMPONENT, GL_FLOAT, &depthVal);
     return depthVal;
 }
+
+}// end of namespace slimesh

@@ -1,12 +1,12 @@
-#ifndef __H__msh__grob
-#define __H__msh__grob
+#ifndef __H__slimesh__grob
+#define __H__slimesh__grob
 
 #include <cstdint>
 #include <unordered_set>
 #include "../types.h"
 #include "../log.h"
 
-namespace msh {
+namespace slimesh {
 
 enum grob_t {
 	VERTEX,
@@ -290,7 +290,7 @@ public:
 		for(index_t i = 0; i < numCorners; ++i) {
 			bool gotOne = false;
 			const index_t c = corner(i);
-			for(int j = 0; j < numCorners; ++j) {
+			for(index_t j = 0; j < numCorners; ++j) {
 				if(c == gc[j]){
 					gotOne = true;
 					break;
@@ -389,16 +389,17 @@ private:
 	const GrobDesc		m_desc;
 };
 
-}//	end of namespace msh
+}//	end of namespace slimesh
 
 namespace std
 {
-    template<> struct hash<msh::Grob>
+    template<> struct hash<slimesh::Grob>
     {
-        typedef msh::Grob argument_type;
+        typedef slimesh::Grob argument_type;
         typedef std::size_t result_type;
         result_type operator()(argument_type const& grob) const noexcept
         {
+        	using namespace slimesh;
         	const index_t numCorners = grob.num_corners();
         	std::size_t h = 0;
         	for(index_t i = 0; i < numCorners; ++i){
@@ -410,8 +411,8 @@ namespace std
     };
 }//	end of namespace std
 
-namespace msh {
+namespace slimesh {
 using GrobHash = std::unordered_set <Grob>;
-}//	end of namespace msh
+}//	end of namespace slimesh
 
-#endif	//__H__msh__grob
+#endif	//__H__slimesh__grob

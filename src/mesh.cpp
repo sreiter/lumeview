@@ -3,7 +3,7 @@
 
 using namespace std;
 
-namespace msh {
+namespace slimesh {
 
 std::shared_ptr <Mesh> CreateMeshFromFile (std::string filename)
 {
@@ -21,4 +21,4 @@ std::shared_ptr <Mesh> CreateMeshFromFile (std::string filename)
 	return mesh;
 }
 
-}// end of namespace msh
+}// end of namespace slimesh

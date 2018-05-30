@@ -8,6 +8,8 @@
 #define LOG(msg) {std::stringstream ss; ss << msg; DefLog().add (ss.str().c_str());}
 #define LOGT(tag, msg) {std::stringstream ss; ss << "<" << #tag << "> " << msg; DefLog().add (ss.str().c_str());}
 
+namespace slimesh {
+
 struct AppLog
 {
     ImGuiTextBuffer     Buf;
@@ -72,8 +74,10 @@ struct AppLog
 
 inline AppLog& DefLog()
 {
-	static AppLog log;
-	return log;
+    static AppLog log;
+    return log;
 }
+
+}// end of namespace slimesh
 
 #endif	//__H__imgui_log

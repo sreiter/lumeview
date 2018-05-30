@@ -6,6 +6,8 @@
 #include "vec_math_raw.h"
 using namespace std;
 
+namespace slimesh {
+
 template <class real_t>
 TBox <real_t>::TBox ()
 {
@@ -44,19 +46,19 @@ TBox <real_t>::TBox (TBox&& box) :
 	maxCorner (std::move(box.maxCorner))
 {}
 
-template class TBox <float>;
-template class TBox <double>;
+template struct TBox <float>;
+template struct TBox <double>;
 
 
 
 template <class real_t>
-TBox <real_t> BoxFromCoordinates (const real_t* coords, size_t num, size_t stride)
+TBox <real_t> BoxFromCoordinates (const real_t* coords, index_t num, index_t stride)
 {
-	const size_t cmps = std::min<size_t> (stride, 3);
+	const index_t cmps = std::min<index_t> (stride, 3);
 
 	TBox <real_t> b (numeric_limits<real_t>::max(), numeric_limits<real_t>::lowest());
-	for(size_t i = 0; i < num; i+=stride){
-		for(size_t j = 0; j < cmps; ++j){
+	for(index_t i = 0; i < num; i+=stride){
+		for(index_t j = 0; j < cmps; ++j){
 			if (coords [i+j] < b.minCorner[j])
 				b.minCorner[j] = coords [i+j];
 			if (coords [i+j] > b.maxCorner[j])
@@ -64,7 +66,7 @@ TBox <real_t> BoxFromCoordinates (const real_t* coords, size_t num, size_t strid
 		}
 	}
 
-	for(size_t i = stride; i < 3; ++i){
+	for(index_t i = stride; i < 3; ++i){
 		b.minCorner[i] = 0;
 		b.maxCorner[i] = 0;
 	}
@@ -72,8 +74,8 @@ TBox <real_t> BoxFromCoordinates (const real_t* coords, size_t num, size_t strid
 	return b;
 }
 
-template TBox <float> BoxFromCoordinates <float> (const float*, size_t, size_t);
-template TBox <double> BoxFromCoordinates <double> (const double*, size_t, size_t);
+template TBox <float> BoxFromCoordinates <float> (const float*, index_t, index_t);
+template TBox <double> BoxFromCoordinates <double> (const double*, index_t, index_t);
 
 
 
@@ -109,12 +111,12 @@ TSphere <real_t>::TSphere (TSphere&& sphere) :
 	radius (sphere.radius)
 {}
 
-template class TSphere <float>;
-template class TSphere <double>;
+template struct TSphere <float>;
+template struct TSphere <double>;
 
 
 template <class real_t>
-TSphere <real_t> SphereFromCoordinates (const real_t* coords, size_t num, size_t stride)
+TSphere <real_t> SphereFromCoordinates (const real_t* coords, index_t num, index_t stride)
 {
 	COND_THROW (stride > 3, "SphereFromCoordinates: Max stride of 3 supported. "
 	            "Given: " << stride);
@@ -124,14 +126,14 @@ TSphere <real_t> SphereFromCoordinates (const real_t* coords, size_t num, size_t
 //	compute center
 	glm::tvec3<real_t> center (0);
 	real_t* pcenter = glm::value_ptr(center);
-	msh::VecTupAverage (pcenter, coords, num, stride);
+	VecTupAverage (pcenter, coords, num, stride);
 
 //	find the coordinate with the largest index
-	const size_t cmps = std::min<size_t> (stride, 3);
+	const index_t cmps = std::min<index_t> (stride, 3);
 
 	real_t maxRadSq = 0;
-	for(int i = 0; i < num; i+=stride) {
-		const real_t d = msh::VecDistSq (pcenter, coords + i, stride);
+	for(index_t i = 0; i < num; i+=stride) {
+		const real_t d = VecDistSq (pcenter, coords + i, stride);
 		if (d > maxRadSq)
 			maxRadSq = d;
 	}
@@ -139,5 +141,7 @@ TSphere <real_t> SphereFromCoordinates (const real_t* coords, size_t num, size_t
 	return TSphere <real_t> (center, sqrt(maxRadSq));
 }
 
-template TSphere <float> SphereFromCoordinates <float> (const float*, size_t, size_t);
-template TSphere <double> SphereFromCoordinates <double> (const double*, size_t, size_t);
+template TSphere <float> SphereFromCoordinates <float> (const float*, index_t, index_t);
+template TSphere <double> SphereFromCoordinates <double> (const double*, index_t, index_t);
+
+}// end of namespace slimesh

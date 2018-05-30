@@ -18,6 +18,8 @@
 #include "file_util.h"
 #include "types.h"
 
+namespace slimesh {
+
 class Shader
 {
 public:
@@ -166,5 +168,7 @@ private:
 
 	std::shared_ptr <ShaderData>	m_shaderData;
 };
+
+}// end of namespace slimesh
 
 #endif	//__H__shader

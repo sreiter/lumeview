@@ -1,5 +1,5 @@
-#ifndef __H__msh__mesh
-#define __H__msh__mesh
+#ifndef __H__slimesh__mesh
+#define __H__slimesh__mesh
 
 #include <map>
 #include <memory>
@@ -9,71 +9,32 @@
 #include "cond_throw.h"
 #include "types.h"
 #include "grob.h"
+#include "data_buffer.h"
 
-namespace msh {
-
-template <class T>
-class DataArray {
-public:
-	using value_type = T;
-	using value_t = T;
-
-	DataArray ()	: m_tupleSize (1) {}
-	DataArray (const index_t tupleSize) : m_tupleSize (tupleSize) {}
-
-	/// total number of entries, counting individual components
-	index_t size () const			{return static_cast<index_t>(m_data.size());}
-
-	index_t num_tuples () const		{return size() / tuple_size();}
-
-	/// number of individual components making up a tuple
-	index_t tuple_size () const				{return m_tupleSize;}
-	void set_tuple_size (const index_t ts)	{m_tupleSize = ts;}
-
-	T* raw_data ()					{return &m_data[0];}
-	const T* raw_data () const		{return &m_data[0];}
-
-	std::vector <T>& data ()				{return m_data;}
-	const std::vector <T>& data () const	{return m_data;}
-
-private:
-	std::vector <T>	m_data;
-	index_t			m_tupleSize;
-};
-
-
-using RealDataArray		= DataArray <real_t>;
-using IndexDataArray	= DataArray <index_t>;
-
-using SPRealDataArray	= std::shared_ptr <RealDataArray>;
-using SPIndexDataArray	= std::shared_ptr <IndexDataArray>;
-using SPCRealDataArray	= std::shared_ptr <const RealDataArray>;
-using SPCIndexDataArray	= std::shared_ptr <const IndexDataArray>;
-
-
+namespace slimesh {
 
 class Mesh {
 public:
 	Mesh () :
-		m_coords (std::make_shared <RealDataArray> ())
+		m_coords (std::make_shared <RealDataBuffer> ())
 	{
 		set_data <real_t> ("coords", m_coords);
 	}
 	
 	~Mesh () {}
 	
-	SPRealDataArray coords ()						{return m_coords;}
-	SPCRealDataArray coords () const				{return m_coords;}
+	SPRealDataBuffer coords ()						{return m_coords;}
+	SPCRealDataBuffer coords () const				{return m_coords;}
 	index_t num_coords () const						{return m_coords->size();}
 
-	SPIndexDataArray inds (const grob_t gt)
+	SPIndexDataBuffer inds (const grob_t gt)
 	{
 		auto t = grob_storage().data(gt);
 		t->set_tuple_size (GrobDesc(gt).num_corners());
 		return t;
 	}
 
-	SPCIndexDataArray inds (const grob_t gt) const
+	SPCIndexDataBuffer inds (const grob_t gt) const
 	{
 		return grob_storage().data(gt);
 	}
@@ -100,16 +61,16 @@ public:
 
 	///	returns the data array for the given id. If none was present, a new one will be created.
 	template <class T>
-	std::shared_ptr <DataArray <T>>
+	std::shared_ptr <DataBuffer <T>>
 	data (const std::string& id)					{return storage(T{}).data (id);}
 
 	///	explicitly set a data array of a mesh
 	template <class T>
 	void set_data (const std::string& id,
-	               const std::shared_ptr <DataArray <T>>& data)	{return storage(T{}).set_data (id, data);}
+	               const std::shared_ptr <DataBuffer <T>>& data)	{return storage(T{}).set_data (id, data);}
 
 	// template <class T>
-	// SPCRealDataArray data (const std::string& id) const
+	// SPCRealDataBuffer data (const std::string& id) const
 
 	///	removes a data array from a mesh.
 	/** This will decrement the shared_ptr but not necessarily delete the array.*/
@@ -119,8 +80,8 @@ public:
 private:
 	template <class TKey, class T> class DataStorage
 	{
-		using sp_data_array_t	= std::shared_ptr <DataArray<T>>;
-		using spc_data_array_t	= std::shared_ptr <const DataArray<T>>;
+		using sp_data_array_t	= std::shared_ptr <DataBuffer<T>>;
+		using spc_data_array_t	= std::shared_ptr <const DataBuffer<T>>;
 		using data_map_t		= std::map <TKey, sp_data_array_t>;
 
 		public:
@@ -135,7 +96,7 @@ private:
 		{
 			auto d = m_dataMap[id];
 			if(!d)
-				m_dataMap[id] = d = std::make_shared <DataArray <T>> ();
+				m_dataMap[id] = d = std::make_shared <DataBuffer <T>> ();
 			return d;
 		}
 
@@ -208,7 +169,7 @@ private:
 
 
 	//	MEMBER VARIABLES
-	SPRealDataArray		m_coords;
+	SPRealDataBuffer					m_coords;
 	DataStorage <std::string, real_t>	m_realDataStorage;
 	DataStorage <std::string, index_t>	m_indexDataStorage;
 	
@@ -219,6 +180,6 @@ using SPMesh = std::shared_ptr <Mesh>;
 
 SPMesh CreateMeshFromFile (std::string filename);
 
-}// end of namespace msh
+}// end of namespace slimesh
 
-#endif	//__H__msh__mesh
+#endif	//__H__slimesh__mesh

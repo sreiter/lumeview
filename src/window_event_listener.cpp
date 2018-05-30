@@ -2,6 +2,8 @@
 
 using namespace std;
 
+namespace slimesh {
+
 WindowEventListener::MouseBtnInfo::MouseBtnInfo () :
 		downPos (0),
 		isDown (false),
@@ -92,3 +94,5 @@ void WindowEventListener::key (int key, int scancode, int action, int mods)
 void WindowEventListener::character (unsigned int c)
 {
 }
+
+}// end of namespace slimesh

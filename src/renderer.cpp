@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace slimesh {
+
 const std::string SHADER_PATH = "shaders/";
 const std::string MESH_PATH = "meshes/";
 
@@ -34,10 +36,10 @@ WindowEventListener* RendererGetEventListener ()
 	return &g_arcBallView;
 }
 
-msh::SPMesh LoadMeshWithEdges (std::string filename)
+SPMesh LoadMeshWithEdges (std::string filename)
 {
-	auto mesh = msh::CreateMeshFromFile (filename);
-	msh::ComputeTriVertexNormals3 (*mesh, "vrtNormals");
+	auto mesh = CreateMeshFromFile (filename);
+	ComputeTriVertexNormals3 (*mesh, "vrtNormals");
 	CreateEdgeInds (*mesh);
 
 	Box box = BoxFromCoordinates (mesh->coords()->raw_data(),
@@ -46,8 +48,8 @@ msh::SPMesh LoadMeshWithEdges (std::string filename)
 
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
-	LOGT(mesh, "  #triangles:   " << mesh->inds(msh::TRI)->num_tuples() << std::endl);
-	LOGT(mesh, "  #edges:       " << mesh->inds(msh::EDGE)->num_tuples() << std::endl);
+	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
+	LOGT(mesh, "  #edges:       " << mesh->inds(EDGE)->num_tuples() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 
@@ -65,27 +67,29 @@ void RendererInit ()
 	}
 
 	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
-	g_visualization.add_stage ("solid", mainMesh, msh::TRI, FLAT);
-	g_visualization.add_stage ("wire", mainMesh, msh::EDGE, FLAT);
+	g_visualization.add_stage ("solid", mainMesh, TRI, FLAT);
+	g_visualization.add_stage ("wire", mainMesh, EDGE, FLAT);
 
 	{
 		auto sphereMesh = LoadMeshWithEdges (MESH_PATH + "sphere.stl");
 		auto meshCoords = mainMesh->coords();
+
+		// auto sphere = Call (SphereFromCoordinates<real_t>, *meshCoords);
 		auto sphere = SphereFromCoordinates (meshCoords->raw_data(),
 		                                     meshCoords->size(),
 											 meshCoords->tuple_size());
 
 		auto sphereCoords = sphereMesh->coords();
-		msh::VecScale (sphereCoords->raw_data(),
+		VecScale (sphereCoords->raw_data(),
 		               sphere.radius,
 		               sphereCoords->size());
 
-		msh::VecTupAppend (sphereCoords->raw_data(),
+		VecTupAppend (sphereCoords->raw_data(),
 		            	   glm::value_ptr (sphere.center),
 		            	   sphereCoords->size(),
 		            	   sphereCoords->tuple_size());
 
-		g_visualization.add_stage ("wireSphere", sphereMesh, msh::EDGE, FLAT);
+		g_visualization.add_stage ("wireSphere", sphereMesh, EDGE, FLAT);
 	}
 
 	// {
@@ -124,3 +128,5 @@ void RendererDraw ()
 
 	g_visualization.render (g_arcBallView.view());
 }
+
+}// end of namespace slimesh

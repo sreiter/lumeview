@@ -2,6 +2,8 @@
 #include "jni_event_listener.h"
 #include "../renderer.h"
 
+using namespace slimesh;
+
 static WindowEventListener* g_eventListener = nullptr;
 
 // JNI methods

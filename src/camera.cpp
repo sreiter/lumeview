@@ -1,6 +1,8 @@
 #include "camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+namespace slimesh {
+
 Camera::Camera () :
 	m_scale (1.f, 1.f, 1.f),
 	m_rot (1.f, 0.f, 0.f, 0.f),
@@ -113,4 +115,6 @@ view_matrix () const
 
 	return glm::translate (A, -m_trans);
 }
+
+}// end of namespace slimesh
 

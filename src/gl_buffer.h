@@ -3,6 +3,8 @@
 
 #include <glad/glad.h>	// include before other OpenGL related includes
 
+namespace slimesh {
+
 class GLBuffer {
 public:
 	/**	generates an OpenGL buffer object.
@@ -74,5 +76,7 @@ private:
 	GLenum	m_type;
 	GLenum	m_memHint;
 };
+
+}// end of namespace slimesh
 
 #endif	//__H__gl_buffer

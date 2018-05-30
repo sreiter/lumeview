@@ -1,10 +1,10 @@
-#ifndef __H__msh__vec_math_raw
-#define __H__msh__vec_math_raw
+#ifndef __H__slimesh__vec_math_raw
+#define __H__slimesh__vec_math_raw
 
 #include <cmath>
 #include "types.h"
 
-namespace msh {
+namespace slimesh {
 
 
 template <class real_t>
@@ -18,8 +18,9 @@ real_t* VecCopy (real_t* vOut, const real_t* v, const index_t n)
 template <class real_t, class value_t>
 real_t* VecSet (real_t* vOut, const value_t v, const index_t n)
 {
+	const real_t tv = static_cast <real_t> (v);
 	for (index_t i = 0; i < n; ++i, ++vOut)
-		*vOut = v;
+		*vOut = tv;
 	return vOut;
 }
 
@@ -50,16 +51,18 @@ real_t* VecSub (real_t* vOut, const real_t* v0, const real_t* v1, const index_t 
 template <class real_t, class value_t>
 real_t* VecScale (real_t* vOut, const real_t* v, const value_t s, const index_t n)
 {
+	const real_t ts = static_cast <real_t> (s);
 	for (index_t i = 0; i < n; ++i, ++vOut, ++v)
-		*vOut = *v * s;
+		*vOut = *v * ts;
 	return vOut;
 }
 
 template <class real_t, class value_t>
 real_t* VecScale (real_t* vInOut, const value_t s, const index_t n)
 {
+	const real_t ts = static_cast <real_t> (s);
 	for (index_t i = 0; i < n; ++i, ++vInOut)
-		*vInOut *= s;
+		*vInOut *= ts;
 	return vInOut;
 }
 
@@ -248,6 +251,6 @@ real_t* VecCross3 (real_t* vOut, const real_t* v0, const real_t* v1)
 	return vOut;
 }
 
-}// end of namespace msh
+}// end of namespace slimesh
 
-#endif	//__H__msh__vec_math_raw
+#endif	//__H__slimesh__vec_math_raw

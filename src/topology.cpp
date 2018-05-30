@@ -2,7 +2,7 @@
 #include "topology.h"
 #include "log.h"
 
-namespace msh {
+namespace slimesh {
 
 index_t FindUniqueSides (GrobHash& sideHashInOut,
                          const index_t* cornerInds,
@@ -91,8 +91,8 @@ void CreateEdgeInds (Mesh& mesh)
 		}
 	}
 	
-	mesh.inds(msh::EDGE)->data().clear();
-	GrobHashToIndexArray (mesh.inds(msh::EDGE)->data(), hash);
+	mesh.inds(slimesh::EDGE)->data().clear();
+	GrobHashToIndexArray (mesh.inds(slimesh::EDGE)->data(), hash);
 }
 
 }//	end of namespace

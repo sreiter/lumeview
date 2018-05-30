@@ -3,7 +3,7 @@
 #include "mesh.h"
 #include "vec_math_raw.h"
 
-namespace msh {
+namespace slimesh {
 
 real_t* TriangleNormal3 (real_t* normalOut,
                          const real_t* c0,
@@ -29,7 +29,7 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 {
 	VecSet (normalsOut, 0, numCoords);
 
-	if (grobType == msh::TRI) {
+	if (grobType == TRI) {
 		for(index_t itri = 0; itri < numCornerInds; itri+=3) {
 			const index_t* tri = &cornerInds [itri];
 			real_t n[3];
@@ -47,7 +47,7 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 }
 
 
-std::shared_ptr <DataArray <real_t>>
+std::shared_ptr <DataBuffer <real_t>>
 ComputeTriVertexNormals3 (Mesh& mesh,
 						  std::string normalId)
 {
@@ -58,10 +58,10 @@ ComputeTriVertexNormals3 (Mesh& mesh,
 	ComputeVertexNormals3 (normals->raw_data(),
 	            		   mesh.coords()->raw_data(),
 	            		   mesh.num_coords(),
-	            		   mesh.inds(msh::TRI)->raw_data(),
-	            		   mesh.inds(msh::TRI)->size(),
-	            		   msh::TRI);
+	            		   mesh.inds(TRI)->raw_data(),
+	            		   mesh.inds(TRI)->size(),
+	            		   TRI);
 	return normals;
 }
 
-}// end of namespace msh
+}// end of namespace slimesh

@@ -9,6 +9,8 @@
 
 #include "fwds.h"
 
+namespace slimesh {
+
 class View {
 public:
     View ();
@@ -33,5 +35,7 @@ private:
     glm::mat4   m_viewMat;
     glm::ivec4  m_viewport;
 };
+
+}// end of namespace slimesh
 
 #endif  //__H__view

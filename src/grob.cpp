@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace msh {
+namespace slimesh {
 namespace impl {
 
 const std::string& GrobName (grob_t grob)
@@ -27,10 +27,10 @@ void PrintGrobDescs ()
 		LOG(igrob + 1 << ": " << desc.name() << endl);
 		LOG("dim: " << desc.dim() << endl);
 
-		for(int sideDim = 0; sideDim < desc.dim(); ++sideDim) {
+		for(index_t sideDim = 0; sideDim < desc.dim(); ++sideDim) {
 			const index_t numSides = desc.num_sides (sideDim);
 			LOG("sides of dim " << sideDim << ": " << numSides << endl);
-			for(size_t iside = 0; iside < numSides; ++iside) {
+			for(index_t iside = 0; iside < numSides; ++iside) {
 				LOG("  side " << iside << ": type = " <<
 				    desc.side_desc (sideDim, iside).name() << ", on corners:");
 
@@ -47,4 +47,4 @@ void PrintGrobDescs ()
 }
 
 }// end of namespace impl
-}// end of namespace msh
+}// end of namespace slimesh

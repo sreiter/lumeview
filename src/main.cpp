@@ -11,7 +11,7 @@
 #include "renderer.h"
 
 using namespace std;
-
+using namespace slimesh;
 
 static WindowEventListener* g_eventListener = nullptr;
 
@@ -83,7 +83,7 @@ int main (int argc, char** argv)
 		#endif
 
 	//	Set up window
-		GLFWwindow* window = glfwCreateWindow (800, 600, "OpenGL3-Tests-0", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow (800, 600, "slimesh", NULL, NULL);
 		COND_THROW (window == NULL, "GLFW::INIT\n" <<
 		            "Failed to create glfw window");
 

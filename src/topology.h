@@ -1,10 +1,10 @@
-#ifndef __H__msh__topology
-#define __H__msh__topology
+#ifndef __H__slimesh__topology
+#define __H__slimesh__topology
 
 #include <vector>
 #include "grob.h"
 
-namespace msh {
+namespace slimesh {
 
 class Mesh;
 
@@ -39,6 +39,6 @@ void UniqueSidesToIndexArray (std::vector <index_t>& indArrayInOut,
 
 void CreateEdgeInds (Mesh& mesh);
 
-}//	end of namespace msh
+}//	end of namespace slimesh
 
-#endif	//__H__msh__topology
+#endif	//__H__slimesh__topology

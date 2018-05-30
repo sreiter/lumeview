@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace slimesh {
+
 ArcBallView::ArcBallView ()
 {
 	m_camera.set_rotation (m_arcBall.rotation_quaternion ());
@@ -102,4 +104,6 @@ void ArcBallView::mouse_scroll (const glm::vec2& o)
 	m_camera.scale (glm::vec3(s));
 	m_view.set_view_matrix (m_camera.view_matrix());
 }
+
+}// end of namespace slimesh
 

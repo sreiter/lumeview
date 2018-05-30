@@ -1,12 +1,12 @@
-#ifndef __H__msh__geometry
-#define __H__msh__geometry
+#ifndef __H__slimesh__geometry
+#define __H__slimesh__geometry
 
 #include <memory>
-#include "types.h"
 #include "grob.h"
 #include "mesh.h"
+#include "types.h"
 
-namespace msh {
+namespace slimesh {
 
 
 ///	computes the normal of a single triangle
@@ -38,10 +38,10 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 
 
 ///	computes the vertex normals of a mesh and stores them in the specified data array
-std::shared_ptr <DataArray <real_t>>
+std::shared_ptr <DataBuffer <real_t>>
 ComputeTriVertexNormals3 (Mesh& meshInOut,
                 		  std::string normalId = "vrtNormals");
 
-}// end of namespace msh
+}// end of namespace slimesh
 
-#endif	//__H__msh__geometry
+#endif	//__H__slimesh__geometry

@@ -7,6 +7,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
+namespace slimesh {
+
 enum MouseButton {
 	LEFT = 0,
 	RIGHT = 1,
@@ -71,5 +73,7 @@ private:
 	glm::vec2					m_cursorPos;
 	std::vector<MouseBtnInfo>	m_mouseBtnInfo;
 };
+
+}// end of namespace slimesh
 
 #endif	//__H__window_event_listener

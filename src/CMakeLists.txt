@@ -66,7 +66,7 @@ include_directories (deps)
 find_package(OpenGL REQUIRED)
 
 if (MSVC)
-    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/EHsc")
+    #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/EHsc")
 endif ()
 
 if (GLFW)
@@ -93,7 +93,7 @@ if (GLFW)
 
     include_directories (${GLFW_INCLUDE})
 
-    set (exeName "gltests-0-gl${GL_VERSION_MAJOR}.${GL_VERSION_MINOR}")
+    set (exeName "slimesh")
 
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)

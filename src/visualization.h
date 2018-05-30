@@ -9,6 +9,8 @@
 #include "shader.h"
 #include "mesh.h"
 
+namespace slimesh {
+
 enum ShaderHint {
 	NONE		= 0,
 	FLAT		= 1,
@@ -30,8 +32,8 @@ public:
 	Visualization (const Visualization&) = delete;
 
 	void add_stage (std::string name,
-	                std::shared_ptr <msh::Mesh> mesh,
-	                msh::grob_t grobType,
+	                std::shared_ptr <Mesh> mesh,
+	                grob_t grobType,
 	                uint shaderHints)
 	{
 		Stage newStage;
@@ -42,7 +44,7 @@ public:
 
 		const bool curMeshNeedsVrtNormals =
 					(shaderHints & SMOOTH)
-				||	(grobType == msh::EDGE && (shaderHints & FLAT));
+				||	(grobType == EDGE && (shaderHints & FLAT));
 
 		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("vrtNormals"),
 		           "Requested shader needs normal information!");
@@ -106,14 +108,14 @@ public:
 
 	//todo: create shader
 		switch (grobType) {
-			case msh::EDGE:
+			case EDGE:
 				newStage.primType = GL_LINES;
 				newStage.shader = get_shader (shaderHints | ShaderHint::LINES);
 				newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
 				newStage.zfac = 0.99f;
 				break;
 			
-			case msh::TRI:
+			case TRI:
 				newStage.primType = GL_TRIANGLES;
 				newStage.shader = get_shader (shaderHints | ShaderHint::TRIANGLES);
 				newStage.color = glm::vec4 (1.0f, 1.0f, 1.0f, 1.0f);
@@ -216,7 +218,7 @@ public:
 		~Stage ()	{if (vao) glDeleteVertexArrays (1, &vao);}
 
 		std::string 				name;
-		std::shared_ptr <msh::Mesh>	mesh;
+		std::shared_ptr <Mesh>		mesh;
 		Shader						shader;
 		glm::vec4					color;
 		float						zfac;
@@ -227,7 +229,7 @@ public:
 		std::shared_ptr <GLBuffer>	indBuf;
 		GLenum						primType;
 		GLsizei						numInds;
-		msh::grob_t					grobType;
+		grob_t						grobType;
 	};
 
 	std::vector <Stage> 			m_stages;
@@ -235,5 +237,7 @@ public:
 	std::string						m_shaderPath;
 
 };
+
+}// end of namespace slimesh
 
 #endif	//__H__visualization

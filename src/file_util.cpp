@@ -3,7 +3,10 @@
 #include <string>
 #include "file_util.h"
 #include "cond_throw.h"
+
 using namespace std;
+
+namespace slimesh {
 
 string LoadStringFromFile (const char* filename)
 {
@@ -22,3 +25,5 @@ string LoadStringFromFile (const std::string& filename)
 {
 	return LoadStringFromFile (filename.c_str());
 }
+
+}// end of namespace slimesh
