@@ -132,8 +132,8 @@ int main (int argc, char** argv)
 		}
 
 	} catch (std::exception& e) {
-		cout << "\nAn ERROR occurred during execution:\n\n";
-		cout << e.what() << endl;
+		cout << "\nAn ERROR occurred during execution:\n";
+		cout << e.what() << endl << endl;
 		glfwTerminate ();
 		return 1;
 	}

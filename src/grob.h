@@ -137,13 +137,13 @@ static const index_t GROB_DESC_OFFSETS[] = {
 	39	//	QUAD
 };
 
-///	returns the name of a grob
-const std::string& GrobName (grob_t grob);
-
 /// Logs all grob-descs in a human readable way.
 void PrintGrobDescs ();
 
 }//	end of namespace impl
+
+///	returns the name of a grob
+const std::string& GrobName (grob_t grob);
 
 ///	Describes a class of **grid objects** in terms of local corner indices and sides.
 /** A `GrobDesc` is a descriptor object for a given type of *grid object*.
@@ -162,7 +162,7 @@ public:
 	{}
 
 	inline grob_t type () const						{return static_cast<grob_t>(impl::GROB_DESCS [m_offset]);}
-	const std::string& name () const				{return impl::GrobName (type());}
+	const std::string& name () const				{return GrobName (type());}
 	inline index_t dim () const						{return impl::GROB_DESCS [m_offset + 1];}
 	inline index_t num_corners () const				{return impl::GROB_DESCS [side_offset (0)];}
 

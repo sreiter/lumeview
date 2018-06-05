@@ -42,9 +42,7 @@ SPMesh LoadMeshWithEdges (std::string filename)
 	ComputeTriVertexNormals3 (*mesh, "vrtNormals");
 	CreateEdgeInds (*mesh);
 
-	Box box = BoxFromCoordinates (mesh->coords()->raw_data(),
-	                              mesh->coords()->size(),
-								  mesh->coords()->tuple_size());
+	Box box = BoxFromCoords (UNPACK_DST(*mesh->coords()));
 
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
@@ -71,25 +69,13 @@ void RendererInit ()
 	g_visualization.add_stage ("wire", mainMesh, EDGE, FLAT);
 
 	{
+		auto sphere = SphereFromCoords (UNPACK_DST(*mainMesh->coords()));
+
 		auto sphereMesh = LoadMeshWithEdges (MESH_PATH + "sphere.stl");
-		auto meshCoords = mainMesh->coords();
+		VecScale (UNPACK_DS(*sphereMesh->coords()), sphere.radius);
+		VecTupAppend (UNPACK_DST(*sphereMesh->coords()), glm::value_ptr (sphere.center));
 
-		// auto sphere = Call (SphereFromCoordinates<real_t>, *meshCoords);
-		auto sphere = SphereFromCoordinates (meshCoords->raw_data(),
-		                                     meshCoords->size(),
-											 meshCoords->tuple_size());
-
-		auto sphereCoords = sphereMesh->coords();
-		VecScale (sphereCoords->raw_data(),
-		               sphere.radius,
-		               sphereCoords->size());
-
-		VecTupAppend (sphereCoords->raw_data(),
-		            	   glm::value_ptr (sphere.center),
-		            	   sphereCoords->size(),
-		            	   sphereCoords->tuple_size());
-
-		g_visualization.add_stage ("wireSphere", sphereMesh, EDGE, FLAT);
+		// g_visualization.add_stage ("wireSphere", sphereMesh, EDGE, FLAT);
 	}
 
 	// {
@@ -109,13 +95,8 @@ void RendererInit ()
 	// 	}
 	// 	LOG("\n");
 	// }
-}
 
-
-void ActivateShader (const Shader& shader)
-{
-	shader.use ();
-	g_arcBallView.view().apply(shader);
+	// g_arcBallView.camera().translate(glm::vec3(0, 0, -1));
 }
 
 

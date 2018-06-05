@@ -13,5 +13,4 @@ out vec4 fragColor;
 void main ()
 {
 	fragColor = vec4 (vrt.lightIntensity * color.rgb, color.a);
-	gl_FragDepth = gl_FragCoord.z * zfac;
 }

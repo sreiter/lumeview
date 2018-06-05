@@ -100,7 +100,7 @@ void ArcBallView::mouse_move (const glm::vec2& c)
 void ArcBallView::mouse_scroll (const glm::vec2& o)
 {
 	base_t::mouse_scroll (o);
-	float s = 1.f + o.y / 10.f;
+	float s = 1.f - o.y / 10.f;
 	m_camera.scale (glm::vec3(s));
 	m_view.set_view_matrix (m_camera.view_matrix());
 }

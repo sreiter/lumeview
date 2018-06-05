@@ -20,6 +20,7 @@ void View::apply (const Shader& shader) const
     const glm::ivec4& vp = m_viewport;
     glViewport (vp.x, vp.y, vp.z, vp.w);
     shader.set_uniform ("view", m_viewMat);
+    shader.set_uniform ("projection", projection());
 }
 
 void View::set_viewport (const glm::ivec4& vp)
@@ -39,13 +40,14 @@ glm::vec2 View::aspect_ratio () const
     const glm::vec2 size (m_viewport.z - m_viewport.x,
                           m_viewport.w - m_viewport.y);
 
+    if (size.x == 0 || size.y == 0)
+        return glm::vec2 (1.f, 1.f);
+
     if (size.x > size.y) {
-        float s = size.x / size.y;
-        return glm::vec2 (s, 1.f);
+        return glm::vec2 (size.x / size.y, 1.f);
     }
     else {
-        float s = size.y / size.x;
-        return glm::vec2 (1.f, s);
+        return glm::vec2 (1.f, size.y / size.x);
     }
 }
 
@@ -61,7 +63,13 @@ const glm::mat4& View::view_matrix () const
 
 glm::mat4 View::projection () const
 {
-   return glm::mat4 (1.f);
+    const auto ar = aspect_ratio ();
+    if (ar.x == 0 || ar.y == 0) {
+        return glm::mat4 (1.f);
+    }
+    else {
+        return glm::perspective(glm::radians(45.0f), ar.x / ar.y, 0.001f, 10.f);
+    }
 }
 
 glm::vec3 View::unproject (const glm::vec3& c) const

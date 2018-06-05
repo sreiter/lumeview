@@ -100,20 +100,7 @@ glm::mat4 Camera::
 view_matrix () const
 {
 	glm::vec3 r = right(), u = up(), f = forward();
-
-	// glm::mat4 A (r.x,  r.y,  r.z,  0,
-	// 			 u.x,  u.y,  u.z,  0,
-	// 			 f.x,  f.y,  f.z,  0,
-	// 			 0,    0,    0,    1.f);
-
-	glm::mat4 A (r.x,  u.x,  f.x,  0,
-				 r.y,  u.y,  f.y,  0,
-				 r.z,  u.z,  f.z,  0,
-				 0,    0,    0,    1.f);
-
-	A = glm::scale (A, m_scale);
-
-	return glm::translate (A, -m_trans);
+	return glm::lookAt (m_trans - f * m_scale, m_trans, u);
 }
 
 }// end of namespace slimesh

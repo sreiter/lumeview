@@ -16,6 +16,9 @@ public:
   	void set_viewport (const glm::ivec4& vp) override;
   	const glm::ivec4& viewport () const;
 	
+	Camera& camera ()				{return m_camera;}
+	const Camera& camera () const	{return m_camera;}
+
 	void mouse_button (int button, int action, int mods) override;
 	void mouse_move (const glm::vec2& c) override;
 	void mouse_scroll (const glm::vec2& o) override;

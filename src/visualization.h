@@ -36,6 +36,10 @@ public:
 	                grob_t grobType,
 	                uint shaderHints)
 	{
+		COND_THROW (!mesh->has_inds (grobType),
+		            "Requested grob type '" << GrobName (grobType)
+		            << "' is not provided by the specified mesh.");
+		
 		Stage newStage;
 		newStage.mesh = mesh;
 
@@ -53,6 +57,7 @@ public:
 		for(auto& stage : m_stages) {
 			if (stage.mesh->coords() == mesh->coords()) {
 				newStage.coordBuf = stage.coordBuf;
+				newStage.bndSphere = stage.bndSphere;
 			}
 
 			if (curMeshNeedsVrtNormals && stage.mesh->has_data<real_t>("vrtNormals")
@@ -74,6 +79,7 @@ public:
 			glEnableVertexAttribArray (0);
 		}
 		else {
+			newStage.bndSphere = SphereFromCoords (UNPACK_DST(*mesh->coords()));
 			newStage.coordBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
 			newStage.coordBuf->set_data (mesh->coords()->raw_data(),
 			                           sizeof(real_t) * mesh->num_coords());
@@ -112,14 +118,16 @@ public:
 				newStage.primType = GL_LINES;
 				newStage.shader = get_shader (shaderHints | ShaderHint::LINES);
 				newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
-				newStage.zfac = 0.99f;
+				newStage.zfacNear = 0.99f;
+				newStage.zfacFar = 0.9999999f;
 				break;
 			
 			case TRI:
 				newStage.primType = GL_TRIANGLES;
 				newStage.shader = get_shader (shaderHints | ShaderHint::TRIANGLES);
 				newStage.color = glm::vec4 (1.0f, 1.0f, 1.0f, 1.0f);
-				newStage.zfac = 1.0f;
+				newStage.zfacNear = 1.0f;
+				newStage.zfacFar = 1.0f;
 				break;
 			default:
 				THROW("Visualization::add_stage: Unsupported grid object type in specified mesh.");
@@ -140,7 +148,8 @@ public:
 			stage.shader.use ();
 			view.apply (stage.shader);
 			stage.shader.set_uniform("color", stage.color);
-			stage.shader.set_uniform("zfac", stage.zfac);
+			stage.shader.set_uniform("zfacNear", stage.zfacNear);
+			stage.shader.set_uniform("zfacFar", stage.zfacFar);
 			glBindVertexArray (stage.vao);
 			glDrawElements (stage.primType, stage.numInds, GL_UNSIGNED_INT, 0);
 		}
@@ -205,14 +214,16 @@ public:
 			mesh (std::move (s.mesh)),
 			shader (std::move (s.shader)),
 			color (std::move (s.color)),
-			zfac (std::move (s.zfac)),
+			zfacNear (std::move (s.zfacNear)),
+			zfacFar (std::move (s.zfacFar)),
 			vao (std::exchange (s.vao, 0)),
 			coordBuf (std::move (s.coordBuf)),
 			normBuf (std::move (s.normBuf)),
 			indBuf (std::move (s.indBuf)),
 			primType (std::move (s.primType)),
 			numInds (std::move (s.numInds)),
-			grobType (std::move (s.grobType))
+			grobType (std::move (s.grobType)),
+			bndSphere (std::move (s.bndSphere))
 		{}
 
 		~Stage ()	{if (vao) glDeleteVertexArrays (1, &vao);}
@@ -221,7 +232,8 @@ public:
 		std::shared_ptr <Mesh>		mesh;
 		Shader						shader;
 		glm::vec4					color;
-		float						zfac;
+		float						zfacNear;
+		float						zfacFar;
 
 		uint 						vao;
 		std::shared_ptr <GLBuffer>	coordBuf;
@@ -230,6 +242,7 @@ public:
 		GLenum						primType;
 		GLsizei						numInds;
 		grob_t						grobType;
+		Sphere						bndSphere;
 	};
 
 	std::vector <Stage> 			m_stages;

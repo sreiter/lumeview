@@ -15,6 +15,8 @@ struct TBox {
 	TBox (const TBox& box);
 	TBox (TBox&& box);
 
+	TBox& operator = (const TBox& box);
+
 	glm::tvec3<real_t>	minCorner;
 	glm::tvec3<real_t>	maxCorner;
 };
@@ -30,6 +32,8 @@ struct TSphere {
 	TSphere (glm::tvec3<real_t>&& center, const real_t radius);
 	TSphere (const TSphere& sphere);
 	TSphere (TSphere&& sphere);
+
+	TSphere& operator = (const TSphere& sphere);
 
 	glm::tvec3<real_t>	center;
 	real_t				radius;
@@ -53,7 +57,7 @@ using DSphere = TSphere <double>;
  *					coordinate-tuple.
  */
 template <class real_t>
-TBox <real_t> BoxFromCoordinates (const real_t* coords, index_t num, index_t stride);
+TBox <real_t> BoxFromCoords (const real_t* coords, index_t num, index_t stride);
 
 
 ///	Calcualtes the bounding box to coordinates in a `DataBuffer`
@@ -63,9 +67,9 @@ TBox <real_t> BoxFromCoordinates (const real_t* coords, index_t num, index_t str
  *					`x0y0z0x1y1z1x2y2z2` (num 9, tuple_size 3).
  */
 // template <class real_t>
-// TBox <real_t> BoxFromCoordinates (DataBuffer <real_t>& coords)
+// TBox <real_t> BoxFromCoords (DataBuffer <real_t>& coords)
 // {
-// 	return BoxFromCoordinates (coords.raw_data(), coords.size(), coords.tuple_size());
+// 	return BoxFromCoords (coords.raw_data(), coords.size(), coords.tuple_size());
 // }
 
 
@@ -85,7 +89,7 @@ TBox <real_t> BoxFromCoordinates (const real_t* coords, index_t num, index_t str
  *			However, it is guaranteed that the sphere contains all points and that at least one
  *			point lies on the rim of the sphere.*/
 template <class real_t>
-TSphere <real_t> SphereFromCoordinates (const real_t* coords, index_t num, index_t stride);
+TSphere <real_t> SphereFromCoords (const real_t* coords, index_t num, index_t stride);
 
 
 ///	Calcualtes a bounding sphere to coordinates in a `DataBuffer`
@@ -98,9 +102,9 @@ TSphere <real_t> SphereFromCoordinates (const real_t* coords, index_t num, index
  *			However, it is guaranteed that the sphere contains all points and that at least one
  *			point lies on the rim of the sphere.*/
 // template <class real_t>
-// TSphere <real_t> SphereFromCoordinates (DataBuffer <real_t>& coords)
+// TSphere <real_t> SphereFromCoords (DataBuffer <real_t>& coords)
 // {
-// 	return SphereFromCoordinates (coords.raw_data(), coords.size(), coords.tuple_size());
+// 	return SphereFromCoords (coords.raw_data(), coords.size(), coords.tuple_size());
 // }
 
 }// end of namespace slimesh

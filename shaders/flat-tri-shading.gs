@@ -4,7 +4,6 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
 uniform float ambient = 0.2;
-uniform mat4 view;
 
 in VS_OUT {
     vec3 viewPos;

@@ -46,13 +46,23 @@ TBox <real_t>::TBox (TBox&& box) :
 	maxCorner (std::move(box.maxCorner))
 {}
 
+template <class real_t>
+TBox <real_t>& TBox <real_t>::
+operator = (const TBox& box)
+{
+	minCorner = box.minCorner;
+	maxCorner = box.maxCorner;
+
+	return *this;
+}
+
+
 template struct TBox <float>;
 template struct TBox <double>;
 
 
-
 template <class real_t>
-TBox <real_t> BoxFromCoordinates (const real_t* coords, index_t num, index_t stride)
+TBox <real_t> BoxFromCoords (const real_t* coords, index_t num, index_t stride)
 {
 	const index_t cmps = std::min<index_t> (stride, 3);
 
@@ -74,8 +84,8 @@ TBox <real_t> BoxFromCoordinates (const real_t* coords, index_t num, index_t str
 	return b;
 }
 
-template TBox <float> BoxFromCoordinates <float> (const float*, index_t, index_t);
-template TBox <double> BoxFromCoordinates <double> (const double*, index_t, index_t);
+template TBox <float> BoxFromCoords <float> (const float*, index_t, index_t);
+template TBox <double> BoxFromCoords <double> (const double*, index_t, index_t);
 
 
 
@@ -111,17 +121,26 @@ TSphere <real_t>::TSphere (TSphere&& sphere) :
 	radius (sphere.radius)
 {}
 
+template <class real_t>
+TSphere <real_t>& TSphere <real_t>::
+operator = (const TSphere& sphere)
+{
+	center = sphere.center;
+	radius = sphere.radius;
+	return *this;
+}
+
 template struct TSphere <float>;
 template struct TSphere <double>;
 
 
 template <class real_t>
-TSphere <real_t> SphereFromCoordinates (const real_t* coords, index_t num, index_t stride)
+TSphere <real_t> SphereFromCoords (const real_t* coords, index_t num, index_t stride)
 {
-	COND_THROW (stride > 3, "SphereFromCoordinates: Max stride of 3 supported. "
+	COND_THROW (stride > 3, "SphereFromCoords: Max stride of 3 supported. "
 	            "Given: " << stride);
 	COND_THROW (stride == 0 || num < stride,
-	            "SphereFromCoordinates: At least one coordinate is required");
+	            "SphereFromCoords: At least one coordinate is required");
 
 //	compute center
 	glm::tvec3<real_t> center (0);
@@ -133,7 +152,7 @@ TSphere <real_t> SphereFromCoordinates (const real_t* coords, index_t num, index
 
 	real_t maxRadSq = 0;
 	for(index_t i = 0; i < num; i+=stride) {
-		const real_t d = VecDistSq (pcenter, coords + i, stride);
+		const real_t d = VecDistSq (pcenter, stride, coords + i);
 		if (d > maxRadSq)
 			maxRadSq = d;
 	}
@@ -141,7 +160,7 @@ TSphere <real_t> SphereFromCoordinates (const real_t* coords, index_t num, index
 	return TSphere <real_t> (center, sqrt(maxRadSq));
 }
 
-template TSphere <float> SphereFromCoordinates <float> (const float*, index_t, index_t);
-template TSphere <double> SphereFromCoordinates <double> (const double*, index_t, index_t);
+template TSphere <float> SphereFromCoords <float> (const float*, index_t, index_t);
+template TSphere <double> SphereFromCoords <double> (const double*, index_t, index_t);
 
 }// end of namespace slimesh

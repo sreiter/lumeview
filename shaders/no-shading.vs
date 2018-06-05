@@ -2,6 +2,7 @@
 
 layout (location = 0) in vec3 pos;
 uniform mat4 view;
+uniform mat4 projection;
 
 out VS_OUT {
     vec3 viewPos;
@@ -10,7 +11,8 @@ out VS_OUT {
 
 void main()
 {
-	gl_Position = view * vec4 (pos, 1.0);
+	vec4 viewPos = view * vec4 (pos, 1.0);
 	vs_out.lightIntensity = 1.0f;
-	vs_out.viewPos = gl_Position.xyz;
+	vs_out.viewPos = viewPos.xyz;
+	gl_Position = projection * viewPos;
 }

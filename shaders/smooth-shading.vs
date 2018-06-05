@@ -5,6 +5,7 @@ layout (location = 1) in vec3 normal;
 
 uniform float ambient = 0.2;
 uniform mat4 view;
+uniform mat4 projection;
 
 out VS_OUT {
     vec3 viewPos;
@@ -13,7 +14,9 @@ out VS_OUT {
 
 void main()
 {
-	gl_Position = view * vec4 (pos, 1.0);
-	vs_out.lightIntensity = ambient + (1.f - ambient) * abs(normalize(view*vec4(normal, 1)).z);
-	vs_out.viewPos = gl_Position.xyz;
+	vec4 viewPos = view * vec4 (pos, 1.0);
+	vs_out.lightIntensity = ambient + (1.f - ambient) * abs(normalize(view*vec4(normal, 0)).z);
+	vs_out.viewPos = viewPos.xyz;
+	viewPos[3] = 1.f;
+	gl_Position = projection * viewPos;
 }

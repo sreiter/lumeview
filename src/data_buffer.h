@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include "unpack.h"
 #include "types.h"
 
 namespace slimesh {
@@ -15,7 +16,8 @@ template <class T>
 class DataBuffer {
 public:
 	using value_type = T;
-	using value_t = T;
+	using value_t = value_type;
+	using size_type = index_t;
 
 	DataBuffer ()	: m_tupleSize (1) {}
 	DataBuffer (const index_t tupleSize) : m_tupleSize (tupleSize) {}
@@ -48,19 +50,6 @@ using SPRealDataBuffer	= std::shared_ptr <RealDataBuffer>;
 using SPIndexDataBuffer	= std::shared_ptr <IndexDataBuffer>;
 using SPCRealDataBuffer	= std::shared_ptr <const RealDataBuffer>;
 using SPCIndexDataBuffer	= std::shared_ptr <const IndexDataBuffer>;
-
-
-// template <class T, class TFct, class TArgs...>
-// auto Call (TFct* fct, DataBuffer<T>& buf, TArgs&& args...)
-// {
-// 	return fct(buf.raw_data(), buf.size(), buf.tuple_size(), std::forward(args)...);
-// }
-
-template <class TFct, class T>
-auto Call (TFct* fct, DataBuffer<T>& buf)
-{
-	return fct(buf.raw_data(), buf.size(), buf.tuple_size());
-}
 
 }//	end of namespace slimesh
 

@@ -5,19 +5,6 @@ using namespace std;
 namespace slimesh {
 namespace impl {
 
-const std::string& GrobName (grob_t grob)
-{
-	static const std::string names [] = {
-		std::string ("vertex"),
-		std::string ("edge"),
-		std::string ("tri"),
-		std::string ("quad"),
-		std::string ("invalid")
-	};
-
-	return names[grob];
-}
-
 void PrintGrobDescs ()
 {
 	LOG ("Overview over all available grid objects:\n\n");
@@ -47,4 +34,18 @@ void PrintGrobDescs ()
 }
 
 }// end of namespace impl
+
+const std::string& GrobName (grob_t grob)
+{
+	static const std::string names [] = {
+		std::string ("vertex"),
+		std::string ("edge"),
+		std::string ("tri"),
+		std::string ("quad"),
+		std::string ("invalid")
+	};
+
+	return names[grob];
+}
+
 }// end of namespace slimesh

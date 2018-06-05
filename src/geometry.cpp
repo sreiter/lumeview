@@ -13,8 +13,8 @@ real_t* TriangleNormal3 (real_t* normalOut,
 	real_t d0[3];
 	real_t d1[3];
 
-	VecSub (d0, c1, c0, 3);
-	VecSub (d1, c2, c0, 3);
+	VecSub (d0, 3, c1, c0);
+	VecSub (d1, 3, c2, c0);
 
 	return VecNormalize (VecCross3 (normalOut, d0, d1), 3);
 }
@@ -36,7 +36,7 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 			TriangleNormal3 (n, &coords [tri [0]*3], &coords [tri [1]*3], &coords [tri [2]*3]);
 
 			for(index_t i = 0; i < 3; ++i) 
-				VecAppend (&normalsOut [tri [i]*3], n, 3);
+				VecAppend (&normalsOut [tri [i]*3], 3, n);
 		}
 
 		VecTupNormalize (normalsOut, numCoords, 3);
