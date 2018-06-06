@@ -94,13 +94,23 @@ forward () const
 	return axis (m_rot * glm::quat (0, 0, 0, -1) * conjugate(m_rot));
 }
 
+glm::vec3 Camera::
+from () const
+{
+	return m_trans - forward() * m_scale;
+}
+
+glm::vec3 Camera::
+to () const
+{
+	return m_trans;
+}
 
 
 glm::mat4 Camera::
 view_matrix () const
 {
-	glm::vec3 r = right(), u = up(), f = forward();
-	return glm::lookAt (m_trans - f * m_scale, m_trans, u);
+	return glm::lookAt (from(), to(), up());
 }
 
 }// end of namespace slimesh

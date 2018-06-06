@@ -107,6 +107,8 @@ void RendererDraw ()
 	glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	const glm::vec2 clipDists = g_visualization.estimate_z_clip_dists(g_arcBallView.view());
+	g_arcBallView.view().set_z_clip_dists (clipDists);
 	g_visualization.render (g_arcBallView.view());
 }
 

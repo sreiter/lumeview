@@ -29,6 +29,9 @@ class Camera {
     glm::vec3 up () const;
     glm::vec3 forward () const;
 
+    glm::vec3 from () const;
+    glm::vec3 to () const;
+
     glm::mat4 view_matrix () const;
 
   private:

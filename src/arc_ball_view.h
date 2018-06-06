@@ -11,13 +11,11 @@ namespace slimesh {
 class ArcBallView : public WindowEventListener {
 public:
 	ArcBallView ();
-	const View& view () const;
+	View&		view ();
+	const View&	view () const;
 
-  	void set_viewport (const glm::ivec4& vp) override;
-  	const glm::ivec4& viewport () const;
-	
-	Camera& camera ()				{return m_camera;}
-	const Camera& camera () const	{return m_camera;}
+  	void				set_viewport (const glm::ivec4& vp) override;
+  	const glm::ivec4&	viewport () const;
 
 	void mouse_button (int button, int action, int mods) override;
 	void mouse_move (const glm::vec2& c) override;
@@ -28,7 +26,6 @@ private:
 	
 	View 		m_view;
   	ArcBall 	m_arcBall;
-  	Camera 		m_camera;
 };
 
 }// end of namespace slimesh

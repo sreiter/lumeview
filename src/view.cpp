@@ -11,16 +11,16 @@
 namespace slimesh {
 
 View::View () :
-    m_viewMat (1.f),
-    m_viewport (0, 0, 1, 1)
+    m_viewport (0, 0, 1, 1),
+    m_zClipDists (1.e-3, 1.e2)
 {}
 
 void View::apply (const Shader& shader) const
 {
     const glm::ivec4& vp = m_viewport;
     glViewport (vp.x, vp.y, vp.z, vp.w);
-    shader.set_uniform ("view", m_viewMat);
-    shader.set_uniform ("projection", projection());
+    shader.set_uniform ("view", view_matrix());
+    shader.set_uniform ("projection", projection_matrix());
 }
 
 void View::set_viewport (const glm::ivec4& vp)
@@ -34,6 +34,27 @@ const glm::ivec4& View::viewport () const
 {
     return m_viewport;
 }
+
+void View::set_camera (const Camera& camera)
+{
+    m_camera = camera;
+}
+
+void View::set_camera (Camera&& camera)
+{
+    m_camera = std::move (camera);
+}
+
+Camera& View::camera ()
+{
+    return m_camera;
+}
+
+const Camera& View::camera () const
+{
+    return m_camera;
+}
+
 
 glm::vec2 View::aspect_ratio () const
 {
@@ -51,24 +72,19 @@ glm::vec2 View::aspect_ratio () const
     }
 }
 
-void View::set_view_matrix (const glm::mat4& view)
+glm::mat4 View::view_matrix () const
 {
-   m_viewMat = view;
+   return m_camera.view_matrix();
 }
 
-const glm::mat4& View::view_matrix () const
-{
-   return m_viewMat;
-}
-
-glm::mat4 View::projection () const
+glm::mat4 View::projection_matrix () const
 {
     const auto ar = aspect_ratio ();
     if (ar.x == 0 || ar.y == 0) {
         return glm::mat4 (1.f);
     }
     else {
-        return glm::perspective(glm::radians(45.0f), ar.x / ar.y, 0.001f, 10.f);
+        return glm::perspective(glm::radians(45.0f), ar.x / ar.y, m_zClipDists.x, m_zClipDists.y);
     }
 }
 
@@ -76,8 +92,8 @@ glm::vec3 View::unproject (const glm::vec3& c) const
 {
     const glm::ivec4& vp = m_viewport;
     return glm::unProject (glm::vec3(c.x, (vp.w - vp.y - c.y), c.z),
-                             m_viewMat,
-                             projection(),
+                             view_matrix(),
+                             projection_matrix(),
                              m_viewport);
 }
 
@@ -89,5 +105,16 @@ float View::depth_at_screen_coord (const glm::vec2& c) const
                   GL_DEPTH_COMPONENT, GL_FLOAT, &depthVal);
     return depthVal;
 }
+
+void View::set_z_clip_dists (const glm::vec2& c)
+{
+    m_zClipDists = c;
+}
+
+glm::vec2 View::z_clip_dists () const
+{
+    return m_zClipDists;
+}
+
 
 }// end of namespace slimesh

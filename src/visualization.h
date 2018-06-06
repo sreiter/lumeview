@@ -4,10 +4,12 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <limits>
 
 #include "gl_buffer.h"
-#include "shader.h"
 #include "mesh.h"
+#include "shader.h"
+#include "vec_math.h"
 
 namespace slimesh {
 
@@ -137,6 +139,33 @@ public:
 		newStage.name = std::move (name);
 		newStage.grobType = grobType;
 		m_stages.push_back (std::move(newStage));
+	}
+
+	///	returns min (x) and max (y) z clip distances required to show all polygons.
+	glm::vec2 estimate_z_clip_dists (const View& view) const
+	{
+		using std::min;
+		using std::max;
+
+		const glm::vec3 n = normalize (view.camera().forward());
+		const glm::vec3 p = view.camera().from();
+
+		glm::vec2 zDist (std::numeric_limits<real_t>::max(), 0);
+
+		for(const auto& stage : m_stages) {
+			const Sphere& s = stage.bndSphere;
+			const real_t o = offsetPointToPlane (s.center, p, n);
+			zDist.x = min (zDist.x, o - s.radius);
+			zDist.y = max (zDist.y, o + s.radius);
+		}
+
+		if (zDist.y <= 0)
+			zDist.y = 1.f;
+
+		if (zDist.x <= 0 || zDist.x >= zDist.y)
+			zDist.x = zDist.y * 1.e-5f;
+
+		return zDist * glm::vec2(0.9f, 1.1f);
 	}
 
 	void render (const View& view)
