@@ -24,8 +24,8 @@ public class Main {
 
     // Define constants for the top-level container
     private static String TITLE = "Native OpenGL Viewer";  // window's title
-    private static final int CANVAS_WIDTH = 400;  // width of the drawable
-    private static final int CANVAS_HEIGHT = 400; // height of the drawable
+    private static final int CANVAS_WIDTH = 800;  // width of the drawable
+    private static final int CANVAS_HEIGHT = 600; // height of the drawable
     private static final int FPS = 60; // animator's target frames per second
 
     /**

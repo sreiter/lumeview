@@ -90,7 +90,7 @@ void ArcBallView::mouse_move (const glm::vec2& c)
 			glm::vec2 d = base_t::cursor_position() - lastCursorPos;
 			d *= translationSpeed;
 			if (m_view.camera().scale().x != 0){
-				d /= m_view.camera().scale().x;
+				d *= m_view.camera().scale().x;
 				m_view.camera().translate (-d.x * m_view.camera().right () + d.y * m_view.camera().up ());
 			}
 		}

@@ -5,11 +5,15 @@ set (GL_VERSION_MINOR "3")
 
 option (GLFW "Creates a glfw based application" ON)
 option (JNI "Creates a shared library for use with the Java Native Interface" OFF)
+set (RESOURCE_ROOT_PATH ".." CACHE STRING "Path in which resource folders 'meshes' and 'shaders' are located.")
 
 message (STATUS "")
-message (STATUS "GLFW: " ${GLFW} "\t(Create glfw based application. Values: ON / OFF)")
-message (STATUS "JNI:  " ${JNI}  "\t(Create a shared library for use with the Java Native Interface. Values: ON / OFF)")
+message (STATUS "GLFW:               " ${GLFW} "\t(Create glfw based application. Values: ON / OFF)")
+message (STATUS "JNI:                " ${JNI}  "\t(Create a shared library for use with the Java Native Interface. Values: ON / OFF)")
+message (STATUS "RESOURCE_ROOT_PATH: " ${RESOURCE_ROOT_PATH}  "\t(Path in which an executable looks for the resource folders 'meshes' and 'shaders'")
 message (STATUS "")
+
+add_definitions (-DRESOURCE_ROOT_PATH=\"${RESOURCE_ROOT_PATH}\")
 
 set (sources
     	arc_ball.cpp
@@ -28,20 +32,20 @@ set (sources
     )
 
 
-set (shaders
-        flat-edge-shading.gs
-        flat-shading.fs
-        flat-tri-shading.gs
-        no-shading.vs
-        smooth-shading.fs
-        smooth-shading.vs)
+# set (shaders
+#         flat-edge-shading.gs
+#         flat-shading.fs
+#         flat-tri-shading.gs
+#         no-shading.vs
+#         smooth-shading.fs
+#         smooth-shading.vs)
 
-set (meshes
-        box.stl
-        bunny.stl
-        sphere.stl
-        pyra.stl
-        quad.stl)
+# set (meshes
+#         box.stl
+#         bunny.stl
+#         sphere.stl
+#         pyra.stl
+#         quad.stl)
 
 
 set (GLAD_PATH	"deps/glad/glad-${GL_VERSION_MAJOR}.${GL_VERSION_MINOR}")
@@ -70,7 +74,6 @@ if (MSVC)
 endif ()
 
 if (GLFW)
-    add_definitions (-DRESOURCE_ROOT_PATH="")
     set (glfwSources    main.cpp
                         deps/imgui/imgui_impl_glfw_gl3.cpp
         )
@@ -90,7 +93,7 @@ if (GLFW)
     endif ()
 
     set ( GLFW_INCLUDE "${GLFW_PATH}/include")
-    link_directories ("${CMAKE_BINARY_DIR}/src/deps/glfw-3.2.1/src/")
+    link_directories ("${CMAKE_BINARY_DIR}")
 
     include_directories (${GLFW_INCLUDE})
 
@@ -102,7 +105,6 @@ if (GLFW)
 endif ()
 
 if (JNI)
-    add_definitions (-DRESOURCE_ROOT_PATH="../")
     set (jniSources     jni/jni_event_listener.cpp
         )
 
@@ -114,10 +116,10 @@ if (JNI)
 endif ()
 
 
-foreach (file IN LISTS shaders)
-    configure_file("../shaders/${file}" "${CMAKE_BINARY_DIR}/src/shaders/${file}" COPYONLY)
-endforeach (file)
+# foreach (file IN LISTS shaders)
+#     configure_file("../shaders/${file}" "${CMAKE_BINARY_DIR}/src/shaders/${file}" COPYONLY)
+# endforeach (file)
 
-foreach (file IN LISTS meshes)
-    configure_file("../meshes/${file}" "${CMAKE_BINARY_DIR}/src/meshes/${file}" COPYONLY)
-endforeach (file)
+# foreach (file IN LISTS meshes)
+#     configure_file("../meshes/${file}" "${CMAKE_BINARY_DIR}/src/meshes/${file}" COPYONLY)
+# endforeach (file)

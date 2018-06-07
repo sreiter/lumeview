@@ -24,8 +24,8 @@ using namespace std;
 
 namespace slimesh {
 
-const std::string SHADER_PATH = string(RESOURCE_ROOT_PATH) + "shaders/";
-const std::string MESH_PATH = string(RESOURCE_ROOT_PATH) + "meshes/";
+const std::string SHADER_PATH = string(RESOURCE_ROOT_PATH) + "/shaders/";
+const std::string MESH_PATH = string(RESOURCE_ROOT_PATH) + "/meshes/";
 
 static ArcBallView g_arcBallView;
 static Visualization g_visualization (SHADER_PATH);
@@ -65,7 +65,7 @@ void RendererInit ()
 	}
 
 	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
-	g_visualization.add_stage ("solid", mainMesh, TRI, SMOOTH);
+	g_visualization.add_stage ("solid", mainMesh, TRI, FLAT);
 	g_visualization.add_stage ("wire", mainMesh, EDGE, FLAT);
 
 	{

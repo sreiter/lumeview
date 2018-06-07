@@ -56,7 +56,7 @@ public class NativeOpenGL {
 //                    destParent);
 
             VSysUtil.loadNativeLibrariesInFolder(
-                    new File("../build/src"));
+                    new File("../build"));
             
         } catch (Exception ex) {
             Logger.getLogger(NativeOpenGL.class.getName()).
