@@ -13,8 +13,8 @@
 using namespace std;
 using namespace slimesh;
 
-static WindowEventListener* g_eventListener = nullptr;
-
+static WindowEventListener*	g_eventListener = nullptr;
+static glm::vec2			g_pixelScale (1);
 
 void HandleGLFWError (int error, const char* description)
 {
@@ -25,6 +25,12 @@ void HandleGLFWError (int error, const char* description)
 
 void FramebufferResized (GLFWwindow* window, int width, int height)
 {
+	int winWidth, winHeight;
+    glfwGetWindowSize (window, &winWidth, &winHeight);
+	if(winWidth > 0 && winHeight > 0 && width > 0 && height > 0)
+		g_pixelScale = glm::vec2 ((float) width / (float) winWidth,
+		                          (float) height / (float) winHeight);
+
 	if(g_eventListener)
 		g_eventListener->set_viewport (glm::ivec4(0, 0, width, height));
 }
@@ -39,7 +45,7 @@ void ProcessInput (GLFWwindow* window)
 void CursorPositionCallback(GLFWwindow* window, double x, double y)
 {
 	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
-		g_eventListener->mouse_move (glm::vec2(x, y));
+		g_eventListener->mouse_move (glm::vec2(x, y) * g_pixelScale);
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -111,10 +117,9 @@ int main (int argc, char** argv)
 
 	//	setup view
 	    int frmBufWidth, frmBufHeight;
-	    glfwGetFramebufferSize(window, &frmBufWidth, &frmBufHeight);
+	    glfwGetFramebufferSize (window, &frmBufWidth, &frmBufHeight);
 		FramebufferResized (window, frmBufWidth, frmBufHeight);
 		glfwSetFramebufferSizeCallback (window, FramebufferResized);
-
 
 		while (!glfwWindowShouldClose (window))
 		{
