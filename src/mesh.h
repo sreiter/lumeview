@@ -135,12 +135,12 @@ private:
 
 	template <class T>
 	DataStorage<std::string, T>& storage (const T&) {// dummy parameter to allow for overloads
-		THROW("Unsupported data type: " << typeid(T).name);
+		THROW("Unsupported data type: " << typeid(T).name());
 	}
 
 	template <class T>
 	const DataStorage<std::string, T>& storage (const T&) const {// dummy parameter to allow for overloads
-		THROW("Unsupported data type: " << typeid(T).name);
+		THROW("Unsupported data type: " << typeid(T).name());
 	}
 
 	DataStorage<std::string, real_t>& storage (const real_t&) {
