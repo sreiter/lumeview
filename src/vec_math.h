@@ -164,7 +164,7 @@ projectPointToPlane(vector_t& vOut, const vector_t& v,
 	const vector_t norm = normalize (n);
 	const typename vector_t::value_type s = dot(norm, t);
 	vOut = v - norm * s;
-	return s
+	return s;
 }
 
 
