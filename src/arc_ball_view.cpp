@@ -38,7 +38,6 @@ void ArcBallView::set_viewport (const glm::ivec4& vp)
     m_arcBall.set_frame (glm::vec2(vp.z - vp.x, vp.w - vp.y));
     m_arcBall.set_offset (glm::vec2(vp.x, vp.y));
     m_view.set_viewport (vp);
-    LOGT(dbg, "VIEWPORT: " << vp << std::endl);
 }
 
 
@@ -55,7 +54,6 @@ void ArcBallView::mouse_button (int button, int action, int mods)
 		switch(action) {
 			case MouseButtonAction::DOWN: {
 				const glm::vec2& cursorPos = base_t::cursor_position ();
-				LOGT(dbg, "BUTTON DOWN: " << cursorPos << std::endl);
 				if (base_t::was_double_click (button)) {
 					m_arcBall.end_drag ();
 					float z = m_view.depth_at_screen_coord (cursorPos);

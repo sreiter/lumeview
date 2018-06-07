@@ -40,11 +40,12 @@ public class Main {
             GLProfile glp = GLProfile.get(GLProfile.GL3);
             GLCapabilities capabilities = new GLCapabilities(glp);
             capabilities.setPBuffer(true);
-            capabilities.setFBO(true);
+            capabilities.setFBO(false);
 //        capabilities.setAlphaBits(8);
 //        capabilities.setRedBits(8);
 //        capabilities.setGreenBits(8);
 //        capabilities.setBlueBits(8);
+            capabilities.setDepthBits(24);
             capabilities.setDoubleBuffered(true);
 
             // create jogl panel

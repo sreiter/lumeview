@@ -70,6 +70,7 @@ if (MSVC)
 endif ()
 
 if (GLFW)
+    add_definitions (-DRESOURCE_ROOT_PATH="")
     set (glfwSources    main.cpp
                         deps/imgui/imgui_impl_glfw_gl3.cpp
         )
@@ -101,6 +102,7 @@ if (GLFW)
 endif ()
 
 if (JNI)
+    add_definitions (-DRESOURCE_ROOT_PATH="../")
     set (jniSources     jni/jni_event_listener.cpp
         )
 

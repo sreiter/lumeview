@@ -1,10 +1,20 @@
 #include <jni.h>
+#include <iostream>
 #include "jni_event_listener.h"
 #include "../renderer.h"
 
+using namespace std;
 using namespace slimesh;
 
 static WindowEventListener* g_eventListener = nullptr;
+
+static int MapButton (int btn)
+{
+    const int mapping[] = {0, 0, 2, 1};
+    if(btn > 0 && btn <= 3)
+        return mapping[btn];
+    return btn;
+}
 
 // JNI methods
 JNIEXPORT void JNICALL
@@ -55,6 +65,8 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1drag_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
+    if(g_eventListener)
+        g_eventListener->mouse_move (glm::vec2(x, y));
 }
 
 JNIEXPORT void JNICALL
@@ -62,7 +74,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1press_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
     if(g_eventListener)
-        g_eventListener->mouse_button (btn, MouseButtonAction::DOWN, 0);
+        g_eventListener->mouse_button (MapButton(btn), MouseButtonAction::DOWN, 0);
 }
 
 JNIEXPORT void JNICALL
@@ -70,7 +82,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1release_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
     if(g_eventListener)
-        g_eventListener->mouse_button (btn, MouseButtonAction::UP, 0);
+        g_eventListener->mouse_button (MapButton(btn), MouseButtonAction::UP, 0);
 }
 
 JNIEXPORT void JNICALL

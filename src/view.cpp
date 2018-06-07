@@ -8,6 +8,8 @@
 #include "view.h"
 #include "shader.h"
 
+using namespace std;
+
 namespace slimesh {
 
 View::View () :

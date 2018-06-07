@@ -50,6 +50,7 @@ void CursorPositionCallback(GLFWwindow* window, double x, double y)
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+	cout << "btn: " << button << endl;
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
 		g_eventListener->mouse_button (button, action, mods);
@@ -89,7 +90,7 @@ int main (int argc, char** argv)
 		#endif
 
 	//	Set up window
-		GLFWwindow* window = glfwCreateWindow (800, 600, "slimesh", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow (400, 400, "slimesh", NULL, NULL);
 		COND_THROW (window == NULL, "GLFW::INIT\n" <<
 		            "Failed to create glfw window");
 
