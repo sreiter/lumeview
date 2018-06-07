@@ -23,7 +23,7 @@ void HandleGLFWError (int error, const char* description)
 }
 
 
-void ResizeFramebuffer (GLFWwindow* window, int width, int height)
+void FramebufferResized (GLFWwindow* window, int width, int height)
 {
 	if(g_eventListener)
 		g_eventListener->set_viewport (glm::ivec4(0, 0, width, height));
@@ -110,8 +110,10 @@ int main (int argc, char** argv)
 	    //ImGui::StyleColorsClassic();
 
 	//	setup view
-		ResizeFramebuffer (window, 800, 600);
-		glfwSetFramebufferSizeCallback (window, ResizeFramebuffer);
+	    int frmBufWidth, frmBufHeight;
+	    glfwGetFramebufferSize(window, &frmBufWidth, &frmBufHeight);
+		FramebufferResized (window, frmBufWidth, frmBufHeight);
+		glfwSetFramebufferSizeCallback (window, FramebufferResized);
 
 
 		while (!glfwWindowShouldClose (window))
