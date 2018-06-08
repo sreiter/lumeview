@@ -36,18 +36,28 @@ dependencies {
 }
 
 manifest {
-    attributes 'Main-Class': "eu.mihosoft.vrl.v3d.nativeogl.Main"
+    attributes 'Main-Class': mainClass
 }
 
 task createNativeHeaders (dependsOn: compileJava){
     
     doFirst {
         println(">> Generating Headers:")
-        String cmd = "javah -o native/include/vrlnativeoglbinding.h -classpath $sourceSets.main.output.classesDir eu.mihosoft.vrl.v3d.nativeogl.NativeOpenGL"
+        String cmd = "javac -h build/nativeheaders -classpath $sourceSets.main.output.classesDirs.asPath src/main/java/eu/mihosoft/vnativegl/NativeOpenGL.java"
         
         println(cmd)
         
-        def proc = cmd.execute(cmd.split(" "),new File(projectDir.toString()));
+        def proc = cmd.execute(null,new File(projectDir.toString()))
+
+        proc.in.eachLine {line -> println line}
+        proc.err.eachLine {line -> System.err.println( 'ERROR: ' + line)}
+        proc.waitFor()
+
+        cmd = "cp build${File.separator}nativeheaders${File.separator}eu_mihosoft_vnativegl_NativeOpenGL.h" + " ..${File.separator}src${File.separator}jni${File.separator}jni_event_listener.h"
+
+        println(cmd)
+
+        proc = cmd.execute(null,new File(projectDir.toString()))
 
         proc.in.eachLine {line -> println line}
         proc.err.eachLine {line -> System.err.println( 'ERROR: ' + line)}
