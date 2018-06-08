@@ -3,36 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package eu.mihosoft.vrl.v3d.nativeogl;
+package eu.mihosoft.vnativegl;
 
 
 
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.glu.GLU;
-import com.jogamp.opengl.util.FPSAnimator;
-import java.awt.Dimension;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-
-
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.vecmath.Point3f;
-import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-import org.apache.commons.io.monitor.FileAlterationMonitor;
-import org.apache.commons.io.monitor.FileAlterationObserver;
-
-import static com.jogamp.opengl.GL.GL_DEPTH_TEST;
-import static com.jogamp.opengl.GL.GL_LEQUAL;
-import static com.jogamp.opengl.GL.GL_NICEST;
-import static com.jogamp.opengl.GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT;
-import static com.jogamp.opengl.fixedfunc.GLLightingFunc.GL_SMOOTH;
-import static com.jogamp.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW;
-import static com.jogamp.opengl.fixedfunc.GLMatrixFunc.GL_PROJECTION;
 
 /**
  * JOGL NativeOpenGL OpenGL Interface

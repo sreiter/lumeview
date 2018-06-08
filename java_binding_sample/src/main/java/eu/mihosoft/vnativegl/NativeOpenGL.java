@@ -3,16 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package eu.mihosoft.vrl.v3d.nativeogl;
+package eu.mihosoft.vnativegl;
 
-import eu.mihosoft.nativeogl.vrl.system.IOUtil;
-import eu.mihosoft.nativeogl.vrl.system.VSysUtil;
+import eu.mihosoft.vnativegl.vrl.system.VSysUtil;
 import java.io.File;
-import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
 
 /**
  *

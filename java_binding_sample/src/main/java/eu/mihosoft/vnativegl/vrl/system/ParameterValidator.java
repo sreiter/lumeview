@@ -1,5 +1,5 @@
 /* 
- * VObjectInputStream.java
+ * ParameterValidator.java
  *
  * Copyright (c) 2009–2014 Steinbeis Forschungszentrum (STZ Ölbronn),
  * Copyright (c) 2006–2014 by Michael Hoffer
@@ -48,44 +48,26 @@
  * Computing and Visualization in Science, in press.
  */
 
-package eu.mihosoft.nativeogl.vrl.system;
-
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamClass;
+package eu.mihosoft.vnativegl.vrl.system;
 
 /**
- * VRL uses this input stream to ensure that classes defined as abstract code
- * and some other serialized classes/objects can be loaded. There is usally no
- * need to use this input stream outside of VRL core classes.
- *
+ * A parameter validator.
+ * @see VParamUtil
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public class VObjectInputStream extends ObjectInputStream {
-
-    private ClassLoader classLoader;
-
+public interface ParameterValidator {
     /**
-     * Constructor.
-     *
-     * @param in the input stream to use
-     * @param classLoader the class loader to use
-     * @throws java.io.IOException
+     * Validates the specified parameter.
+     * @param p parameter to validate
+     * @return validation result
      */
-    public VObjectInputStream(
-            InputStream in, ClassLoader classLoader) throws IOException {
-        super(in);
-        this.classLoader = classLoader;
-    }
-
-    @Override
-    protected Class<?> resolveClass(
-            ObjectStreamClass desc) throws ClassNotFoundException {        
-//        return Class.forName(desc.getName(), false, classLoader);
-
-
-        return VClassLoaderUtil.forName(desc.getName(), classLoader);
-    }
+    public ValidationResult validate(Object p);
+    /**
+     * Validates the specified parameter.
+     * @param p parameter to validate
+     * @param validationArg validationArg validation argument 
+     * (may be null, usage depends on the validator implementation)
+     * @return validation result
+     */
+    public ValidationResult validate(Object p, Object validationArg);
 }

@@ -35,7 +35,7 @@ void InitImGui ()
 
 // JNI methods
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1init(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1init(
     JNIEnv *jEnv, jclass jcls)
 {
     RendererInit ();
@@ -45,7 +45,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1init(
 
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1dispose(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1dispose(
     JNIEnv *jEnv, jclass jcls)
 {
     RendererDispose ();
@@ -56,7 +56,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1dispose(
 
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1display(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1display(
     JNIEnv *jEnv, jclass jcls)
 {
     ImGui_NewFrame();
@@ -66,7 +66,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1display(
 
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1reshape(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1reshape(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint w, jint h)
 {
     if(g_imguiListener)
@@ -78,14 +78,14 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1reshape(
 
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1click_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1click_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn, jint click_count
 )
 {
 }
   
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1move_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1move_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y)
 {
     if(g_imguiListener)
@@ -96,7 +96,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1move_1event(
 }
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1drag_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1drag_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
     if(g_imguiListener)
@@ -107,7 +107,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1drag_1event(
 }
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1press_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1press_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
     if(g_imguiListener)
@@ -118,7 +118,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1press_1event(
 }
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1release_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1release_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
     if(g_imguiListener)
@@ -129,19 +129,19 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1release_1event(
 }
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1enter_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1enter_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y)
 {
 }
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1exit_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1exit_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y)
 {
 }
 
 JNIEXPORT void JNICALL
-Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1mouse_1wheel_1event(
+Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1wheel_1event(
     JNIEnv *jEnv, jclass jcls, jdouble movement)
 {
     if(g_imguiListener)

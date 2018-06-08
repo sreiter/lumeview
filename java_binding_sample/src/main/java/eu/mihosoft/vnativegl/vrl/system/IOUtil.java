@@ -48,7 +48,7 @@
  * Computing and Visualization in Science, in press.
  */
 
-package eu.mihosoft.nativeogl.vrl.system;
+package eu.mihosoft.vnativegl.vrl.system;
 
 import java.io.*;
 import java.net.URI;
@@ -222,7 +222,7 @@ public class IOUtil {
      */
     public static String fileToBase64(File file)
             throws FileNotFoundException, IOException {
-        return Base64.encodeBytes(fileToByteArray(file));
+        return eu.mihosoft.vnativegl.vrl.system.Base64.encodeBytes(fileToByteArray(file));
     }
 
     /**
@@ -232,7 +232,7 @@ public class IOUtil {
      * @return the decoded data as byte array
      */
     public static byte[] base64ToByteArray(String data) {
-        return Base64.decode(data);
+        return eu.mihosoft.vnativegl.vrl.system.Base64.decode(data);
     }
 
     /**
@@ -771,7 +771,7 @@ public class IOUtil {
         File result = File.createTempFile("vrl", "." + extension);
         result.deleteOnExit();
         FileOutputStream out = new FileOutputStream(result);
-        out.write(Base64.decode(data, Base64.GZIP));
+        out.write(eu.mihosoft.vnativegl.vrl.system.Base64.decode(data, eu.mihosoft.vnativegl.vrl.system.Base64.GZIP));
         out.flush();
         out.close();
         return result;
@@ -790,7 +790,7 @@ public class IOUtil {
      */
     public static File base64ToFile(String data, File f) throws IOException {
         FileOutputStream out = new FileOutputStream(f);
-        out.write(Base64.decode(data, Base64.GZIP));
+        out.write(eu.mihosoft.vnativegl.vrl.system.Base64.decode(data, eu.mihosoft.vnativegl.vrl.system.Base64.GZIP));
         out.flush();
         out.close();
         return f;

@@ -47,7 +47,7 @@
  * A Framework for Declarative GUI Programming on the Java Platform.
  * Computing and Visualization in Science, in press.
  */
-package eu.mihosoft.nativeogl.vrl.system;
+package eu.mihosoft.vnativegl.vrl.system;
 
 import java.awt.Desktop;
 import java.awt.Toolkit;
