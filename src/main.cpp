@@ -153,7 +153,6 @@ int main (int argc, char** argv)
 
 		while (!glfwWindowShouldClose (window))
 		{
-			// ImGui_ImplGlfwGL3_NewFrame();
 			slimesh::ImGui_NewFrame();
 
 			DefLog().draw("log");
