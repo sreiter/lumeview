@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw_gl3.h"
+#include "imgui/imgui_binding.h"
 
 #include "log.h"
 #include "cond_throw.h"
@@ -13,7 +13,8 @@
 using namespace std;
 using namespace slimesh;
 
-static WindowEventListener*	g_eventListener = nullptr;
+static WindowEventListener*	g_imguiListener = nullptr;
+static WindowEventListener*	g_renderListener = nullptr;
 static glm::vec2			g_pixelScale (1);
 
 void HandleGLFWError (int error, const char* description)
@@ -31,8 +32,11 @@ void FramebufferResized (GLFWwindow* window, int width, int height)
 		g_pixelScale = glm::vec2 ((float) width / (float) winWidth,
 		                          (float) height / (float) winHeight);
 
-	if(g_eventListener)
-		g_eventListener->set_viewport (glm::ivec4(0, 0, width, height));
+	if(g_imguiListener)
+		g_imguiListener->set_viewport (glm::ivec4(0, 0, width, height));
+
+	if(g_renderListener)
+		g_renderListener->set_viewport (glm::ivec4(0, 0, width, height));
 }
 
 
@@ -44,34 +48,68 @@ void ProcessInput (GLFWwindow* window)
 
 void CursorPositionCallback(GLFWwindow* window, double x, double y)
 {
-	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
-		g_eventListener->mouse_move (glm::vec2(x, y) * g_pixelScale);
+	if (g_imguiListener)
+		g_imguiListener->mouse_move (glm::vec2(x, y) * g_pixelScale);
+
+	if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
+		g_renderListener->mouse_move (glm::vec2(x, y) * g_pixelScale);
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
-		g_eventListener->mouse_button (button, action, mods);
+	if (g_imguiListener)
+		g_imguiListener->mouse_button (button, action, mods);
+
+	if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
+		g_renderListener->mouse_button (button, action, mods);
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-	if(g_eventListener && !ImGui::GetIO().WantCaptureMouse)
-		g_eventListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
+	if (g_imguiListener)
+		g_imguiListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
+
+	if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
+		g_renderListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
 }
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+	// ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 
 void CharCallback(GLFWwindow* window, unsigned int c)
 {
-	ImGui_ImplGlfw_CharCallback(window, c);
+	// ImGui_ImplGlfw_CharCallback(window, c);
 }
 
+static const char* ImGui_GetClipboardText(void* user_data)
+{
+    return glfwGetClipboardString((GLFWwindow*)user_data);
+}
+
+static void ImGui_SetClipboardText(void* user_data, const char* text)
+{
+    glfwSetClipboardString((GLFWwindow*)user_data, text);
+}
+
+void InitImGui (GLFWwindow* window)
+{
+	//	init IMGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    slimesh::ImGui_Init();
+    g_imguiListener = ImGui_GetEventListener ();
+
+    // Setup style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    ImGuiIO& io = ImGui::GetIO();
+	io.SetClipboardTextFn = ImGui_SetClipboardText;
+    io.GetClipboardTextFn = ImGui_GetClipboardText;
+    io.ClipboardUserData = window;
+}
 
 int main (int argc, char** argv)
 {
@@ -96,24 +134,16 @@ int main (int argc, char** argv)
 		glfwMakeContextCurrent (window);
 		glfwSwapInterval(1);
 
-		//	init IMGUI
-		// Setup Dear ImGui binding
-	    IMGUI_CHECKVERSION();
-	    ImGui::CreateContext();
-	    ImGui_ImplGlfwGL3_Init(window, false);
+		RendererInit ();
+	    g_renderListener = RendererGetEventListener ();
+
+	    InitImGui (window);
 
 	    glfwSetCursorPosCallback (window, CursorPositionCallback);
 	    glfwSetMouseButtonCallback (window, MouseButtonCallback);
 	    glfwSetScrollCallback (window, ScrollCallback);
 	    glfwSetKeyCallback (window, KeyCallback);
 	    glfwSetCharCallback (window, CharCallback);
-
-	    RendererInit ();
-	    g_eventListener = RendererGetEventListener ();
-
-	    // Setup style
-	    ImGui::StyleColorsDark();
-	    //ImGui::StyleColorsClassic();
 
 	//	setup view
 	    int frmBufWidth, frmBufHeight;
@@ -123,7 +153,8 @@ int main (int argc, char** argv)
 
 		while (!glfwWindowShouldClose (window))
 		{
-			ImGui_ImplGlfwGL3_NewFrame();
+			// ImGui_ImplGlfwGL3_NewFrame();
+			slimesh::ImGui_NewFrame();
 
 			DefLog().draw("log");
 
@@ -132,7 +163,7 @@ int main (int argc, char** argv)
 			RendererDraw ();
 
 			ImGui::Render();
-        	ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+        	slimesh::ImGui_RenderDrawData(ImGui::GetDrawData());
 
 			glfwSwapBuffers (window);
 			glfwPollEvents ();
@@ -141,12 +172,14 @@ int main (int argc, char** argv)
 	} catch (std::exception& e) {
 		cout << "\nAn ERROR occurred during execution:\n";
 		cout << e.what() << endl << endl;
-		RendererDraw ();
+		slimesh::ImGui_Shutdown ();
+		RendererDispose ();
 		glfwTerminate ();
 		return 1;
 	}
 
-	RendererDraw ();
+	slimesh::ImGui_Shutdown ();
+	RendererDispose ();
 	glfwTerminate ();
 	return 0;
 }

@@ -46,7 +46,7 @@ public class Main {
 //        capabilities.setGreenBits(8);
 //        capabilities.setBlueBits(8);
             capabilities.setDepthBits(24);
-            capabilities.setDoubleBuffered(true);
+            capabilities.setDoubleBuffered(false);
 
             // create jogl panel
             GLJPanel panel = new GLJPanel(capabilities);

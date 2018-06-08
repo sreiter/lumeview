@@ -15,7 +15,6 @@ public:
 	const View&	view () const;
 
   	void				set_viewport (const glm::ivec4& vp) override;
-  	const glm::ivec4&	viewport () const;
 
 	void mouse_button (int button, int action, int mods) override;
 	void mouse_move (const glm::vec2& c) override;

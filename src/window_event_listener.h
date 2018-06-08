@@ -54,6 +54,7 @@ public:
 
 //	window
   	virtual void set_viewport (const glm::ivec4& vp);
+  	virtual const glm::ivec4& viewport () const;
 
 //	keyboard
   	virtual void key (int key, int scancode, int action, int mods);
@@ -71,6 +72,7 @@ private:
 	};
 
 	glm::vec2					m_cursorPos;
+	glm::ivec4  				m_viewport;
 	std::vector<MouseBtnInfo>	m_mouseBtnInfo;
 };
 

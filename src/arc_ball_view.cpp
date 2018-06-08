@@ -33,6 +33,7 @@ const View& ArcBallView::view () const
 
 void ArcBallView::set_viewport (const glm::ivec4& vp)
 {
+	base_t::set_viewport (vp);
     COND_THROW((vp.x == vp.z) || (vp.y == vp.w),
                "Bad viewport spefified: " << vp);
     m_arcBall.set_frame (glm::vec2(vp.z - vp.x, vp.w - vp.y));
@@ -40,11 +41,6 @@ void ArcBallView::set_viewport (const glm::ivec4& vp)
     m_view.set_viewport (vp);
 }
 
-
-const glm::ivec4& ArcBallView::viewport () const
-{
-	return m_view.viewport ();
-}
 
 void ArcBallView::mouse_button (int button, int action, int mods)
 {

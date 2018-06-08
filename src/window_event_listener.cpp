@@ -13,7 +13,8 @@ WindowEventListener::MouseBtnInfo::MouseBtnInfo () :
 
 
 WindowEventListener::WindowEventListener () :
-	m_cursorPos (0)
+	m_cursorPos (0),
+	m_viewport (0, 0, 1, 1)
 {
 }
 
@@ -85,6 +86,12 @@ glm::vec2 WindowEventListener::mouse_button_down_pos (int btn) const
 
 void WindowEventListener::set_viewport (const glm::ivec4& vp)
 {
+	m_viewport = vp;
+}
+
+const glm::ivec4& WindowEventListener::viewport () const
+{
+	return m_viewport;
 }
 
 void WindowEventListener::key (int key, int scancode, int action, int mods)
