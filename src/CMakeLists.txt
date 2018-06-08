@@ -23,6 +23,7 @@ set (sources
         shapes.cpp
         renderer.cpp
         view.cpp
+        visualization.cpp
     	window_event_listener.cpp
 
         geometry.cpp

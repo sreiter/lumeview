@@ -61,9 +61,7 @@ Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1display(
 {
     ImGui_NewFrame();
     RendererDraw ();
-    DefLog().draw("log");
-    ImGui::Render();
-    ImGui_RenderDrawData(ImGui::GetDrawData());
+    RendererProcessGUI (true);
 }
 
 

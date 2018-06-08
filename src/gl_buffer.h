@@ -1,7 +1,9 @@
-#ifndef __H__gl_buffer
-#define __H__gl_buffer
+#ifndef __H__slimesh__gl_buffer
+#define __H__slimesh__gl_buffer
 
 #include <glad/glad.h>	// include before other OpenGL related includes
+#include "types.h"
+#include "cond_throw.h"
 
 namespace slimesh {
 
@@ -79,4 +81,4 @@ private:
 
 }// end of namespace slimesh
 
-#endif	//__H__gl_buffer
+#endif	//__H__slimesh__gl_buffer

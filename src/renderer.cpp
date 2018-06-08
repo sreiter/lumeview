@@ -7,6 +7,9 @@
 
 #include "stl_reader/stl_reader.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_binding.h"
+
 #include "arc_ball_view.h"
 #include "cond_throw.h"
 #include "file_util.h"
@@ -30,6 +33,8 @@ const std::string MESH_PATH = string(RESOURCE_ROOT_PATH) + "/meshes/";
 static ArcBallView g_arcBallView;
 static Visualization* g_visualization = nullptr;
 
+static bool g_guiShowLog = false;
+static bool g_guiShowDemo = false;
 
 WindowEventListener* RendererGetEventListener ()
 {
@@ -123,6 +128,54 @@ void RendererDraw ()
 	const glm::vec2 clipDists = g_visualization->estimate_z_clip_dists(g_arcBallView.view());
 	g_arcBallView.view().set_z_clip_dists (clipDists);
 	g_visualization->render (g_arcBallView.view());
+}
+
+
+void GUI_DoHeader ()
+{
+	static const ImGuiWindowFlags menuWindowFlags =	ImGuiWindowFlags_NoTitleBar
+												| 	ImGuiWindowFlags_NoScrollbar
+												| 	ImGuiWindowFlags_MenuBar
+												| 	ImGuiWindowFlags_NoMove
+												| 	ImGuiWindowFlags_NoResize
+												| 	ImGuiWindowFlags_NoCollapse;
+
+	ImGui::SetNextWindowPos(ImVec2(0,0));
+    if (!ImGui::Begin("SLIMESH", NULL, menuWindowFlags))
+    {
+        // Early out if the window is collapsed, as an optimization.
+        ImGui::End();
+        return;
+    }
+
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Panels"))
+        {
+            ImGui::MenuItem("Show Log", NULL, &g_guiShowLog);
+            ImGui::MenuItem("Show ImGui Demo", NULL, &g_guiShowDemo);
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+    }
+
+    ImGui::End(); // SLIMESH
+}
+
+void RendererProcessGUI (bool draw)
+{
+	GUI_DoHeader ();
+
+	if (g_guiShowLog)
+		DefLog().draw("log");
+
+	if (g_guiShowDemo)
+		ImGui::ShowDemoWindow (&g_guiShowDemo);
+
+	if (draw) {
+		ImGui::Render();
+		slimesh::ImGui_RenderDrawData(ImGui::GetDrawData());
+	}
 }
 
 }// end of namespace slimesh

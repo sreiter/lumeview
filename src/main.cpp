@@ -155,15 +155,12 @@ int main (int argc, char** argv)
 		{
 			slimesh::ImGui_NewFrame();
 
-			DefLog().draw("log");
-
 			ProcessInput (window);
 
 			RendererDraw ();
 
-			ImGui::Render();
-        	slimesh::ImGui_RenderDrawData(ImGui::GetDrawData());
-
+			RendererProcessGUI (true);
+			
 			glfwSwapBuffers (window);
 			glfwPollEvents ();
 		}
