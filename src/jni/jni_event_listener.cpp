@@ -74,6 +74,11 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1reshape(
 
     if(g_renderListener)
         g_renderListener->set_viewport (glm::ivec4(x, y, w, h));
+
+    // if (g_imguiListener) {
+    //     ImGui_NewFrame();
+    //     RendererProcessGUI (false);
+    // }
 }
 
 
@@ -93,6 +98,11 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1move_1event(
 
     if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
         g_renderListener->mouse_move (glm::vec2(x, y));
+
+    // if (g_imguiListener) {
+    //     ImGui_NewFrame();
+    //     RendererProcessGUI (false);
+    // }
 }
 
 JNIEXPORT void JNICALL
@@ -104,6 +114,11 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1drag_1event(
 
     if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
         g_renderListener->mouse_move (glm::vec2(x, y));
+
+    // if (g_imguiListener) {
+    //     ImGui_NewFrame();
+    //     RendererProcessGUI (false);
+    // }
 }
 
 JNIEXPORT void JNICALL
@@ -115,6 +130,11 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1press_1event(
 
     if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
         g_renderListener->mouse_button (MapButton(btn), MouseButtonAction::DOWN, 0);
+
+    // if (g_imguiListener) {
+    //     ImGui_NewFrame();
+    //     RendererProcessGUI (false);
+    // }
 }
 
 JNIEXPORT void JNICALL
@@ -126,6 +146,11 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1release_1event(
 
     if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
         g_renderListener->mouse_button (MapButton(btn), MouseButtonAction::UP, 0);
+
+    // if (g_imguiListener) {
+    //     ImGui_NewFrame();
+    //     RendererProcessGUI (false);
+    // }
 }
 
 JNIEXPORT void JNICALL
@@ -149,4 +174,9 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1wheel_1event(
 
     if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
         g_renderListener->mouse_scroll (glm::vec2 (0, movement));
+
+    // if (g_imguiListener) {
+    //     ImGui_NewFrame();
+    //     RendererProcessGUI (false);
+    // }
 }

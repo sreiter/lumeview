@@ -39,17 +39,18 @@ public class Main {
             // Create the OpenGL rendering canvas
             GLProfile glp = GLProfile.get(GLProfile.GL3);
             GLCapabilities capabilities = new GLCapabilities(glp);
-            capabilities.setPBuffer(true);
+            capabilities.setPBuffer(false);
             capabilities.setFBO(false);
 //        capabilities.setAlphaBits(8);
 //        capabilities.setRedBits(8);
 //        capabilities.setGreenBits(8);
 //        capabilities.setBlueBits(8);
             capabilities.setDepthBits(24);
+            capabilities.setStencilBits(8);
             capabilities.setDoubleBuffered(false);
 
             // create jogl panel
-            GLJPanel panel = new GLJPanel(capabilities);
+            // GLJPanel panel = new GLJPanel(capabilities);
             GLJPanel canvas = new NativeOpenGLPanel(capabilities);
             canvas.setPreferredSize(new Dimension(CANVAS_WIDTH, CANVAS_HEIGHT));
 

@@ -32,80 +32,10 @@ add_stage (	std::string name,
 	COND_THROW (!mesh->has_inds (grobType),
 	            "Requested grob type '" << GrobName (grobType)
 	            << "' is not provided by the specified mesh.");
-	
+
 	Stage newStage;
 	newStage.mesh = mesh;
 
-	//	create the vertex array object for this stage
-	glBindVertexArray (newStage.vao);
-
-	const bool curMeshNeedsVrtNormals =
-				(shading == SMOOTH)
-			||	(grobType == EDGE && (shading == FLAT));
-
-	COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("vrtNormals"),
-	           "Requested shader needs normal information!");
-
-	//	check whether we can reuse buffer objects
-	for(auto& stage : m_stages) {
-		if (stage.mesh->coords() == mesh->coords()) {
-			newStage.coordBuf = stage.coordBuf;
-			newStage.bndSphere = stage.bndSphere;
-		}
-
-		if (curMeshNeedsVrtNormals && stage.mesh->has_data<real_t>("vrtNormals")
-		    && stage.mesh->data<real_t>("vrtNormals") == mesh->data<real_t>("vrtNormals"))
-		{
-			newStage.normBuf = stage.normBuf;
-		}
-
-		if (stage.mesh == mesh && stage.grobType == grobType) {
-			newStage.indBuf = stage.indBuf;
-			break;
-		}
-	}
-
-	//	coordinates
-	if (newStage.coordBuf){
-		newStage.coordBuf->bind ();
-		glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray (0);
-	}
-	else {
-		newStage.bndSphere = SphereFromCoords (UNPACK_DST(*mesh->coords()));
-		newStage.coordBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-		newStage.coordBuf->set_data (mesh->coords()->raw_data(),
-		                           sizeof(real_t) * mesh->num_coords());
-		glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray (0);
-	}
-
-	//	normals
-	if (newStage.normBuf){
-		newStage.normBuf->bind ();
-		glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray (1);
-	}
-	else if (curMeshNeedsVrtNormals){
-		newStage.normBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-		newStage.normBuf->set_data (mesh->data<real_t>("vrtNormals")->raw_data(),
-		                            sizeof(real_t) * mesh->data<real_t>("vrtNormals")->size());
-		glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray (1);
-	}
-	else
-		glDisableVertexAttribArray (1);
-
-	//	indices
-	if (newStage.indBuf)
-		newStage.indBuf->bind ();
-	else {
-		newStage.indBuf = std::make_shared <GLBuffer> (GL_ELEMENT_ARRAY_BUFFER);
-		newStage.indBuf->set_data (mesh->inds(grobType)->raw_data(),
-		                           sizeof(index_t) * mesh->inds(grobType)->size());
-	}
-
-//todo: create shader
 	switch (grobType) {
 		case EDGE:
 			newStage.primType = GL_LINES;
@@ -131,7 +61,8 @@ add_stage (	std::string name,
 	m_stages.push_back (std::move(newStage));
 }
 
-
+// void Visualization::
+// provide_shading_requirements (Stage& stage)
 glm::vec2 Visualization::
 estimate_z_clip_dists (const View& view) const
 {
@@ -159,10 +90,91 @@ estimate_z_clip_dists (const View& view) const
 	return zDist * glm::vec2(0.9f, 1.1f);
 }
 
+void Visualization::
+prepare_buffers ()
+{
+	for(size_t istage = 0; istage < m_stages.size(); ++istage) {
+		Stage& curStage = m_stages[istage];
+		SPMesh mesh = curStage.mesh;
+
+		//	create the vertex array object for this stage
+		glBindVertexArray (curStage.vao);
+
+		const bool curMeshNeedsVrtNormals =
+					(curStage.shadingPreset == SMOOTH)
+				||	(curStage.grobType == EDGE && (curStage.shadingPreset == FLAT));
+
+		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("vrtNormals"),
+		           "Requested shader needs normal information!");
+
+		//	check whether we can reuse buffer objects
+		for(size_t iOtherStage = 0; iOtherStage < istage; ++iOtherStage) {
+			Stage& stage = m_stages[iOtherStage];
+
+			if (stage.mesh->coords() == mesh->coords()) {
+				curStage.coordBuf = stage.coordBuf;
+				curStage.bndSphere = stage.bndSphere;
+			}
+
+			if (curMeshNeedsVrtNormals && stage.mesh->has_data<real_t>("vrtNormals")
+			    && stage.mesh->data<real_t>("vrtNormals") == mesh->data<real_t>("vrtNormals"))
+			{
+				curStage.normBuf = stage.normBuf;
+			}
+
+			if (stage.mesh == mesh && stage.grobType == curStage.grobType) {
+				curStage.indBuf = stage.indBuf;
+				break;
+			}
+		}
+
+		//	coordinates
+		if (curStage.coordBuf){
+			curStage.coordBuf->bind ();
+			glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray (0);
+		}
+		else {
+			curStage.bndSphere = SphereFromCoords (UNPACK_DST(*mesh->coords()));
+			curStage.coordBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
+			curStage.coordBuf->set_data (mesh->coords()->raw_data(),
+			                           sizeof(real_t) * mesh->num_coords());
+			glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray (0);
+		}
+
+		//	normals
+		if (curStage.normBuf){
+			curStage.normBuf->bind ();
+			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray (1);
+		}
+		else if (curMeshNeedsVrtNormals){
+			curStage.normBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
+			curStage.normBuf->set_data (mesh->data<real_t>("vrtNormals")->raw_data(),
+			                            sizeof(real_t) * mesh->data<real_t>("vrtNormals")->size());
+			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray (1);
+		}
+		else
+			glDisableVertexAttribArray (1);
+
+		//	indices
+		if (curStage.indBuf)
+			curStage.indBuf->bind ();
+		else {
+			curStage.indBuf = std::make_shared <GLBuffer> (GL_ELEMENT_ARRAY_BUFFER);
+			curStage.indBuf->set_data (mesh->inds(curStage.grobType)->raw_data(),
+			                           sizeof(index_t) * mesh->inds(curStage.grobType)->size());
+		}
+	}
+}
 
 void Visualization::
 render (const View& view)
 {
+	prepare_buffers ();
+
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

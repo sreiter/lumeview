@@ -76,8 +76,8 @@ void RendererInit ()
 	g_visualization = new Visualization (SHADER_PATH);
 
 	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
-	g_visualization->add_stage ("solid", mainMesh, TRI, SMOOTH);
-	g_visualization->add_stage ("wire", mainMesh, EDGE, FLAT);
+	g_visualization->add_stage ("solid", mainMesh, TRI, NONE);
+	g_visualization->add_stage ("wire", mainMesh, EDGE, NONE);
 
 	{
 		auto sphere = SphereFromCoords (UNPACK_DST(*mainMesh->coords()));
@@ -151,17 +151,17 @@ void RendererProcessGUI (bool draw)
 {
 	GUI_DoHeader ();
 
+	if (g_guiShowVisualization)
+		g_visualization->do_imgui (&g_guiShowVisualization);
+
 	if (g_guiShowLog)
 		DefLog().draw("log", &g_guiShowLog);
 
 	if (g_guiShowDemo)
 		ImGui::ShowDemoWindow (&g_guiShowDemo);
 
-	if (g_guiShowVisualization)
-		g_visualization->do_imgui (&g_guiShowVisualization);
-
+	ImGui::Render();
 	if (draw) {
-		ImGui::Render();
 		slimesh::ImGui_RenderDrawData(ImGui::GetDrawData());
 	}
 }

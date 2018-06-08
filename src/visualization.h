@@ -43,6 +43,7 @@ public:
 
 private:
 	Shader get_shader (grob_t grobType, ShadingPreset shading);
+	void prepare_buffers ();
 
 	struct Stage {
 		Stage ()	{glGenVertexArrays (1, &vao);}

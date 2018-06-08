@@ -105,6 +105,7 @@ float View::depth_at_screen_coord (const glm::vec2& c) const
     GLfloat depthVal;
     glReadPixels ((int)c.x, (int)(vp.w - vp.y - c.y), 1, 1,
                   GL_DEPTH_COMPONENT, GL_FLOAT, &depthVal);
+    std::cout << "depthVal: " << depthVal << std::endl;
     return depthVal;
 }
 
