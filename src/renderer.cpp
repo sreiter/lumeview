@@ -28,7 +28,7 @@ const std::string SHADER_PATH = string(RESOURCE_ROOT_PATH) + "/shaders/";
 const std::string MESH_PATH = string(RESOURCE_ROOT_PATH) + "/meshes/";
 
 static ArcBallView g_arcBallView;
-static Visualization g_visualization (SHADER_PATH);
+static Visualization* g_visualization = nullptr;
 
 
 WindowEventListener* RendererGetEventListener ()
@@ -56,6 +56,9 @@ SPMesh LoadMeshWithEdges (std::string filename)
 
 void RendererInit ()
 {
+	if (g_visualization)
+		return;
+	
 	// if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
 	// 	THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 	// }
@@ -64,9 +67,11 @@ void RendererInit ()
 		THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 	}
 
+	g_visualization = new Visualization (SHADER_PATH);
+
 	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
-	g_visualization.add_stage ("solid", mainMesh, TRI, FLAT);
-	g_visualization.add_stage ("wire", mainMesh, EDGE, FLAT);
+	g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
+	g_visualization->add_stage ("wire", mainMesh, EDGE, FLAT);
 
 	{
 		auto sphere = SphereFromCoords (UNPACK_DST(*mainMesh->coords()));
@@ -75,7 +80,7 @@ void RendererInit ()
 		VecScale (UNPACK_DS(*sphereMesh->coords()), sphere.radius);
 		VecTupAppend (UNPACK_DST(*sphereMesh->coords()), glm::value_ptr (sphere.center));
 
-		// g_visualization.add_stage ("wireSphere", sphereMesh, EDGE, FLAT);
+		// g_visualization->add_stage ("wireSphere", sphereMesh, EDGE, FLAT);
 	}
 
 	// {
@@ -100,6 +105,14 @@ void RendererInit ()
 }
 
 
+void RendererDispose ()
+{
+	if (g_visualization)
+		delete g_visualization;
+	g_visualization = nullptr;
+}
+
+
 void RendererDraw ()
 {
 	glEnable (GL_DEPTH_TEST);
@@ -107,9 +120,9 @@ void RendererDraw ()
 	glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	const glm::vec2 clipDists = g_visualization.estimate_z_clip_dists(g_arcBallView.view());
+	const glm::vec2 clipDists = g_visualization->estimate_z_clip_dists(g_arcBallView.view());
 	g_arcBallView.view().set_z_clip_dists (clipDists);
-	g_visualization.render (g_arcBallView.view());
+	g_visualization->render (g_arcBallView.view());
 }
 
 }// end of namespace slimesh

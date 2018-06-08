@@ -7,6 +7,7 @@ namespace slimesh {
 
 WindowEventListener* RendererGetEventListener ();
 void RendererInit ();
+void RendererDispose ();
 void RendererDraw ();
 
 }// end of namespace slimesh

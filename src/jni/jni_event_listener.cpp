@@ -51,6 +51,8 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vrl_v3d_nativeogl_NativeOpenGL_native_1gl_1dispose(
     JNIEnv *jEnv, jclass jcls)
 {
+    RendererDispose ();
+    g_eventListener = nullptr;
 } 
 
 JNIEXPORT void JNICALL
