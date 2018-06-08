@@ -35,6 +35,7 @@ static Visualization* g_visualization = nullptr;
 
 static bool g_guiShowLog = false;
 static bool g_guiShowDemo = false;
+static bool g_guiShowVisualization = false;
 
 WindowEventListener* RendererGetEventListener ()
 {
@@ -75,7 +76,7 @@ void RendererInit ()
 	g_visualization = new Visualization (SHADER_PATH);
 
 	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
-	g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
+	g_visualization->add_stage ("solid", mainMesh, TRI, SMOOTH);
 	g_visualization->add_stage ("wire", mainMesh, EDGE, FLAT);
 
 	{
@@ -133,33 +134,17 @@ void RendererDraw ()
 
 void GUI_DoHeader ()
 {
-	static const ImGuiWindowFlags menuWindowFlags =	ImGuiWindowFlags_NoTitleBar
-												| 	ImGuiWindowFlags_NoScrollbar
-												| 	ImGuiWindowFlags_MenuBar
-												| 	ImGuiWindowFlags_NoMove
-												| 	ImGuiWindowFlags_NoResize
-												| 	ImGuiWindowFlags_NoCollapse;
-
-	ImGui::SetNextWindowPos(ImVec2(0,0));
-    if (!ImGui::Begin("SLIMESH", NULL, menuWindowFlags))
-    {
-        // Early out if the window is collapsed, as an optimization.
-        ImGui::End();
-        return;
-    }
-
-    if (ImGui::BeginMenuBar())
+    if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Panels"))
         {
+            ImGui::MenuItem("Show Visualization", NULL, &g_guiShowVisualization);
             ImGui::MenuItem("Show Log", NULL, &g_guiShowLog);
             ImGui::MenuItem("Show ImGui Demo", NULL, &g_guiShowDemo);
             ImGui::EndMenu();
         }
-        ImGui::EndMenuBar();
+        ImGui::EndMainMenuBar();
     }
-
-    ImGui::End(); // SLIMESH
 }
 
 void RendererProcessGUI (bool draw)
@@ -167,10 +152,13 @@ void RendererProcessGUI (bool draw)
 	GUI_DoHeader ();
 
 	if (g_guiShowLog)
-		DefLog().draw("log");
+		DefLog().draw("log", &g_guiShowLog);
 
 	if (g_guiShowDemo)
 		ImGui::ShowDemoWindow (&g_guiShowDemo);
+
+	if (g_guiShowVisualization)
+		g_visualization->do_imgui (&g_guiShowVisualization);
 
 	if (draw) {
 		ImGui::Render();

@@ -103,7 +103,8 @@ void InitImGui (GLFWwindow* window)
 
     // Setup style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
+    // ImGui::StyleColorsLight();
+    // ImGui::StyleColorsClassic();
 
     ImGuiIO& io = ImGui::GetIO();
 	io.SetClipboardTextFn = ImGui_SetClipboardText;

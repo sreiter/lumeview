@@ -11,6 +11,8 @@
 
 namespace slimesh {
 
+static const char* shadingNames[] = {"none", "flat", "smooth"};
+
 Visualization::
 Visualization()	{}
 
@@ -25,7 +27,7 @@ void Visualization::
 add_stage (	std::string name,
             std::shared_ptr <Mesh> mesh,
             grob_t grobType,
-            uint shaderHints)
+            ShadingPreset shading)
 {
 	COND_THROW (!mesh->has_inds (grobType),
 	            "Requested grob type '" << GrobName (grobType)
@@ -38,8 +40,8 @@ add_stage (	std::string name,
 	glBindVertexArray (newStage.vao);
 
 	const bool curMeshNeedsVrtNormals =
-				(shaderHints & SMOOTH)
-			||	(grobType == EDGE && (shaderHints & FLAT));
+				(shading == SMOOTH)
+			||	(grobType == EDGE && (shading == FLAT));
 
 	COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("vrtNormals"),
 	           "Requested shader needs normal information!");
@@ -107,7 +109,6 @@ add_stage (	std::string name,
 	switch (grobType) {
 		case EDGE:
 			newStage.primType = GL_LINES;
-			newStage.shader = get_shader (shaderHints | ShaderHint::LINES);
 			newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
 			newStage.zfacNear = 0.99f;
 			newStage.zfacFar = 0.9999999f;
@@ -115,7 +116,6 @@ add_stage (	std::string name,
 		
 		case TRI:
 			newStage.primType = GL_TRIANGLES;
-			newStage.shader = get_shader (shaderHints | ShaderHint::TRIANGLES);
 			newStage.color = glm::vec4 (1.0f, 1.0f, 1.0f, 1.0f);
 			newStage.zfacNear = 1.0f;
 			newStage.zfacFar = 1.0f;
@@ -124,6 +124,7 @@ add_stage (	std::string name,
 			THROW("Visualization::add_stage: Unsupported grid object type in specified mesh.");
 	}
 
+	newStage.shadingPreset = shading;
 	newStage.numInds = mesh->inds(grobType)->size();
 	newStage.name = std::move (name);
 	newStage.grobType = grobType;
@@ -166,11 +167,12 @@ render (const View& view)
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	for(auto& stage : m_stages) {
-		stage.shader.use ();
-		view.apply (stage.shader);
-		stage.shader.set_uniform("color", stage.color);
-		stage.shader.set_uniform("zfacNear", stage.zfacNear);
-		stage.shader.set_uniform("zfacFar", stage.zfacFar);
+		Shader shader = get_shader (stage.grobType, stage.shadingPreset);
+		shader.use ();
+		view.apply (shader);
+		shader.set_uniform("color", stage.color);
+		shader.set_uniform("zfacNear", stage.zfacNear);
+		shader.set_uniform("zfacFar", stage.zfacFar);
 		glBindVertexArray (stage.vao);
 		glDrawElements (stage.primType, stage.numInds, GL_UNSIGNED_INT, 0);
 	}
@@ -178,58 +180,79 @@ render (const View& view)
 
 
 Shader Visualization::
-get_shader (uint preset)
+get_shader (grob_t grobType, ShadingPreset shading)
 {
-	Shader& s = m_shaders [preset];
+	Shader& s = m_shaders [grobType] [shading];
 	if (s)
 		return s;
 
-	if (preset & TRIANGLES) {
-		if (preset & SMOOTH){
-			s.add_source_vs (m_shaderPath + "smooth-shading.vs");
-			s.add_source_fs (m_shaderPath + "smooth-shading.fs");
-		}
-		else if (preset & FLAT){
-			s.add_source_vs (m_shaderPath + "no-shading.vs");
-			s.add_source_gs (m_shaderPath + "flat-tri-shading.gs");
-			s.add_source_fs (m_shaderPath + "flat-shading.fs");
-		}
-		else{
-			s.add_source_vs (m_shaderPath + "no-shading.vs");
-			s.add_source_fs (m_shaderPath + "smooth-shading.fs");
-		}
+	switch (grobType) {
+		case TRI: {
+			if (shading == SMOOTH){
+				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
+			else if (shading == FLAT){
+				s.add_source_vs (m_shaderPath + "no-shading.vs");
+				s.add_source_gs (m_shaderPath + "flat-tri-shading.gs");
+				s.add_source_fs (m_shaderPath + "flat-shading.fs");
+			}
+			else{
+				s.add_source_vs (m_shaderPath + "no-shading.vs");
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
 
-		s.link();
-		return s;
+			s.link();
+			return s;
+		} break;
+
+		case EDGE: {
+			if (shading == SMOOTH){
+				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
+			else if (shading == FLAT){
+				s.add_source_vs (m_shaderPath + "smooth-shading.vs");
+				s.add_source_gs (m_shaderPath + "flat-edge-shading.gs");
+				s.add_source_fs (m_shaderPath + "flat-shading.fs");
+			}
+			else{
+				s.add_source_vs (m_shaderPath + "no-shading.vs");
+				s.add_source_fs (m_shaderPath + "smooth-shading.fs");
+			}
+
+			s.link();
+			return s;
+		} break;
 	}
 
-	if (preset & LINES) {
-		if (preset & SMOOTH){
-			s.add_source_vs (m_shaderPath + "smooth-shading.vs");
-			s.add_source_fs (m_shaderPath + "smooth-shading.fs");
-		}
-		else if (preset & FLAT){
-			s.add_source_vs (m_shaderPath + "smooth-shading.vs");
-			s.add_source_gs (m_shaderPath + "flat-edge-shading.gs");
-			s.add_source_fs (m_shaderPath + "flat-shading.fs");
-		}
-		else{
-			s.add_source_vs (m_shaderPath + "no-shading.vs");
-			s.add_source_fs (m_shaderPath + "smooth-shading.fs");
-		}
-
-		s.link();
-		return s;
-	}
-
-	THROW ("Shader preset " << preset << " not yet supported.");
+	THROW ("Shading preset " << shading << " not yet supported for grob type " << GrobName(grobType));
 
 	return s;
 }
 
 
-void Visualization::do_imgui ()
+void Visualization::do_imgui (bool* pOpened)
 {
+	ImGui::SetNextWindowSize(ImVec2(300,500), ImGuiCond_FirstUseEver);
+    if (!ImGui::Begin("Visualization", pOpened, 0)) {
+        // Early out if the window is collapsed, as an optimization.
+        ImGui::End();
+        return;
+    }
 
+    for(auto& stage : m_stages) {
+	    if (ImGui::TreeNode(stage.name.c_str())) {
+	    	ImGui::ColorEdit4("color", glm::value_ptr(stage.color), ImGuiColorEditFlags_NoInputs);
+
+	    	int index = stage.shadingPreset;
+	    	ImGui::Combo ("shading", &index, shadingNames, IM_ARRAYSIZE(shadingNames));
+	    	stage.shadingPreset = ShadingPreset(index);
+
+	        ImGui::TreePop();
+	    }
+    }
+
+    ImGui::End(); // Visualization
 }
 }//	end of namespace slimesh

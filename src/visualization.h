@@ -14,13 +14,13 @@
 
 namespace slimesh {
 
-enum ShaderHint {
+enum ShadingPreset {
 	NONE		= 0,
 	FLAT		= 1,
-	SMOOTH		= 1 << 1,
-	LINES		= 1 << 2,
-	TRIANGLES	= 1 << 3
+	SMOOTH		= 2,
 };
+
+static const index_t NUM_SHADING_PRESETS = 3;
 
 
 class Visualization {
@@ -32,17 +32,17 @@ public:
 	void add_stage (std::string name,
 	                std::shared_ptr <Mesh> mesh,
 	                grob_t grobType,
-	                uint shaderHints);
+	                ShadingPreset shading);
 
 	///	returns min (x) and max (y) z clip distances required to show all polygons.
 	glm::vec2 estimate_z_clip_dists (const View& view) const;
 
 	void render (const View& view);
 
-	void do_imgui ();
+	void do_imgui (bool* pOpened = NULL);
 
 private:
-	Shader get_shader (uint preset);
+	Shader get_shader (grob_t grobType, ShadingPreset shading);
 
 	struct Stage {
 		Stage ()	{glGenVertexArrays (1, &vao);}
@@ -50,7 +50,7 @@ private:
 		Stage (Stage&& s) :
 			name (std::move (s.name)),
 			mesh (std::move (s.mesh)),
-			shader (std::move (s.shader)),
+			shadingPreset (std::move (s.shadingPreset)),
 			color (std::move (s.color)),
 			zfacNear (std::move (s.zfacNear)),
 			zfacFar (std::move (s.zfacFar)),
@@ -68,7 +68,7 @@ private:
 
 		std::string 				name;
 		std::shared_ptr <Mesh>		mesh;
-		Shader						shader;
+		ShadingPreset				shadingPreset;
 		glm::vec4					color;
 		float						zfacNear;
 		float						zfacFar;
@@ -83,9 +83,9 @@ private:
 		Sphere						bndSphere;
 	};
 
-	std::vector <Stage> 			m_stages;
-	std::map <uint, Shader>			m_shaders;
-	std::string						m_shaderPath;
+	std::vector <Stage> m_stages;
+	Shader				m_shaders[NUM_GROB_TYPES + 1][NUM_SHADING_PRESETS];
+	std::string			m_shaderPath;
 };
 
 }// end of namespace slimesh
