@@ -19,6 +19,19 @@ enum grob_t {
 	INVALID_GROB
 };
 
+enum grob_list_t {
+	VERTICES	= VERTEX,
+	EDGES		= EDGE,
+	TRIS		= TRI,
+	QUADS		= QUAD,
+	TETS		= TET,
+
+	INVALID_GROB_LIST	= INVALID_GROB,
+
+	FACES,
+	CELLS
+};
+
 static const index_t MAX_GROB_DIM = 2;
 static const index_t NUM_GROB_TYPES = INVALID_GROB;
 
@@ -174,6 +187,75 @@ static const index_t GROB_DESC_OFFSETS[] = {
 	39,	//	QUAD
 	73	//	TET
 };
+
+
+static const index_t GROB_LIST_DESCS[] = {
+	VERTICES,	// TYPE
+	0,			// DIM
+	1,			// SIZE
+	VERTEX,		// ENTRY 1
+
+	EDGES,		// TYPE
+	1,			// DIM
+	1,			// SIZE
+	EDGE,		// ENTRY 1
+	VERTICES,	// 0D side list
+
+	TRIS,		// TYPE
+	2,			// DIM
+	1,			// SIZE
+	TRI,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+
+	QUADS,		// TYPE
+	2,			// DIM
+	1,			// SIZE
+	QUAD,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list	
+
+	TETS,		// TYPE
+	3,			// DIM
+	1,			// SIZE
+	TET,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+	TRIS,		// 2D side list
+
+	INVALID_GROB_LIST,	// TYPE
+	0,					// DIM
+	0,					// SIZE
+
+	FACES,		// TYPE
+	2,			// DIM
+	2,			// SIZE
+	TRI,		// ENTRY 1
+	QUAD,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+
+	CELLS,		// TYPE
+	3,			// DIM
+	1,			// SIZE
+	TET,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+	FACES		// 2D side list
+};
+
+static const index_t GROB_LIST_DESC_OFFESTS[] = {
+	0,	// VERTICES
+	4,	// EDGES
+	9,	// TRIS
+	15,	// QUADS
+	21,	// TETS
+	28,	// INVALID_GROB_LIST
+
+	31,	// FACES
+	38,	// CELLS
+};
+
 
 /// Logs all grob-descs in a human readable way.
 void PrintGrobDescs ();
@@ -410,6 +492,29 @@ private:
 	const index_t*		m_globCornerInds;
 	impl::Array_16_4	m_cornerOffsets;
 	const GrobDesc		m_desc;
+};
+
+
+
+class GrobTypeList {
+public:
+	explicit GrobTypeList (grob_list_t glt) :
+		m_offset (impl::GROB_LIST_DESC_OFFESTS [glt])
+	{}
+
+	explicit GrobTypeList (grob_t glt) :
+		m_offset (impl::GROB_LIST_DESC_OFFESTS [glt])
+	{}
+
+	index_t type () const			{return impl::GROB_LIST_DESCS [m_offset];}
+	index_t dim () const			{return impl::GROB_LIST_DESCS [m_offset + 1];}
+	index_t size () const			{return impl::GROB_LIST_DESCS [m_offset + 2];}
+	grob_t grob (const index_t i)	{return grob_t (impl::GROB_LIST_DESCS [m_offset + 3 + i]);}
+
+	grob_list_t sides (const index_t sideDim)	{return grob_list_t(impl::GROB_LIST_DESCS [m_offset + 3 + size() + sideDim]);}
+
+private:
+	const index_t m_offset;
 };
 
 }//	end of namespace slimesh
