@@ -42,7 +42,7 @@ WindowEventListener* RendererGetEventListener ()
 	return &g_arcBallView;
 }
 
-SPMesh LoadMeshWithEdges (std::string filename)
+SPMesh CreateMeshWithEdges (std::string filename)
 {
 	auto mesh = CreateMeshFromFile (filename);
 	ComputeTriVertexNormals3 (*mesh, "vrtNormals");
@@ -52,8 +52,9 @@ SPMesh LoadMeshWithEdges (std::string filename)
 
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
-	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
 	LOGT(mesh, "  #edges:       " << mesh->inds(EDGE)->num_tuples() << std::endl);
+	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
+	LOGT(mesh, "  #tetrahedra:  " << mesh->inds(TET)->num_tuples() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 
@@ -75,20 +76,39 @@ void RendererInit ()
 
 	g_visualization = new Visualization (SHADER_PATH);
 
-	auto mainMesh = LoadMeshWithEdges (MESH_PATH + "bunny.stl");
-	g_visualization->add_stage ("solid", mainMesh, TRI, NONE);
-	g_visualization->add_stage ("wire", mainMesh, EDGE, NONE);
+	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "box_with_spheres.ele");
+	// g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
+	// g_visualization->add_stage ("wire", mainMesh, EDGE, NONE);
 
 	{
-		auto sphere = SphereFromCoords (UNPACK_DST(*mainMesh->coords()));
+		CreateFaceInds (*mainMesh);
+		auto bndMesh = CreateBoundaryMesh (*mainMesh, TET, nullptr);
+		// bndMesh->set_data <real_t>("vrtNormals", mainMesh->data <real_t>("vrtNormals"));
+		// g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
 
-		auto sphereMesh = LoadMeshWithEdges (MESH_PATH + "sphere.stl");
-		VecScale (UNPACK_DS(*sphereMesh->coords()), sphere.radius);
-		VecTupAppend (UNPACK_DST(*sphereMesh->coords()), glm::value_ptr (sphere.center));
-
-		// g_visualization->add_stage ("wireSphere", sphereMesh, EDGE, FLAT);
+		cout << "bndMesh num tris: " << bndMesh->inds(TRI)->num_tuples();
+		ComputeTriVertexNormals3 (*bndMesh, "vrtNormals");
+		CreateEdgeInds (*bndMesh);
+		
+		// g_visualization->add_stage ("solid", bndMesh, TRI, FLAT);
+		g_visualization->add_stage ("wire", bndMesh, EDGE, FLAT);
 	}
 
+	// auto eleMesh = CreateMeshWithEdges (MESH_PATH + "box_with_spheres.ele");
+	// g_visualization->add_stage ("wire", eleMesh, EDGE, NONE);
+
+	impl::PrintGrobDescs();
+
+	// {
+	// 	vector <index_t>& tets = eleMesh->inds(TET)->data();
+	// 	for(size_t i = max<int>((int)tets.size() - 40, 0); i < tets.size(); ++i) {
+	// 		cout << tets[i];
+	// 		if (i % 4 == 3)
+	// 			cout << endl;
+	// 		else
+	// 			cout << " ";
+	// 	}
+	// }
 	// {
 	// 	auto& normals = *mesh->data("vrtNormals");
 	// 	const real_t* data = normals.raw_data();
@@ -123,7 +143,7 @@ void RendererDraw ()
 {
 	glEnable (GL_DEPTH_TEST);
 
-	glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor (0.5f, 0.5f, 0.5f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	const glm::vec2 clipDists = g_visualization->estimate_z_clip_dists(g_arcBallView.view());

@@ -9,16 +9,30 @@
 #include "cond_throw.h"
 #include "types.h"
 #include "grob.h"
+#include "grob_hash.h"
 #include "data_buffer.h"
 
 namespace slimesh {
 
+
 class Mesh {
 public:
+	struct DataKey {
+		DataKey ()									: name (""), grobId (INVALID_GROB) {}
+		DataKey (const char* _name)					: name (_name), grobId (INVALID_GROB) {}
+		DataKey (std::string _name)					: name (std::move(_name)), grobId (INVALID_GROB) {}
+		DataKey (std::string _name, grob_t _grobId)	: name (std::move(_name)), grobId (_grobId) {}
+		bool operator < (const DataKey& key) const	{return grobId < key.grobId || (grobId == key.grobId && name < key.name);}
+
+		std::string name;
+		grob_t		grobId;
+	};
+
+
 	Mesh () :
 		m_coords (std::make_shared <RealDataBuffer> ())
 	{
-		set_data <real_t> ("coords", m_coords);
+		set_data <real_t> (DataKey ("coords", VERTEX), m_coords);
 	}
 	
 	~Mesh () {}
@@ -26,6 +40,8 @@ public:
 	SPRealDataBuffer coords ()						{return m_coords;}
 	SPCRealDataBuffer coords () const				{return m_coords;}
 	index_t num_coords () const						{return m_coords->size();}
+
+	void set_coords (const SPRealDataBuffer& coords)		{m_coords = coords;}
 
 	SPIndexDataBuffer inds (const grob_t gt)
 	{
@@ -57,17 +73,22 @@ public:
 
 
 	template <class T>
-	bool has_data (const std::string& id) const		{return storage(T{}).has_data (id);}
+	bool has_data (const DataKey& key) const		{return storage(T{}).has_data (key);}
 
 	///	returns the data array for the given id. If none was present, a new one will be created.
 	template <class T>
 	std::shared_ptr <DataBuffer <T>>
-	data (const std::string& id)					{return storage(T{}).data (id);}
+	data (const DataKey& key)					{return storage(T{}).data (key);}
 
 	///	explicitly set a data array of a mesh
 	template <class T>
-	void set_data (const std::string& id,
-	               const std::shared_ptr <DataBuffer <T>>& data)	{return storage(T{}).set_data (id, data);}
+	void set_data (const DataKey& key,
+	               const std::shared_ptr <DataBuffer <T>>& data)
+	{
+		storage(T{}).set_data (key, data);
+		if (key.name == "coords")
+			set_coords (data);
+	}
 
 	// template <class T>
 	// SPCRealDataBuffer data (const std::string& id) const
@@ -75,9 +96,12 @@ public:
 	///	removes a data array from a mesh.
 	/** This will decrement the shared_ptr but not necessarily delete the array.*/
 	template <class T>
-	void remove_data (const std::string& id)		{return storage(T{}).remove_data (id);}
+	void remove_data (const DataKey& key)		{storage(T{}).remove_data (key);}
 
 private:
+	template <class T>
+	void set_coords (const std::shared_ptr<T>& coords) {THROW("Mesh::set_coords only supported for type real_t");}
+
 	template <class TKey, class T> class DataStorage
 	{
 		using sp_data_array_t	= std::shared_ptr <DataBuffer<T>>;
@@ -134,28 +158,28 @@ private:
 	};
 
 	template <class T>
-	DataStorage<std::string, T>& storage (const T&) {// dummy parameter to allow for overloads
+	DataStorage <DataKey, T>& storage (const T&) {// dummy parameter to allow for overloads
 		THROW("Unsupported data type: " << typeid(T).name());
 	}
 
 	template <class T>
-	const DataStorage<std::string, T>& storage (const T&) const {// dummy parameter to allow for overloads
+	const DataStorage <DataKey, T>& storage (const T&) const {// dummy parameter to allow for overloads
 		THROW("Unsupported data type: " << typeid(T).name());
 	}
 
-	DataStorage<std::string, real_t>& storage (const real_t&) {
+	DataStorage <DataKey, real_t>& storage (const real_t&) {
 		return m_realDataStorage;
 	}
 
-	const DataStorage<std::string, real_t>& storage (const real_t&) const {
+	const DataStorage <DataKey, real_t>& storage (const real_t&) const {
 		return m_realDataStorage;
 	}
 
-	DataStorage<std::string, index_t>& storage (const index_t&) {
+	DataStorage <DataKey, index_t>& storage (const index_t&) {
 		return m_indexDataStorage;
 	}
 
-	const DataStorage<std::string, index_t>& storage (const index_t&) const {
+	const DataStorage <DataKey, index_t>& storage (const index_t&) const {
 		return m_indexDataStorage;
 	}
 
@@ -169,11 +193,11 @@ private:
 
 
 	//	MEMBER VARIABLES
-	SPRealDataBuffer					m_coords;
-	DataStorage <std::string, real_t>	m_realDataStorage;
-	DataStorage <std::string, index_t>	m_indexDataStorage;
+	SPRealDataBuffer				m_coords;
+	DataStorage <DataKey, real_t>	m_realDataStorage;
+	DataStorage <DataKey, index_t>	m_indexDataStorage;
 	
-	DataStorage <grob_t, index_t>		m_grobDataStorage;
+	DataStorage <grob_t, index_t>	m_grobDataStorage;
 };
 
 using SPMesh = std::shared_ptr <Mesh>;

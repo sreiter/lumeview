@@ -42,6 +42,7 @@ const std::string& GrobName (grob_t grob)
 		std::string ("edge"),
 		std::string ("tri"),
 		std::string ("quad"),
+		std::string ("tet"),
 		std::string ("invalid")
 	};
 

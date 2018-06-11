@@ -41,7 +41,7 @@ add_stage (	std::string name,
 			newStage.primType = GL_LINES;
 			newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
 			newStage.zfacNear = 0.99f;
-			newStage.zfacFar = 0.9999999f;
+			newStage.zfacFar = 1.f;
 			break;
 		
 		case TRI:
@@ -177,6 +177,7 @@ render (const View& view)
 
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthFunc(GL_LEQUAL);
 
 	for(auto& stage : m_stages) {
 		Shader shader = get_shader (stage.grobType, stage.shadingPreset);

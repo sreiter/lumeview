@@ -2,7 +2,6 @@
 #define __H__slimesh__grob
 
 #include <cstdint>
-#include <unordered_set>
 #include "../types.h"
 #include "../log.h"
 
@@ -13,7 +12,7 @@ enum grob_t {
 	EDGE,
 	TRI,
 	QUAD,
-	// TET,
+	TET,
 	// PYRA,
 	// PRISM,
 	// HEX
@@ -123,7 +122,45 @@ static const index_t GROB_DESCS[] = {
 	EDGE, 0, 1,	// 1D side 1 (type, corners)
 	EDGE, 1, 2,	// 1D side 2 (type, corners)
 	EDGE, 2, 3,	// 1D side 3 (type, corners)
-	EDGE, 3, 0	// 1D side 4 (type, corners)
+	EDGE, 3, 0,	// 1D side 4 (type, corners)
+
+//	TET
+	TET,	// TYPE
+	3,		// DIM
+	3,		// Offset to num 0D sides entry counting from this entry
+	15,		// Offset to num 1D sides entry counting from this entry
+	39,		// Offset to num 2D sides entry counting from this entry
+	4,		// num 0D sides (CORNERS)
+	4,		// offset to first 0D side counting from this entry
+	5,		// offset to second 0D side counting from this entry
+	6,		// offset to third 0D side counting from this entry
+	7,		// offset to fourth 0D side counting from this entry
+	VERTEX, 0,	// 0D side 1 (type, corners)
+	VERTEX, 1,	// 0D side 2 (type, corners)
+	VERTEX, 2,	// 0D side 3 (type, corners)
+	VERTEX, 3,	// 0D side 4 (type, corners)
+	6,		// num 1D sides
+	6,		// offset to first 1D side counting from this entry
+	8,		// offset to second 1D side counting from this entry
+	10,		// offset to third 1D side counting from this entry
+	12,		// offset to fourth 1D side counting from this entry
+	14,		// offset to fifth 1D side counting from this entry
+	16,		// offset to sixth 1D side counting from this entry
+	EDGE, 0, 1,	// 1D side 1 (type, corners)
+	EDGE, 1, 2,	// 1D side 2 (type, corners)
+	EDGE, 2, 0,	// 1D side 3 (type, corners)
+	EDGE, 0, 3,	// 1D side 4 (type, corners)
+	EDGE, 1, 3,	// 1D side 5 (type, corners)
+	EDGE, 2, 3,	// 1D side 6 (type, corners)
+	4,		// num 2d sides
+	4,		// offset to first 2D side counting from this entry
+	7,		// offset to second 2D side counting from this entry
+	10,		// offset to third 2D side counting from this entry
+	13,		// offset to fourth 2D side counting from this entry
+	TRI, 0, 2, 1,	// 2D side 1 (type, corners)
+	TRI, 0, 1, 3,	// 2D side 2 (type, corners)
+	TRI, 1, 2, 3,	// 2D side 3 (type, corners)
+	TRI, 2, 0, 3	// 2D side 4 (type, corners)
 };
 
 ///	Holds offsets to each *grid object type* in the `GROB_DESCS` array.
@@ -134,7 +171,8 @@ static const index_t GROB_DESC_OFFSETS[] = {
 	0,	//	VERTEX
 	2,	//	EDGE
 	12,	//	TRI
-	39	//	QUAD
+	39,	//	QUAD
+	73	//	TET
 };
 
 /// Logs all grob-descs in a human readable way.
@@ -341,20 +379,10 @@ public:
 	{
 		return m_desc.num_sides(sideDim);
 	}
-
-	inline index_t num_sides () const
-	{
-		return m_desc.num_sides(dim () - 1);
-	}
 	
 	inline GrobDesc side_desc (const index_t sideDim, const index_t sideIndex) const
 	{
 		return m_desc.side_desc (sideDim, sideIndex);
-	}
-
-	inline GrobDesc side_desc (const index_t sideIndex) const
-	{
-		return side_desc (dim () - 1, sideIndex);
 	}
 
 	Grob side (const index_t sideDim, const index_t sideIndex)
@@ -372,11 +400,6 @@ public:
 		return Grob (m_desc.side_type (sideDim, sideIndex), m_globCornerInds, cornerOffsets);
 	}
 
-	inline Grob side (const index_t sideIndex)
-	{
-		return side (dim () - 1, sideIndex);
-	}
-
 private:
 	Grob (grob_t grobType, const index_t* globCornerInds, const impl::Array_16_4& cornerOffsets) :
 		m_globCornerInds (globCornerInds),
@@ -389,30 +412,6 @@ private:
 	const GrobDesc		m_desc;
 };
 
-}//	end of namespace slimesh
-
-namespace std
-{
-    template<> struct hash<slimesh::Grob>
-    {
-        typedef slimesh::Grob argument_type;
-        typedef std::size_t result_type;
-        result_type operator()(argument_type const& grob) const noexcept
-        {
-        	using namespace slimesh;
-        	const index_t numCorners = grob.num_corners();
-        	std::size_t h = 0;
-        	for(index_t i = 0; i < numCorners; ++i){
-        		const index_t c = grob.corner(i);
-        		h += c * c;
-        	}
-        	return h;
-        }
-    };
-}//	end of namespace std
-
-namespace slimesh {
-using GrobHash = std::unordered_set <Grob>;
 }//	end of namespace slimesh
 
 #endif	//__H__slimesh__grob
