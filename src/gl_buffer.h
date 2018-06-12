@@ -66,7 +66,8 @@ public:
 	/// transfers the specified data to an existing buffer region
 	/** \note this also binds the buffer */
 	void set_sub_data (const uint offset, const void* data, const uint size) {
-		COND_THROW (offset + size > m_size, "Specified buffer region expands over buffer boundary");
+		COND_THROW (offset + size > m_size,
+		            "GLBuffer::set_sub_data: Specified buffer region expands over buffer boundary");
 		bind ();
 		glBufferSubData (m_type, offset, size, data);
 	}

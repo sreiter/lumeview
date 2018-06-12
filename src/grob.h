@@ -351,7 +351,7 @@ private:
 		return t + impl::GROB_DESCS [t];
 	}
 
-	const index_t			m_offset;
+	index_t			m_offset;
 };
 
 
@@ -511,7 +511,7 @@ private:
 
 	const index_t*		m_globCornerInds;
 	impl::Array_16_4	m_cornerOffsets;
-	const GrobDesc		m_desc;
+	GrobDesc			m_desc;
 };
 
 
@@ -533,6 +533,10 @@ public:
 		const GrobSet* set;
 	};
 
+	GrobSet () :
+		m_offset (impl::GROB_SET_DESC_OFFESTS [INVALID_GROB_SET])
+	{}
+	
 	GrobSet (const grob_set_t glt) :
 		m_offset (impl::GROB_SET_DESC_OFFESTS [glt])
 	{}
@@ -541,6 +545,7 @@ public:
 		m_offset (impl::GROB_SET_DESC_OFFESTS [glt])
 	{}
 
+	bool operator == (const GrobSet& gs) const			{return m_offset == gs.m_offset;}
 	grob_set_t type () const							{return grob_set_t (impl::GROB_SET_DESCS [m_offset]);}
 	index_t dim () const								{return impl::GROB_SET_DESCS [m_offset + 1];}
 	const std::string& name () const					{return GrobSetName (type ());}
@@ -553,7 +558,7 @@ public:
 	iterator end () const		{return iterator (size(), this);}
 
 private:
-	const index_t m_offset;
+	index_t m_offset;
 };
 
 }//	end of namespace slimesh

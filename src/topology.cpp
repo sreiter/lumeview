@@ -60,7 +60,7 @@ void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
 	index_t counter = 0;
 	
 	for (auto grobType : grobSet) {
-		if (!mesh.has_inds (grobType))
+		if (!mesh.has (grobType))
 			continue;
 
 		Grob grob (grobType);

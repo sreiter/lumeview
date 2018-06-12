@@ -26,25 +26,27 @@ Visualization(std::string shaderPath) :
 void Visualization::
 add_stage (	std::string name,
             std::shared_ptr <Mesh> mesh,
-            grob_t grobType,
+            const GrobSet grobSet,
             ShadingPreset shading)
 {
-	COND_THROW (!mesh->has_inds (grobType),
-	            "Requested grob type '" << GrobName (grobType)
+	COND_THROW (!mesh->has (grobSet),
+	            "Requested grob type '" << grobSet.name()
 	            << "' is not provided by the specified mesh.");
 
 	Stage newStage;
 	newStage.mesh = mesh;
 
-	switch (grobType) {
-		case EDGE:
+	switch (grobSet.type()) {
+		case EDGES:
 			newStage.primType = GL_LINES;
 			newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
 			newStage.zfacNear = 0.99f;
 			newStage.zfacFar = 1.f;
 			break;
 		
-		case TRI:
+		case TRIS:
+		case QUADS:
+		case FACES:
 			newStage.primType = GL_TRIANGLES;
 			newStage.color = glm::vec4 (1.0f, 1.0f, 1.0f, 1.0f);
 			newStage.zfacNear = 1.0f;
@@ -55,9 +57,9 @@ add_stage (	std::string name,
 	}
 
 	newStage.shadingPreset = shading;
-	newStage.numInds = mesh->inds(grobType)->size();
+	newStage.numInds = mesh->num_inds (EDGE) + mesh->num_inds(TRI) + 3 * mesh->num_inds(QUAD) / 2;
 	newStage.name = std::move (name);
-	newStage.grobType = grobType;
+	newStage.grobSet = grobSet;
 	m_stages.push_back (std::move(newStage));
 }
 
@@ -102,7 +104,7 @@ prepare_buffers ()
 
 		const bool curMeshNeedsVrtNormals =
 					(curStage.shadingPreset == SMOOTH)
-				||	(curStage.grobType == EDGE && (curStage.shadingPreset == FLAT));
+				||	(curStage.grobSet.type() == EDGES && (curStage.shadingPreset == FLAT));
 
 		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("normals", VERTEX),
 		           "Requested shader needs normal information!");
@@ -122,7 +124,7 @@ prepare_buffers ()
 				curStage.normBuf = stage.normBuf;
 			}
 
-			if (stage.mesh == mesh && stage.grobType == curStage.grobType) {
+			if (stage.mesh == mesh && stage.grobSet == curStage.grobSet) {
 				curStage.indBuf = stage.indBuf;
 				break;
 			}
@@ -164,8 +166,47 @@ prepare_buffers ()
 			curStage.indBuf->bind ();
 		else {
 			curStage.indBuf = std::make_shared <GLBuffer> (GL_ELEMENT_ARRAY_BUFFER);
-			curStage.indBuf->set_data (mesh->inds(curStage.grobType)->raw_data(),
-			                           sizeof(index_t) * mesh->inds(curStage.grobType)->size());
+
+			curStage.indBuf->set_size (uint (curStage.numInds * sizeof (index_t)));
+			const GrobSet gs = curStage.grobSet;
+			
+			uint fill = 0;
+			for(auto gt : gs) {
+				switch (gt) {
+					case EDGE:
+					case TRI:
+						curStage.indBuf->set_sub_data (
+						                fill,
+						                mesh->inds(gt)->raw_data(),
+			                        	uint (sizeof(index_t) * mesh->inds(gt)->size()));
+						fill += uint (sizeof(index_t) * mesh->inds(gt)->size());
+						break;
+
+					case QUAD: {
+						const index_t numQuads = mesh->inds(gt)->num_tuples();
+						const index_t numQuadInds = mesh->inds(gt)->size();
+						std::vector <index_t> tris;
+						tris.reserve (numQuads * 6);
+
+						const index_t* quads = mesh->inds(gt)->raw_data();
+						for(index_t i = 0; i < numQuadInds; i += 4) {
+							tris.push_back (quads[i]);
+							tris.push_back (quads[i + 1]);
+							tris.push_back (quads[i + 2]);
+
+							tris.push_back (quads[i + 3]);
+							tris.push_back (quads[i]);
+							tris.push_back (quads[i + 2]);
+						}
+
+						curStage.indBuf->set_sub_data (
+						                fill,
+						                &tris.front(),
+			                        	uint (sizeof(index_t) * tris.size()));
+						fill += uint (sizeof(index_t) * tris.size());
+					}	break;
+				}
+			}
 		}
 	}
 }
@@ -180,7 +221,7 @@ render (const View& view)
 	glDepthFunc(GL_LEQUAL);
 
 	for(auto& stage : m_stages) {
-		Shader shader = get_shader (stage.grobType, stage.shadingPreset);
+		Shader shader = get_shader (stage.grobSet, stage.shadingPreset);
 		shader.use ();
 		view.apply (shader);
 		shader.set_uniform("color", stage.color);
@@ -193,8 +234,11 @@ render (const View& view)
 
 
 Shader Visualization::
-get_shader (grob_t grobType, ShadingPreset shading)
+get_shader (const GrobSet grobSet, ShadingPreset shading)
 {
+	COND_THROW (grobSet.size() == 0, "Invalid grob set specified: " << grobSet.name());
+
+	const grob_t grobType = grobSet.grob_type (0);
 	Shader& s = m_shaders [grobType] [shading];
 	if (s)
 		return s;

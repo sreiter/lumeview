@@ -88,9 +88,23 @@ public:
 		return grob_storage().data(gt);
 	}
 
-	bool has_inds (const grob_t gt) const
+	bool inds_allocated (const grob_t gt) const
 	{
 		return grob_storage().has_data(gt);
+	}
+
+	bool has (const grob_t gt) const
+	{
+		return inds_allocated (gt) && inds (gt)->size();
+	}
+
+	bool has (const GrobSet gs) const
+	{
+		for (auto gt : gs) {
+			if (has (gt))
+				return true;
+		}
+		return false;
 	}
 
 	void remove_inds (const grob_t gt)
@@ -105,7 +119,7 @@ public:
 
 	index_t num_inds (grob_t grob)
 	{
-		if (has_inds (grob))
+		if (inds_allocated (grob))
 			return inds (grob)->size();
 		return 0;
 	}
@@ -120,7 +134,7 @@ public:
 
 	index_t num_tuples (grob_t grob)
 	{
-		if (has_inds (grob))
+		if (inds_allocated (grob))
 			return inds (grob)->num_tuples();
 		return 0;
 	}

@@ -42,24 +42,26 @@ WindowEventListener* RendererGetEventListener ()
 	return &g_arcBallView;
 }
 
-SPMesh CreateMeshWithEdges (std::string filename)
+void PrintMeshInfo (SPMesh mesh)
 {
-	auto mesh = CreateMeshFromFile (filename);
-	ComputeTriVertexNormals3 (*mesh, "normals");
-	CreateEdgeInds (*mesh);
-
 	Box box = BoxFromCoords (UNPACK_DST(*mesh->coords()));
 
-	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
 	LOGT(mesh, "  #edges:       " << mesh->inds(EDGE)->num_tuples() << std::endl);
 	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
 	LOGT(mesh, "  #tetrahedra:  " << mesh->inds(TET)->num_tuples() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
-
-	return mesh;
 }
+
+// SPMesh CreateMeshWithEdges (std::string filename)
+// {
+// 	auto mesh = CreateMeshFromFile (filename);
+// 	
+// 	
+
+// 	return mesh;
+// }
 
 void RendererInit ()
 {
@@ -76,15 +78,32 @@ void RendererInit ()
 
 	g_visualization = new Visualization (SHADER_PATH);
 
-	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ugx");
-	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");
-	g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
-	g_visualization->add_stage ("wire", mainMesh, EDGE, FLAT);
+	// const std::string filename = MESH_PATH + "tet.ugx";
+	const std::string filename = MESH_PATH + "tri_and_quad.ugx";
+	auto mainMesh = CreateMeshFromFile (filename);
+	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 
-	{
-		auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
-		g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
+	if (mainMesh->has (CELLS)) {
+
 	}
+	else if (mainMesh->has (FACES)) {
+		ComputeTriVertexNormals3 (*mainMesh, "normals");
+		CreateEdgeInds (*mainMesh);
+		g_visualization->add_stage ("solid", mainMesh, FACES, FLAT);
+		g_visualization->add_stage ("wire", mainMesh, EDGES, FLAT);
+		auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
+		g_visualization->add_stage ("bnd", bndMesh, EDGES, NONE);
+	}
+	else if (mainMesh->has (EDGES)) {
+
+	}
+
+	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");
+
+	// {
+	// 	auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
+	// 	g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
+	// }
 
 	{
 		// CreateFaceInds (*mainMesh);

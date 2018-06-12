@@ -31,7 +31,7 @@ public:
 
 	void add_stage (std::string name,
 	                std::shared_ptr <Mesh> mesh,
-	                grob_t grobType,
+	                const GrobSet grobSet,
 	                ShadingPreset shading);
 
 	///	returns min (x) and max (y) z clip distances required to show all polygons.
@@ -42,7 +42,7 @@ public:
 	void do_imgui (bool* pOpened = NULL);
 
 private:
-	Shader get_shader (grob_t grobType, ShadingPreset shading);
+	Shader get_shader (const GrobSet grobSet, ShadingPreset shading);
 	void prepare_buffers ();
 
 	struct Stage {
@@ -61,7 +61,7 @@ private:
 			indBuf (std::move (s.indBuf)),
 			primType (std::move (s.primType)),
 			numInds (std::move (s.numInds)),
-			grobType (std::move (s.grobType)),
+			grobSet (std::move (s.grobSet)),
 			bndSphere (std::move (s.bndSphere))
 		{}
 
@@ -80,7 +80,7 @@ private:
 		std::shared_ptr <GLBuffer>	indBuf;
 		GLenum						primType;
 		GLsizei						numInds;
-		grob_t						grobType;
+		GrobSet						grobSet;
 		Sphere						bndSphere;
 	};
 
