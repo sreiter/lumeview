@@ -35,6 +35,8 @@ public:
 
     glm::vec3 unproject (const glm::vec3& c) const;
 
+    glm::vec3 project (const glm::vec3& c) const;
+
     float depth_at_screen_coord (const glm::vec2& c) const;
 
     void set_z_clip_dists (const glm::vec2& c);

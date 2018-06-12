@@ -207,6 +207,17 @@ bool rayPlaneIntersection(vector_t& vOut,
 	return true;
 }
 
+template <class vector_t>
+bool rayPlaneIntersection(vector_t& vOut,
+						  const vector_t& rayFrom,
+						  const vector_t& rayDir,
+						  const vector_t& p,
+						  const vector_t& n)
+{
+	typename vector_t::value_type t;
+	return rayPlaneIntersection (vOut, t, rayFrom, rayDir, p, n);
+}
+
 // template <class vector_t>
 // bool
 // RayRayIntersection2d(

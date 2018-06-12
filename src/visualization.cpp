@@ -84,7 +84,7 @@ estimate_z_clip_dists (const View& view) const
 	if (zDist.y <= 0)
 		zDist.y = 1.f;
 
-	if (zDist.x <= 0 || zDist.x >= zDist.y)
+	if (zDist.x < zDist.y * 1.e-5f || zDist.x >= zDist.y)
 		zDist.x = zDist.y * 1.e-5f;
 
 	return zDist * glm::vec2(0.9f, 1.1f);

@@ -9,6 +9,7 @@
 #include "cond_throw.h"
 #include "log.h"
 #include "renderer.h"
+#include "vec_math.h"
 
 using namespace std;
 
@@ -82,15 +83,33 @@ void ArcBallView::mouse_move (const glm::vec2& c)
 		m_view.camera().set_rotation (m_arcBall.rotation_quaternion());
 	}
 	else {
-		static const float translationSpeed = 0.003f;
 		if(base_t::mouse_button_is_down (MouseButton::RIGHT)) {
 			glm::vec2 d = base_t::cursor_position() - lastCursorPos;
-			d *= translationSpeed;
-			if (m_view.camera().scale().x != 0){
-				d *= m_view.camera().scale().x;
-				m_view.camera().translate (-d.x * m_view.camera().right () + d.y * m_view.camera().up ());
+			glm::vec3 fp = m_view.project (m_view.camera().to());
+			fp += glm::vec3(d.x, d.y, 0);
+			glm::vec3 nf = m_view.unproject (fp);
+
+			//	due to rounding issues, we have to make sure that the resulting direction
+			//	is parallel to the camera plane.
+			glm::vec3 nfDir = nf - m_view.camera().from();
+			if (rayPlaneIntersection (nf,
+			                          m_view.camera().from(),
+			                          nfDir,
+			                          m_view.camera().to(),
+			                          m_view.camera().forward()))
+			{
+				m_view.camera().translate (m_view.camera().to() - nf);
 			}
 		}
+		// static const float translationSpeed = 0.003f;
+		// if(base_t::mouse_button_is_down (MouseButton::RIGHT)) {
+		// 	glm::vec2 d = base_t::cursor_position() - lastCursorPos;
+		// 	d *= translationSpeed;
+		// 	if (m_view.camera().scale().x != 0){
+		// 		d *= m_view.camera().scale().x;
+		// 		m_view.camera().translate (-d.x * m_view.camera().right () + d.y * m_view.camera().up ());
+		// 	}
+		// }
 	}
 }
 

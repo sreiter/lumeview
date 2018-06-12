@@ -99,6 +99,13 @@ glm::vec3 View::unproject (const glm::vec3& c) const
                              m_viewport);
 }
 
+glm::vec3 View::project (const glm::vec3& c) const
+{
+    const glm::ivec4& vp = m_viewport;
+    glm::vec3 cp = glm::project (c, view_matrix(), projection_matrix(), m_viewport);
+    return glm::vec3(cp.x, (vp.w - vp.y - cp.y), cp.z);
+}
+
 float View::depth_at_screen_coord (const glm::vec2& c) const
 {
     const glm::ivec4& vp = m_viewport;

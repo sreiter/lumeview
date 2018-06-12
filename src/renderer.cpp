@@ -79,11 +79,11 @@ void RendererInit ()
 	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "bunny.stl");
 	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");
 	g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
-	g_visualization->add_stage ("wire", mainMesh, EDGE, NONE);
+	g_visualization->add_stage ("wire", mainMesh, EDGE, FLAT);
 
 	{
 		auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
-		g_visualization->add_stage ("bnd", bndMesh, EDGE, FLAT);
+		g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
 	}
 
 	{
