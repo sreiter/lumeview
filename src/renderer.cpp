@@ -51,6 +51,9 @@ void PrintMeshInfo (SPMesh mesh)
 	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
 	LOGT(mesh, "  #quads:       " << mesh->inds(QUAD)->num_tuples() << std::endl);
 	LOGT(mesh, "  #tetrahedra:  " << mesh->inds(TET)->num_tuples() << std::endl);
+	LOGT(mesh, "  #hexahedra:   " << mesh->inds(HEX)->num_tuples() << std::endl);
+	LOGT(mesh, "  #pyramids:    " << mesh->inds(PYRA)->num_tuples() << std::endl);
+	LOGT(mesh, "  #prisms:      " << mesh->inds(PRISM)->num_tuples() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 }
@@ -68,6 +71,9 @@ void RendererInit ()
 {
 	if (g_visualization)
 		return;
+
+	impl::PrintGrobDescs();
+	impl::PrintGrobSetDescs();
 
 	// if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
 	// 	THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
@@ -92,6 +98,7 @@ void RendererInit ()
 	const glm::vec4 bndColor (1.0f, 0.2f, 0.2f, 1.0f);
 
 	if (mainMesh->has (CELLS)) {
+		LOG("HAS CELLS\n");
 		auto bndMesh = CreateBoundaryMesh (*mainMesh, CELLS);
 		PrintMeshInfo (bndMesh);
 		ComputeTriVertexNormals3 (*bndMesh, "normals");
@@ -102,6 +109,7 @@ void RendererInit ()
 		g_visualization->stage_set_color (wireColor);
 	}
 	else if (mainMesh->has (FACES)) {
+		LOG("HAS FACES\n");
 		ComputeTriVertexNormals3 (*mainMesh, "normals");
 		CreateEdgeInds (*mainMesh);
 		g_visualization->add_stage ("solid", mainMesh, FACES, FLAT);
@@ -113,38 +121,11 @@ void RendererInit ()
 		g_visualization->stage_set_color (bndColor);
 	}
 	else if (mainMesh->has (EDGES)) {
+		LOG("HAS EDGES\n");
 		ComputeTriVertexNormals3 (*mainMesh, "normals");
 		g_visualization->add_stage ("wire", mainMesh, EDGES, NONE);
 		g_visualization->stage_set_color (wireColor);
 	}
-
-	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");
-
-	// {
-	// 	auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
-	// 	g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
-	// }
-
-	{
-		// CreateFaceInds (*mainMesh);
-		// cout << "mainMesh num tris: " << mainMesh->inds(TRI)->num_tuples() << endl;
-		// auto bndMesh = CreateBoundaryMesh (*mainMesh, TET, nullptr);
-		// // // bndMesh->set_data <real_t>("vrtNormals", mainMesh->data <real_t>("vrtNormals"));
-		// // // g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
-
-		// cout << "bndMesh num tris: " << bndMesh->inds(TRI)->num_tuples() << endl;
-		// // ComputeTriVertexNormals3 (*bndMesh, "vrtNormals");
-		// // CreateEdgeInds (*bndMesh);
-		
-		// // // g_visualization->add_stage ("solid", bndMesh, TRI, FLAT);
-		// // g_visualization->add_stage ("wire", bndMesh, EDGE, FLAT);
-	}
-
-	// auto eleMesh = CreateMeshWithEdges (MESH_PATH + "box_with_spheres.ele");
-	// g_visualization->add_stage ("wire", eleMesh, EDGE, NONE);
-
-	// impl::PrintGrobDescs();
-	// impl::PrintGrobSetDescs();
 }
 
 

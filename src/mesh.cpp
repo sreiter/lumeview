@@ -268,12 +268,15 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 		else if(strcmp(name, "tetrahedrons") == 0)
 			ReadIndicesToBuffer (mesh->inds (TET)->data(), curNode);
 
-		// else if(strcmp(name, "hexahedrons") == 0)
-		// 	bSuccess = create_hexahedrons(volumes, grid, curNode, vertices);
-		// else if(strcmp(name, "prisms") == 0)
-		// 	bSuccess = create_prisms(volumes, grid, curNode, vertices);
-		// else if(strcmp(name, "pyramids") == 0)
-		// 	bSuccess = create_pyramids(volumes, grid, curNode, vertices);
+		else if(strcmp(name, "hexahedrons") == 0)
+			ReadIndicesToBuffer (mesh->inds (HEX)->data(), curNode);
+
+		else if(strcmp(name, "pyramids") == 0)
+			ReadIndicesToBuffer (mesh->inds (PYRA)->data(), curNode);
+
+		else if(strcmp(name, "prisms") == 0)
+			ReadIndicesToBuffer (mesh->inds (PRISM)->data(), curNode);
+
 		// else if(strcmp(name, "octahedrons") == 0)
 		// 	bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
 

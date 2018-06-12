@@ -13,9 +13,9 @@ enum grob_t {
 	TRI,
 	QUAD,
 	TET,
-	// PYRA,
-	// PRISM,
-	// HEX
+	HEX,
+	PYRA,
+	PRISM,
 	INVALID_GROB
 };
 
@@ -25,6 +25,9 @@ enum grob_set_t {
 	TRIS		= TRI,
 	QUADS		= QUAD,
 	TETS		= TET,
+	HEXS		= HEX,
+	PYRAS		= PYRA,
+	PRISMS		= PRISM,
 
 	INVALID_GROB_SET	= INVALID_GROB,
 
@@ -183,7 +186,174 @@ static const index_t GROB_DESCS[] = {
 	TRI, 0, 2, 1,	// 2D side 1 (type, corners)
 	TRI, 0, 1, 3,	// 2D side 2 (type, corners)
 	TRI, 1, 2, 3,	// 2D side 3 (type, corners)
-	TRI, 2, 0, 3	// 2D side 4 (type, corners)
+	TRI, 2, 0, 3,	// 2D side 4 (type, corners)
+
+//	HEX
+	HEX,	// TYPE
+	3,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
+	EDGES,		// grob_set_t of 1D sides
+	QUADS,		// grob_set_t of 2D sides
+	3,		// Offset to num 0D sides entry counting from this entry
+	27,		// Offset to num 1D sides entry counting from this entry
+	75,		// Offset to num 2D sides entry counting from this entry
+	8,		// num 0D sides (CORNERS)
+	8,		// offset to first 0D side counting from this entry
+	9,		// offset to second 0D side counting from this entry
+	10,		// offset to third 0D side counting from this entry
+	11,		// offset to fourth 0D side counting from this entry
+	12,		// offset to fifth 0D side counting from this entry
+	13,		// offset to sixth 0D side counting from this entry
+	14,		// offset to seventh 0D side counting from this entry
+	15,		// offset to eighth 0D side counting from this entry
+	VERTEX, 0,	// 0D side 1 (type, corners)
+	VERTEX, 1,	// 0D side 2 (type, corners)
+	VERTEX, 2,	// 0D side 3 (type, corners)
+	VERTEX, 3,	// 0D side 4 (type, corners)
+	VERTEX, 4,	// 0D side 5 (type, corners)
+	VERTEX, 5,	// 0D side 6 (type, corners)
+	VERTEX, 6,	// 0D side 7 (type, corners)
+	VERTEX, 7,	// 0D side 8 (type, corners)
+	12,		// num 1D sides
+	12,		// offset to first 1D side counting from this entry
+	14,		// offset to second 1D side counting from this entry
+	16,		// offset to third 1D side counting from this entry
+	18,		// offset to fourth 1D side counting from this entry
+	20,		// offset to fifth 1D side counting from this entry
+	22,		// offset to sixth 1D side counting from this entry
+	24,		// offset to seventh 1D side counting from this entry
+	26,		// offset to eighth 1D side counting from this entry
+	28,		// offset to ninth 1D side counting from this entry
+	30,		// offset to tenth 1D side counting from this entry
+	32,		// offset to eleventh 1D side counting from this entry
+	34,		// offset to twelfth 1D side counting from this entry
+	EDGE, 0, 1,	// 1D side 1 (type, corners)
+	EDGE, 1, 2,	// 1D side 2 (type, corners)
+	EDGE, 2, 3,	// 1D side 3 (type, corners)
+	EDGE, 3, 0,	// 1D side 4 (type, corners)
+	EDGE, 0, 4,	// 1D side 5 (type, corners)
+	EDGE, 1, 5,	// 1D side 6 (type, corners)
+	EDGE, 2, 6,	// 1D side 7 (type, corners)
+	EDGE, 3, 7,	// 1D side 8 (type, corners)
+	EDGE, 4, 5,	// 1D side 1 (type, corners)
+	EDGE, 5, 6,	// 1D side 2 (type, corners)
+	EDGE, 6, 7,	// 1D side 3 (type, corners)
+	EDGE, 7, 4,	// 1D side 4 (type, corners)
+	6,		// num 2d sides
+	6,		// offset to first 2D side counting from this entry
+	10,		// offset to second 2D side counting from this entry
+	14,		// offset to third 2D side counting from this entry
+	18,		// offset to fourth 2D side counting from this entry
+	22,		// offset to fifth 2D side counting from this entry
+	26,		// offset to sicth 2D side counting from this entry
+	QUAD, 0, 3, 2, 1,	// 2D side 1 (type, corners)
+	QUAD, 0, 1, 5, 4,	// 2D side 2 (type, corners)
+	QUAD, 1, 2, 6, 5,	// 2D side 3 (type, corners)
+	QUAD, 2, 3, 7, 6,	// 2D side 4 (type, corners)
+	QUAD, 3, 0, 4, 7,	// 2D side 4 (type, corners)
+	QUAD, 4, 5, 6, 7,	// 2D side 3 (type, corners)
+
+//	PYRA
+	PYRA,	// TYPE
+	3,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
+	EDGES,		// grob_set_t of 1D sides
+	TRIS,		// grob_set_t of 2D sides
+	3,		// Offset to num 0D sides entry counting from this entry
+	18,		// Offset to num 1D sides entry counting from this entry
+	50,		// Offset to num 2D sides entry counting from this entry
+	5,		// num 0D sides (CORNERS)
+	5,		// offset to first 0D side counting from this entry
+	6,		// offset to second 0D side counting from this entry
+	7,		// offset to third 0D side counting from this entry
+	8,		// offset to fourth 0D side counting from this entry
+	9,		// offset to fifth 0D side counting from this entry
+	VERTEX, 0,	// 0D side 1 (type, corners)
+	VERTEX, 1,	// 0D side 2 (type, corners)
+	VERTEX, 2,	// 0D side 3 (type, corners)
+	VERTEX, 3,	// 0D side 4 (type, corners)
+	VERTEX, 4,	// 0D side 4 (type, corners)
+	8,		// num 1D sides
+	8,		// offset to first 1D side counting from this entry
+	10,		// offset to second 1D side counting from this entry
+	12,		// offset to third 1D side counting from this entry
+	14,		// offset to fourth 1D side counting from this entry
+	16,		// offset to fifth 1D side counting from this entry
+	18,		// offset to sixth 1D side counting from this entry
+	20,		// offset to seventh 1D side counting from this entry
+	22,		// offset to eighth 1D side counting from this entry
+	EDGE, 0, 1,	// 1D side 1 (type, corners)
+	EDGE, 1, 2,	// 1D side 2 (type, corners)
+	EDGE, 2, 3,	// 1D side 3 (type, corners)
+	EDGE, 3, 0,	// 1D side 4 (type, corners)
+	EDGE, 0, 4,	// 1D side 5 (type, corners)
+	EDGE, 1, 4,	// 1D side 6 (type, corners)
+	EDGE, 2, 4,	// 1D side 6 (type, corners)
+	EDGE, 3, 4,	// 1D side 7 (type, corners)
+	5,		// num 2d sides
+	5,		// offset to first 2D side counting from this entry
+	9,		// offset to second 2D side counting from this entry
+	12,		// offset to third 2D side counting from this entry
+	15,		// offset to fourth 2D side counting from this entry
+	18,		// offset to fifth 2D side counting from this entry
+	QUAD, 0, 3, 2, 1,	// 2D side 1 (type, corners)
+	TRI, 0, 1, 4,	// 2D side 2 (type, corners)
+	TRI, 1, 2, 4,	// 2D side 3 (type, corners)
+	TRI, 2, 3, 4,	// 2D side 4 (type, corners)
+	TRI, 3, 0, 4,	// 2D side 5 (type, corners)
+
+//	PRISM
+	PRISM,	// TYPE
+	3,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
+	EDGES,		// grob_set_t of 1D sides
+	TRIS,		// grob_set_t of 2D sides
+	3,		// Offset to num 0D sides entry counting from this entry
+	21,		// Offset to num 1D sides entry counting from this entry
+	57,		// Offset to num 2D sides entry counting from this entry
+	6,		// num 0D sides (CORNERS)
+	6,		// offset to first 0D side counting from this entry
+	7,		// offset to second 0D side counting from this entry
+	8,		// offset to third 0D side counting from this entry
+	9,		// offset to fourth 0D side counting from this entry
+	10,		// offset to fifth 0D side counting from this entry
+	11,		// offset to sixth 0D side counting from this entry
+	VERTEX, 0,	// 0D side 1 (type, corners)
+	VERTEX, 1,	// 0D side 2 (type, corners)
+	VERTEX, 2,	// 0D side 3 (type, corners)
+	VERTEX, 3,	// 0D side 4 (type, corners)
+	VERTEX, 4,	// 0D side 4 (type, corners)
+	VERTEX, 5,	// 0D side 4 (type, corners)
+	9,		// num 1D sides
+	9,		// offset to first 1D side counting from this entry
+	11,		// offset to second 1D side counting from this entry
+	13,		// offset to third 1D side counting from this entry
+	15,		// offset to fourth 1D side counting from this entry
+	17,		// offset to fifth 1D side counting from this entry
+	19,		// offset to sixth 1D side counting from this entry
+	21,		// offset to seventh 1D side counting from this entry
+	23,		// offset to eighth 1D side counting from this entry
+	25,		// offset to ninth 1D side counting from this entry
+	EDGE, 0, 1,	// 1D side 1 (type, corners)
+	EDGE, 1, 2,	// 1D side 2 (type, corners)
+	EDGE, 2, 0,	// 1D side 3 (type, corners)
+	EDGE, 0, 3,	// 1D side 4 (type, corners)
+	EDGE, 1, 4,	// 1D side 5 (type, corners)
+	EDGE, 2, 5,	// 1D side 6 (type, corners)
+	EDGE, 3, 4,	// 1D side 6 (type, corners)
+	EDGE, 4, 5,	// 1D side 7 (type, corners)
+	EDGE, 5, 0,	// 1D side 7 (type, corners)
+	5,		// num 2d sides
+	5,		// offset to first 2D side counting from this entry
+	8,		// offset to second 2D side counting from this entry
+	12,		// offset to third 2D side counting from this entry
+	16,		// offset to fourth 2D side counting from this entry
+	20,		// offset to fifth 2D side counting from this entry
+	TRI, 0, 2, 1,	// 2D side 1 (type, corners)
+	QUAD, 0, 1, 4, 3,	// 2D side 2 (type, corners)
+	QUAD, 1, 2, 5, 4,	// 2D side 3 (type, corners)
+	QUAD, 2, 0, 3, 5,	// 2D side 4 (type, corners)
+	TRI, 3, 4, 5	// 2D side 5 (type, corners)
 };
 
 ///	Holds offsets to each *grid object type* in the `GROB_DESCS` array.
@@ -191,11 +361,14 @@ static const index_t GROB_DESCS[] = {
  * instead.
  */
 static const index_t GROB_DESC_OFFSETS[] = {
-	0,	//	VERTEX
-	3,	//	EDGE
-	14,	//	TRI
-	43,	//	QUAD
-	79	//	TET
+	0,		// VERTEX
+	3,		// EDGE
+	14,		// TRI
+	43,		// QUAD
+	79,		// TET
+	146, 	// HEX
+	265,	// PYRA
+	349		// PRISM
 };
 
 
@@ -233,6 +406,30 @@ static const index_t GROB_SET_DESCS[] = {
 	EDGES,		// 1D side list
 	TRIS,		// 2D side list
 
+	HEXS,		// TYPE
+	3,			// DIM
+	1,			// SIZE
+	HEX,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+	QUADS,		// 2D side list
+
+	PYRAS,		// TYPE
+	3,			// DIM
+	1,			// SIZE
+	PYRA,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+	FACES,		// 2D side list
+
+	PRISMS,		// TYPE
+	3,			// DIM
+	1,			// SIZE
+	PRISM,		// ENTRY 1
+	VERTICES,	// 0D side list
+	EDGES,		// 1D side list
+	FACES,		// 2D side list
+
 	INVALID_GROB_SET,	// TYPE
 	0,					// DIM
 	0,					// SIZE
@@ -247,8 +444,11 @@ static const index_t GROB_SET_DESCS[] = {
 
 	CELLS,		// TYPE
 	3,			// DIM
-	1,			// SIZE
+	4,			// SIZE
 	TET,		// ENTRY 1
+	HEX,		// ENTRY 2
+	PYRA,		// ENTRY 3
+	PRISM,		// ENTRY 4
 	VERTICES,	// 0D side list
 	EDGES,		// 1D side list
 	FACES		// 2D side list
@@ -260,10 +460,13 @@ static const index_t GROB_SET_DESC_OFFESTS[] = {
 	9,	// TRIS
 	15,	// QUADS
 	21,	// TETS
-	28,	// INVALID_GROB_SET
+	28,	// HEXS
+	35,	// PYRAS
+	42,	// PRISMS
+	49,	// INVALID_GROB_SET
 
-	31,	// FACES
-	38,	// CELLS
+	52,	// FACES
+	59,	// CELLS
 };
 
 

@@ -69,6 +69,9 @@ const std::string& GrobName (grob_t grob)
 		std::string ("tri"),
 		std::string ("quad"),
 		std::string ("tet"),
+		std::string ("hex"),
+		std::string ("pyra"),
+		std::string ("prism"),
 		std::string ("invalid")
 	};
 
@@ -83,6 +86,9 @@ const std::string& GrobSetName (grob_set_t grobSet)
 		std::string ("tris"),
 		std::string ("quads"),
 		std::string ("tets"),
+		std::string ("hexs"),
+		std::string ("pyras"),
+		std::string ("prisms"),
 		std::string ("invalid"),
 		std::string ("faces"),
 		std::string ("cells"),
