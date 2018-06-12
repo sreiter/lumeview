@@ -49,9 +49,9 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 
 std::shared_ptr <DataBuffer <real_t>>
 ComputeTriVertexNormals3 (Mesh& mesh,
-						  std::string normalId)
+						  const std::string& normalId)
 {
-	auto normals = mesh.data<real_t> (std::move(normalId));
+	auto normals = mesh.data<real_t> (normalId, VERTEX);
 	normals->set_tuple_size (3);
 	normals->data().resize (mesh.num_coords());
 

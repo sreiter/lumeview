@@ -17,7 +17,7 @@ AssociatedElems () :
 }
 
 AssociatedElems::
-AssociatedElems (Mesh& mesh, grob_t elemType, grob_t assElemType) :
+AssociatedElems (Mesh& mesh, GrobSet elemTypes, GrobSet assElemTypes) :
 	m_offsets (make_shared <IndexDataBuffer> ()),
 	m_assElemMap (make_shared <IndexDataBuffer> ())
 {
@@ -26,8 +26,8 @@ AssociatedElems (Mesh& mesh, grob_t elemType, grob_t assElemType) :
 	CreateAssociatedElemMap (m_assElemMap->data(),
 	                         m_offsets->data(),
 	                         mesh,
-	                         elemType,
-	                         assElemType);
+	                         elemTypes,
+	                         assElemTypes);
 
 	m_rawOffsets	= m_offsets->raw_data();
 	m_rawAssElemMap	= m_assElemMap->raw_data();
@@ -54,28 +54,26 @@ ass_elem_type (const index_t elemInd, const index_t assElemInd) const
 
 
 void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
-					   const index_t* cornerInds,
-					   const index_t numCornerInds,
-					   const grob_t grobType)
-{
-	Grob grob (grobType, cornerInds);
-	const index_t numGrobCorners = grob.num_corners();
-
-	for (index_t offset = 0; offset < numCornerInds; offset += numGrobCorners) {
-		grob.set_corners(cornerInds + offset);
-		indexMapInOut.insert (make_pair (grob, offset / numGrobCorners));
-	}
-}
-
-
-void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
                        const Mesh& mesh,
-                       const grob_t grobType)
+                       const GrobSet grobSet)
 {
-	FillElemIndexMap (indexMapInOut,
-	            	  mesh.inds (grobType)->raw_data(),
-	            	  mesh.inds (grobType)->size(),
-	            	  grobType);
+	index_t counter = 0;
+	
+	for (auto grobType : grobSet) {
+		if (!mesh.has_inds (grobType))
+			continue;
+
+		Grob grob (grobType);
+
+		const index_t* cornerInds = mesh.inds (grobType)->raw_data();
+		const index_t numCornerInds = mesh.inds (grobType)->size();
+		const index_t numCorners = grob.num_corners();
+
+		for (index_t offset = 0; offset < numCornerInds; offset += numCorners, ++counter) {
+			grob.set_corners(cornerInds + offset);
+			indexMapInOut.insert (make_pair (grob, counter));
+		}
+	}
 }
 
 
@@ -192,37 +190,36 @@ void CreateFaceInds (Mesh& mesh)
 }
 
 
-SPMesh CreateBoundaryMesh (Mesh& mesh, const grob_t grobType, const bool* visibilities)
+SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities)
 {
-//todo: does not yet support multi-side-types!
-	GrobDesc grobDesc (grobType);
-	const grob_t bndGrobType = grobDesc.side_desc(grobDesc.dim() - 1, 0).type();
-	GrobDesc bndGrobDesc (bndGrobType);
-
-
 	auto bndMesh = make_shared <Mesh> ();
-	bndMesh->set_data ("coords", mesh.coords());
-	// bndMesh->set_coords (mesh.coords());
-
-	if (grobDesc.dim() == 0)
+	mesh.share_data_with (*bndMesh);
+	
+	if (grobSet.dim() == 0)
 		return bndMesh;
 
-	AssociatedElems assElems (mesh, bndGrobType, grobType);
+	GrobSet bndGrobSet = grobSet.side_set (grobSet.dim() - 1);
+	AssociatedElems assElems (mesh, bndGrobSet, grobSet);
 
-	const index_t numElemCorners = bndGrobDesc.num_corners();
-	const index_t numElemInds = mesh.inds (bndGrobType)->size();
-	const index_t numElems = numElemInds / numElemCorners;
-	const index_t* elemInds = mesh.inds (bndGrobType)->raw_data();
+//todo: iterate over all grobs
+	for (auto bndGrobType : bndGrobSet) {
+		GrobDesc bndGrobDesc (bndGrobType);
+		
+		const index_t numElemCorners = bndGrobDesc.num_corners();
+		const index_t numElemInds = mesh.inds (bndGrobType)->size();
+		const index_t numElems = numElemInds / numElemCorners;
+		const index_t* elemInds = mesh.inds (bndGrobType)->raw_data();
 
-	vector <index_t>& newElemInds = bndMesh->inds (bndGrobType)->data();
+		vector <index_t>& newElemInds = bndMesh->inds (bndGrobType)->data();
 
-	if (!visibilities) {
-		for(index_t ielem = 0; ielem < numElems; ++ielem) {
-			if (assElems.num_associated (ielem) == 1) {
-				const index_t firstInd = ielem * numElemCorners;
+		if (!visibilities) {
+			for(index_t ielem = 0; ielem < numElems; ++ielem) {
+				if (assElems.num_associated (ielem) == 1) {
+					const index_t firstInd = ielem * numElemCorners;
 
-				for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
-					newElemInds.push_back (elemInds [i]);
+					for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
+						newElemInds.push_back (elemInds [i]);
+					}
 				}
 			}
 		}
@@ -235,36 +232,36 @@ SPMesh CreateBoundaryMesh (Mesh& mesh, const grob_t grobType, const bool* visibi
 void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
                         	  std::vector <index_t>& offsetsOut,
                         	  Mesh& mesh,
-                        	  grob_t elemType,
-                        	  grob_t assElemType)
+                        	  GrobSet elemTypes,
+                        	  GrobSet assElemTypes)
 {
-	const GrobDesc elemDesc (elemType);
-	const GrobDesc assElemDesc (assElemType);
-	const index_t elemDim = elemDesc.dim();
-	const index_t assElemDim = assElemDesc.dim();
-
 	elemMapOut.clear ();
 	offsetsOut.clear ();
 
-	const index_t numElems = mesh.inds (elemType)->num_tuples ();
+	
+	const index_t elemDim = elemTypes.dim();
+	const index_t assElemDim = assElemTypes.dim();
+
+	const index_t numElems = mesh.num_tuples (elemTypes);
 	offsetsOut.resize (numElems + 1, 0);
-
-
-	const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
-	const index_t numAssElemInds = mesh.inds (assElemType)->size ();
-	const index_t* assElemCorners = mesh.inds (assElemType)->raw_data ();
-	Grob assElem (assElemType, assElemCorners);
 
 	// We need a hash map which tells us the index of each elem of type elemType
 	GrobHashMap <index_t> elemIndHash;
-	FillElemIndexMap (elemIndHash, mesh, elemType);
+	FillElemIndexMap (elemIndHash, mesh, elemTypes);
 
 	// Count how many associated elements each element has
 	if (assElemDim > elemDim) {
-		for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
-			assElem.set_corners (assElemCorners + i);
-			for(index_t iside = 0; iside < assElem.num_sides(elemDim); ++iside) {
-				++offsetsOut[elemIndHash[assElem.side (elemDim, iside)]];
+		for (auto assElemType : assElemTypes) {
+			const index_t numAssElemInds = mesh.inds (assElemType)->size ();
+			const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
+			const index_t* assElemCorners = mesh.inds (assElemType)->raw_data ();
+			Grob assElem (assElemType);
+
+			for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
+				assElem.set_corners (assElemCorners + i);
+				for(index_t iside = 0; iside < assElem.num_sides(elemDim); ++iside) {
+					++offsetsOut[elemIndHash[assElem.side (elemDim, iside)]];
+				}
 			}
 		}
 	}
@@ -282,17 +279,24 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 
 	elemMapOut.resize (offsetsOut.back() * 2, INVALID_GROB);
 
-	for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
-		assElem.set_corners (assElemCorners + i);
-		for(index_t iside = 0; iside < assElem.num_sides(elemDim); ++iside) {
-			const index_t eind = elemIndHash[assElem.side (elemDim, iside)];
-			const index_t offset = 2 * offsetsOut [eind];
-			const index_t numAss = offsetsOut [eind + 1] - offsetsOut [eind];
-			for(index_t j = offset; j < offset + 2 * numAss; j+=2) {
-				if (elemMapOut [j] == INVALID_GROB){
-					elemMapOut [j] = assElemType;
-					elemMapOut [j+1] = i / numAssElemCorners;
-					break;
+	for (auto assElemType : assElemTypes) {
+		const index_t numAssElemInds = mesh.inds (assElemType)->size ();
+		const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
+		const index_t* assElemCorners = mesh.inds (assElemType)->raw_data ();
+		Grob assElem (assElemType);
+
+		for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
+			assElem.set_corners (assElemCorners + i);
+			for(index_t iside = 0; iside < assElem.num_sides(elemDim); ++iside) {
+				const index_t eind = elemIndHash[assElem.side (elemDim, iside)];
+				const index_t offset = 2 * offsetsOut [eind];
+				const index_t numAss = offsetsOut [eind + 1] - offsetsOut [eind];
+				for(index_t j = offset; j < offset + 2 * numAss; j+=2) {
+					if (elemMapOut [j] == INVALID_GROB){
+						elemMapOut [j] = assElemType;
+						elemMapOut [j+1] = i / numAssElemCorners;
+						break;
+					}
 				}
 			}
 		}

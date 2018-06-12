@@ -13,7 +13,7 @@ class Mesh;
 class AssociatedElems {
 public:
     AssociatedElems ();
-    AssociatedElems (Mesh& mesh, grob_t elemType, grob_t assElemType);
+    AssociatedElems (Mesh& mesh, GrobSet elemSet, GrobSet assElemSet);
 
     index_t num_associated (const index_t elemInd) const;
     index_t ass_elem_ind (const index_t elemInd, const index_t assElemInd) const;
@@ -81,13 +81,13 @@ void CreateEdgeInds (Mesh& mesh);
 /** \todo:  add support for elements with quadrilateral sides!*/
 void CreateFaceInds (Mesh& mesh);
 
-SPMesh CreateBoundaryMesh (Mesh& mesh, const grob_t grobType, const bool* visibilities);
+SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities = nullptr);
 
 void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
                               std::vector <index_t>& offsetsOut,
                               Mesh& mesh,
-                              grob_t elemType,
-                              grob_t assElemType);
+                              GrobSet elemSet,
+                              GrobSet assElemSet);
 
 
 

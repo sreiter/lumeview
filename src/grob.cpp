@@ -1,4 +1,5 @@
 #include "grob.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ void PrintGrobDescs ()
 
 		for(index_t sideDim = 0; sideDim < desc.dim(); ++sideDim) {
 			const index_t numSides = desc.num_sides (sideDim);
+			LOG("side set of dim " << sideDim << ": " << GrobSetName (desc.side_set_type (sideDim)) << endl);
 			LOG("sides of dim " << sideDim << ": " << numSides << endl);
 			for(index_t iside = 0; iside < numSides; ++iside) {
 				LOG("  side " << iside << ": type = " <<
@@ -29,6 +31,30 @@ void PrintGrobDescs ()
 				LOG(endl);
 			}
 		}
+		LOG(endl);
+	}
+}
+
+void PrintGrobSetDescs ()
+{
+	LOG ("Overview over all available grid objects sets:\n\n");
+	for(index_t igrobSet = 0; igrobSet <= CELLS; ++igrobSet) {
+		GrobSet gs (static_cast<grob_set_t> (igrobSet));
+
+		LOG(igrobSet + 1 << ": " << gs.name() << endl);
+		LOG("dim:  " << gs.dim() << endl);
+		LOG("size: " << gs.size() << endl);
+
+		LOG("grobs:")
+		
+		for (auto gt : gs)
+			LOG(" " << GrobName (gt));
+
+		LOG(endl);
+
+		for(index_t sideDim = 0; sideDim < gs.dim(); ++sideDim) 
+			LOG("side set " << sideDim << "D: " << GrobSetName (gs.side_set(sideDim)) << endl);
+
 		LOG(endl);
 	}
 }
@@ -47,6 +73,22 @@ const std::string& GrobName (grob_t grob)
 	};
 
 	return names[grob];
+}
+
+const std::string& GrobSetName (grob_set_t grobSet)
+{
+	static const std::string names [] = {
+		std::string ("vertices"),
+		std::string ("edges"),
+		std::string ("tris"),
+		std::string ("quads"),
+		std::string ("tets"),
+		std::string ("invalid"),
+		std::string ("faces"),
+		std::string ("cells"),
+	};
+
+	return names[grobSet];
 }
 
 }// end of namespace slimesh

@@ -35,7 +35,7 @@ static Visualization* g_visualization = nullptr;
 
 static bool g_guiShowLog = false;
 static bool g_guiShowDemo = false;
-static bool g_guiShowVisualization = false;
+static bool g_guiShowVisualization = true;
 
 WindowEventListener* RendererGetEventListener ()
 {
@@ -45,7 +45,7 @@ WindowEventListener* RendererGetEventListener ()
 SPMesh CreateMeshWithEdges (std::string filename)
 {
 	auto mesh = CreateMeshFromFile (filename);
-	ComputeTriVertexNormals3 (*mesh, "vrtNormals");
+	ComputeTriVertexNormals3 (*mesh, "normals");
 	CreateEdgeInds (*mesh);
 
 	Box box = BoxFromCoords (UNPACK_DST(*mesh->coords()));
@@ -65,7 +65,7 @@ void RendererInit ()
 {
 	if (g_visualization)
 		return;
-	
+
 	// if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
 	// 	THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
 	// }
@@ -76,58 +76,36 @@ void RendererInit ()
 
 	g_visualization = new Visualization (SHADER_PATH);
 
-	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "box_with_spheres.ele");
-	// g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
-	// g_visualization->add_stage ("wire", mainMesh, EDGE, NONE);
+	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "bunny.stl");
+	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");
+	g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
+	g_visualization->add_stage ("wire", mainMesh, EDGE, NONE);
 
 	{
-		CreateFaceInds (*mainMesh);
-		auto bndMesh = CreateBoundaryMesh (*mainMesh, TET, nullptr);
-		// bndMesh->set_data <real_t>("vrtNormals", mainMesh->data <real_t>("vrtNormals"));
-		// g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
+		auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
+		g_visualization->add_stage ("bnd", bndMesh, EDGE, FLAT);
+	}
 
-		cout << "bndMesh num tris: " << bndMesh->inds(TRI)->num_tuples();
-		ComputeTriVertexNormals3 (*bndMesh, "vrtNormals");
-		CreateEdgeInds (*bndMesh);
+	{
+		// CreateFaceInds (*mainMesh);
+		// cout << "mainMesh num tris: " << mainMesh->inds(TRI)->num_tuples() << endl;
+		// auto bndMesh = CreateBoundaryMesh (*mainMesh, TET, nullptr);
+		// // // bndMesh->set_data <real_t>("vrtNormals", mainMesh->data <real_t>("vrtNormals"));
+		// // // g_visualization->add_stage ("bnd", bndMesh, EDGE, NONE);
+
+		// cout << "bndMesh num tris: " << bndMesh->inds(TRI)->num_tuples() << endl;
+		// // ComputeTriVertexNormals3 (*bndMesh, "vrtNormals");
+		// // CreateEdgeInds (*bndMesh);
 		
-		// g_visualization->add_stage ("solid", bndMesh, TRI, FLAT);
-		g_visualization->add_stage ("wire", bndMesh, EDGE, FLAT);
+		// // // g_visualization->add_stage ("solid", bndMesh, TRI, FLAT);
+		// // g_visualization->add_stage ("wire", bndMesh, EDGE, FLAT);
 	}
 
 	// auto eleMesh = CreateMeshWithEdges (MESH_PATH + "box_with_spheres.ele");
 	// g_visualization->add_stage ("wire", eleMesh, EDGE, NONE);
 
-	impl::PrintGrobDescs();
-
-	// {
-	// 	vector <index_t>& tets = eleMesh->inds(TET)->data();
-	// 	for(size_t i = max<int>((int)tets.size() - 40, 0); i < tets.size(); ++i) {
-	// 		cout << tets[i];
-	// 		if (i % 4 == 3)
-	// 			cout << endl;
-	// 		else
-	// 			cout << " ";
-	// 	}
-	// }
-	// {
-	// 	auto& normals = *mesh->data("vrtNormals");
-	// 	const real_t* data = normals.raw_data();
-	// 	const index_t stride = normals.tuple_size();
-	// 	LOGT(mesh, "normals:\n");
-	// 	for(index_t i = 0; i < normals.size(); i+=stride) {
-	// 		LOG(i/stride << ":\t(");
-	// 		for(index_t j = 0; j < stride; ++j) {
-	// 			LOG(data[i+j]);
-	// 			if (j+1 < stride){
-	// 				LOG(", ");
-	// 			}
-	// 		}
-	// 		LOG(")\n");
-	// 	}
-	// 	LOG("\n");
-	// }
-
-	// g_arcBallView.camera().translate(glm::vec3(0, 0, -1));
+	// impl::PrintGrobDescs();
+	// impl::PrintGrobSetDescs();
 }
 
 

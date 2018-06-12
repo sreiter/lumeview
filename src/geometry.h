@@ -40,7 +40,7 @@ void ComputeVertexNormals3 (real_t* normalsOut,
 ///	computes the vertex normals of a mesh and stores them in the specified data array
 std::shared_ptr <DataBuffer <real_t>>
 ComputeTriVertexNormals3 (Mesh& meshInOut,
-                		  std::string normalId = "vrtNormals");
+                		  const std::string& normalId = "vrtNormals");
 
 }// end of namespace slimesh
 

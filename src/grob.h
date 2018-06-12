@@ -19,14 +19,14 @@ enum grob_t {
 	INVALID_GROB
 };
 
-enum grob_list_t {
+enum grob_set_t {
 	VERTICES	= VERTEX,
 	EDGES		= EDGE,
 	TRIS		= TRI,
 	QUADS		= QUAD,
 	TETS		= TET,
 
-	INVALID_GROB_LIST	= INVALID_GROB,
+	INVALID_GROB_SET	= INVALID_GROB,
 
 	FACES,
 	CELLS
@@ -82,10 +82,12 @@ static const index_t GROB_DESCS[] = {
 //	VERTEX
 	VERTEX,	// TYPE
 	0, 		// DIM
+	INVALID_GROB_SET,	// grob_set_t of sides
 
 //	EDGE
 	EDGE,	// TYPE
 	1,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
 	1,		// Offset to num 0D sides entry counting from this entry
 	2,		// num 0D sides (CORNERS)
 	2,		// Offset to first 0D side counting from the this entry
@@ -96,6 +98,8 @@ static const index_t GROB_DESCS[] = {
 //	TRI
 	TRI,	// TYPE
 	2,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
+	EDGES,		// grob_set_t of 1D sides
 	2,		// Offset to num 0D sides entry counting from this entry
 	11,		// Offset to num 1D sides entry counting from this entry
 	3,		// num 0D sides (CORNERS)
@@ -116,6 +120,8 @@ static const index_t GROB_DESCS[] = {
 //	QUAD
 	QUAD,	// TYPE
 	2,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
+	EDGES,		// grob_set_t of 1D sides
 	2,		// Offset to num 0D sides entry counting from this entry
 	14,		// Offset to num 1D sides entry counting from this entry
 	4,		// num 0D sides (CORNERS)
@@ -140,6 +146,9 @@ static const index_t GROB_DESCS[] = {
 //	TET
 	TET,	// TYPE
 	3,		// DIM
+	VERTICES,	// grob_set_t of 0D sides
+	EDGES,		// grob_set_t of 1D sides
+	TRIS,		// grob_set_t of 2D sides
 	3,		// Offset to num 0D sides entry counting from this entry
 	15,		// Offset to num 1D sides entry counting from this entry
 	39,		// Offset to num 2D sides entry counting from this entry
@@ -182,14 +191,14 @@ static const index_t GROB_DESCS[] = {
  */
 static const index_t GROB_DESC_OFFSETS[] = {
 	0,	//	VERTEX
-	2,	//	EDGE
-	12,	//	TRI
-	39,	//	QUAD
-	73	//	TET
+	3,	//	EDGE
+	14,	//	TRI
+	43,	//	QUAD
+	79	//	TET
 };
 
 
-static const index_t GROB_LIST_DESCS[] = {
+static const index_t GROB_SET_DESCS[] = {
 	VERTICES,	// TYPE
 	0,			// DIM
 	1,			// SIZE
@@ -223,7 +232,7 @@ static const index_t GROB_LIST_DESCS[] = {
 	EDGES,		// 1D side list
 	TRIS,		// 2D side list
 
-	INVALID_GROB_LIST,	// TYPE
+	INVALID_GROB_SET,	// TYPE
 	0,					// DIM
 	0,					// SIZE
 
@@ -244,13 +253,13 @@ static const index_t GROB_LIST_DESCS[] = {
 	FACES		// 2D side list
 };
 
-static const index_t GROB_LIST_DESC_OFFESTS[] = {
+static const index_t GROB_SET_DESC_OFFESTS[] = {
 	0,	// VERTICES
 	4,	// EDGES
 	9,	// TRIS
 	15,	// QUADS
 	21,	// TETS
-	28,	// INVALID_GROB_LIST
+	28,	// INVALID_GROB_SET
 
 	31,	// FACES
 	38,	// CELLS
@@ -260,10 +269,16 @@ static const index_t GROB_LIST_DESC_OFFESTS[] = {
 /// Logs all grob-descs in a human readable way.
 void PrintGrobDescs ();
 
+/// Logs all grob-set-descs in a human readable way.
+void PrintGrobSetDescs ();
+
 }//	end of namespace impl
 
 ///	returns the name of a grob
 const std::string& GrobName (grob_t grob);
+
+///	returns the name of a grob set
+const std::string& GrobSetName (grob_set_t grobSet);
 
 ///	Describes a class of **grid objects** in terms of local corner indices and sides.
 /** A `GrobDesc` is a descriptor object for a given type of *grid object*.
@@ -284,7 +299,7 @@ public:
 	inline grob_t type () const						{return static_cast<grob_t>(impl::GROB_DESCS [m_offset]);}
 	const std::string& name () const				{return GrobName (type());}
 	inline index_t dim () const						{return impl::GROB_DESCS [m_offset + 1];}
-	inline index_t num_corners () const				{return impl::GROB_DESCS [side_offset (0)];}
+	inline index_t num_corners () const				{return (type() == VERTEX) ? 1 : impl::GROB_DESCS [side_offset (0)];}
 
 	inline index_t local_corner (const index_t cornerIndex) const
 	{
@@ -296,6 +311,11 @@ public:
 		if (sideDim >= dim ())
 			return 0;
 		return impl::GROB_DESCS [side_offset (sideDim)];
+	}
+
+	inline grob_set_t side_set_type (const index_t sideDim) const
+	{
+		return grob_set_t (impl::GROB_DESCS[m_offset + 2 + sideDim]);
 	}
 
 	inline grob_t side_type (const index_t sideDim, const index_t sideIndex) const
@@ -322,7 +342,7 @@ public:
 private:
 	index_t side_offset (const index_t sideDim) const
 	{
-		return m_offset + 2 + sideDim + impl::GROB_DESCS[m_offset + 2 + sideDim];
+		return m_offset + 2 + dim() + sideDim + impl::GROB_DESCS[m_offset + 2 + dim() + sideDim];
 	}
 
 	index_t side_desc_offset (const index_t sideDim, const index_t sideIndex) const
@@ -391,7 +411,7 @@ private:
  */
 class Grob {
 public:
-	Grob (grob_t grobType, const index_t* corners) :
+	Grob (grob_t grobType, const index_t* corners = nullptr) :
 		m_globCornerInds (corners),
 		m_cornerOffsets (impl::Array_16_4::ascending_order ()),
 		m_desc (grobType)
@@ -496,22 +516,41 @@ private:
 
 
 
-class GrobTypeList {
+class GrobSet {
 public:
-	explicit GrobTypeList (grob_list_t glt) :
-		m_offset (impl::GROB_LIST_DESC_OFFESTS [glt])
+	struct iterator {
+		using value_type = grob_t;
+		
+		iterator () : index (0), set (nullptr) {}
+		iterator (index_t i, const GrobSet* gs ) : index (i), set (gs) {}
+		grob_t operator * () const	{return set->grob_type (index);}
+		bool operator == (const iterator& it) const	{return index == it.index && set == it.set;}
+		bool operator != (const iterator& it) const	{return index != it.index || set != it.set;}
+		iterator& operator ++ ()					{++index; return *this;}
+
+	  private:
+		int index;
+		const GrobSet* set;
+	};
+
+	GrobSet (const grob_set_t glt) :
+		m_offset (impl::GROB_SET_DESC_OFFESTS [glt])
 	{}
 
-	explicit GrobTypeList (grob_t glt) :
-		m_offset (impl::GROB_LIST_DESC_OFFESTS [glt])
+	GrobSet (const grob_t glt) :
+		m_offset (impl::GROB_SET_DESC_OFFESTS [glt])
 	{}
 
-	index_t type () const			{return impl::GROB_LIST_DESCS [m_offset];}
-	index_t dim () const			{return impl::GROB_LIST_DESCS [m_offset + 1];}
-	index_t size () const			{return impl::GROB_LIST_DESCS [m_offset + 2];}
-	grob_t grob (const index_t i)	{return grob_t (impl::GROB_LIST_DESCS [m_offset + 3 + i]);}
+	grob_set_t type () const							{return grob_set_t (impl::GROB_SET_DESCS [m_offset]);}
+	index_t dim () const								{return impl::GROB_SET_DESCS [m_offset + 1];}
+	const std::string& name () const					{return GrobSetName (type ());}
+	index_t size () const								{return impl::GROB_SET_DESCS [m_offset + 2];}
+	grob_t grob_type (const index_t i) const			{return grob_t (impl::GROB_SET_DESCS [m_offset + 3 + i]);}
 
-	grob_list_t sides (const index_t sideDim)	{return grob_list_t(impl::GROB_LIST_DESCS [m_offset + 3 + size() + sideDim]);}
+	grob_set_t side_set (const index_t sideDim) const	{return grob_set_t(impl::GROB_SET_DESCS [m_offset + 3 + size() + sideDim]);}
+
+	iterator begin () const		{return iterator (0, this);}
+	iterator end () const		{return iterator (size(), this);}
 
 private:
 	const index_t m_offset;

@@ -19,8 +19,8 @@ class Mesh {
 public:
 	struct DataKey {
 		DataKey ()									: name (""), grobId (INVALID_GROB) {}
-		DataKey (const char* _name)					: name (_name), grobId (INVALID_GROB) {}
-		DataKey (std::string _name)					: name (std::move(_name)), grobId (INVALID_GROB) {}
+		// DataKey (const char* _name)					: name (_name), grobId (INVALID_GROB) {}
+		// DataKey (std::string _name)					: name (std::move(_name)), grobId (INVALID_GROB) {}
 		DataKey (std::string _name, grob_t _grobId)	: name (std::move(_name)), grobId (_grobId) {}
 		bool operator < (const DataKey& key) const	{return grobId < key.grobId || (grobId == key.grobId && name < key.name);}
 
@@ -37,6 +37,39 @@ public:
 	
 	~Mesh () {}
 	
+	template <class T>
+	void share_data_with (Mesh& target, grob_t gt) const
+	{
+		auto& dataMap = storage(T{}).data_map();
+
+		for (auto& entry : dataMap) {
+			if (entry.first.grobId == gt) {
+				target.set_data (entry.first, entry.second);
+			}
+		}
+	}
+
+	void share_data_with (Mesh& target, grob_t gt) const
+	{
+		share_data_with <real_t> (target, gt);
+		share_data_with <index_t> (target, gt);
+	}
+
+	template <class T>
+	void share_data_with (Mesh& target) const
+	{
+		auto& dataMap = storage(T{}).data_map();
+
+		for (auto& entry : dataMap)
+			target.set_data (entry.first, entry.second);
+	}
+
+	void share_data_with (Mesh& target) const
+	{
+		share_data_with <real_t> (target);
+		share_data_with <index_t> (target);
+	}
+
 	SPRealDataBuffer coords ()						{return m_coords;}
 	SPCRealDataBuffer coords () const				{return m_coords;}
 	index_t num_coords () const						{return m_coords->size();}
@@ -70,15 +103,61 @@ public:
 		return grob_storage().collect_keys();
 	}
 
+	index_t num_inds (grob_t grob)
+	{
+		if (has_inds (grob))
+			return inds (grob)->size();
+		return 0;
+	}
+
+	index_t num_inds (const GrobSet& gs)
+	{
+		index_t num = 0;
+		for(index_t i = 0; i < gs.size(); ++i)
+			num += num_inds (gs.grob_type (i));
+		return num;
+	}
+
+	index_t num_tuples (grob_t grob)
+	{
+		if (has_inds (grob))
+			return inds (grob)->num_tuples();
+		return 0;
+	}
+
+	index_t num_tuples (const GrobSet& gs)
+	{
+		index_t num = 0;
+		for(index_t i = 0; i < gs.size(); ++i)
+			num += num_tuples (gs.grob_type (i));
+		return num;
+	}
+
 
 
 	template <class T>
 	bool has_data (const DataKey& key) const		{return storage(T{}).has_data (key);}
 
+	template <class T>
+	bool has_data (const std::string& name, grob_t gt) const		{return has_data <T> (DataKey (name, gt));}
+
+
 	///	returns the data array for the given id. If none was present, a new one will be created.
 	template <class T>
 	std::shared_ptr <DataBuffer <T>>
-	data (const DataKey& key)					{return storage(T{}).data (key);}
+	data (const DataKey& key)							{return storage(T{}).data (key);}
+
+	template <class T>
+	std::shared_ptr <DataBuffer <T>>
+	data (const std::string& name, grob_t gt)			{return data <T> (DataKey (name, gt));}
+	template <class T>
+	std::shared_ptr <const DataBuffer <T>>
+	data (const DataKey& key) const						{return storage(T{}).data (key);}
+
+	template <class T>
+	std::shared_ptr <const DataBuffer <T>>
+	data (const std::string& name, grob_t gt) const		{return data <T> (DataKey (name, gt));}
+
 
 	///	explicitly set a data array of a mesh
 	template <class T>
@@ -90,6 +169,13 @@ public:
 			set_coords (data);
 	}
 
+	template <class T>
+	void set_data (const std::string& name, grob_t gt,
+	               const std::shared_ptr <DataBuffer <T>>& data)
+	{
+		set_data <T> (DataKey (name, gt), data);
+	}
+
 	// template <class T>
 	// SPCRealDataBuffer data (const std::string& id) const
 
@@ -97,6 +183,10 @@ public:
 	/** This will decrement the shared_ptr but not necessarily delete the array.*/
 	template <class T>
 	void remove_data (const DataKey& key)		{storage(T{}).remove_data (key);}
+
+	template <class T>
+	void remove_data (const std::string& name, grob_t gt) const		{remove_data <T> (DataKey (name, gt));}
+
 
 private:
 	template <class T>
@@ -109,6 +199,11 @@ private:
 		using data_map_t		= std::map <TKey, sp_data_array_t>;
 
 		public:
+		const data_map_t& data_map () const
+		{
+			return m_dataMap;
+		}
+
 		bool has_data (const TKey& id) const
 		{
 			auto i = m_dataMap.find (id);
