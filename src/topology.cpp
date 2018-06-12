@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include "topology.h"
 #include "log.h"
+#include "vec_math_raw.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ AssociatedElems (Mesh& mesh, GrobSet elemTypes, GrobSet assElemTypes) :
 	
 	CreateAssociatedElemMap (m_assElemMap->data(),
 	                         m_offsets->data(),
+	                         m_grobBaseInds,
 	                         mesh,
 	                         elemTypes,
 	                         assElemTypes);
@@ -34,34 +36,39 @@ AssociatedElems (Mesh& mesh, GrobSet elemTypes, GrobSet assElemTypes) :
 }
 
 index_t AssociatedElems::
-num_associated (const index_t elemInd) const
+num_associated (const index_t elemInd, const grob_t elemGT) const
 {
-	return m_rawOffsets [elemInd + 1] - m_rawOffsets [elemInd];
+	return m_rawOffsets [m_grobBaseInds[elemGT] + elemInd + 1] - m_rawOffsets [m_grobBaseInds[elemGT] + elemInd];
 }
 
 index_t AssociatedElems::
-ass_elem_ind (const index_t elemInd, const index_t assElemInd) const
+ass_elem_ind (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const
 {
-	return m_rawAssElemMap [(m_rawOffsets [elemInd] + assElemInd) * 2 + 1];
+	return m_rawAssElemMap [(m_rawOffsets [m_grobBaseInds[elemGT] + elemInd] + assElemInd) * 2 + 1];
 }
 
 grob_t AssociatedElems::
-ass_elem_type (const index_t elemInd, const index_t assElemInd) const
+ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const
 {
-	return grob_t(m_rawAssElemMap [(m_rawOffsets [elemInd] + assElemInd) * 2]);
+	return grob_t(m_rawAssElemMap [(m_rawOffsets [m_grobBaseInds[elemGT] + elemInd] + assElemInd) * 2]);
 }
 
 
 
 void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
+                       index_t* grobBaseIndsOut,
                        const Mesh& mesh,
                        const GrobSet grobSet)
 {
+	VecSet (grobBaseIndsOut, 0, NUM_GROB_TYPES);
+
 	index_t counter = 0;
 	
 	for (auto grobType : grobSet) {
 		if (!mesh.has (grobType))
 			continue;
+		
+		grobBaseIndsOut [grobType] = counter;
 
 		Grob grob (grobType);
 
@@ -214,7 +221,7 @@ SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities
 
 		if (!visibilities) {
 			for(index_t ielem = 0; ielem < numElems; ++ielem) {
-				if (assElems.num_associated (ielem) == 1) {
+				if (assElems.num_associated (ielem, bndGrobType) == 1) {
 					const index_t firstInd = ielem * numElemCorners;
 
 					for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
@@ -231,6 +238,7 @@ SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities
 
 void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
                         	  std::vector <index_t>& offsetsOut,
+                        	  index_t* grobBaseIndsOut,
                         	  Mesh& mesh,
                         	  GrobSet elemTypes,
                         	  GrobSet assElemTypes)
@@ -247,7 +255,7 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 
 	// We need a hash map which tells us the index of each elem of type elemType
 	GrobHashMap <index_t> elemIndHash;
-	FillElemIndexMap (elemIndHash, mesh, elemTypes);
+	FillElemIndexMap (elemIndHash, grobBaseIndsOut, mesh, elemTypes);
 
 	// Count how many associated elements each element has
 	if (assElemDim > elemDim) {

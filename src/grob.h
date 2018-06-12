@@ -38,7 +38,8 @@ static const index_t NUM_GROB_TYPES = INVALID_GROB;
 static const index_t MAX_CORNERS [] = {
 	0,	// Max corners of elements with dim 0
 	2,	// Max corners of elements with dim 1
-	4	// Max corners of elements with dim 2
+	4,	// Max corners of elements with dim 2
+	8	// Max corners of elements with dim 3
 };
 
 static const index_t TOTAL_MAX_CORNERS = 16; // Increasing this value has side effects!

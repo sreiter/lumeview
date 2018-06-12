@@ -15,31 +15,32 @@ public:
     AssociatedElems ();
     AssociatedElems (Mesh& mesh, GrobSet elemSet, GrobSet assElemSet);
 
-    index_t num_associated (const index_t elemInd) const;
-    index_t ass_elem_ind (const index_t elemInd, const index_t assElemInd) const;
-    grob_t ass_elem_type (const index_t elemInd, const index_t assElemInd) const;
+    index_t num_associated (const index_t elemInd, const grob_t elemGT) const;
+    index_t ass_elem_ind (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const;
+    grob_t ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const;
 
 private:
     SPIndexDataBuffer m_offsets;
     SPIndexDataBuffer m_assElemMap;
     index_t*          m_rawOffsets;
     index_t*          m_rawAssElemMap;
+    index_t           m_grobBaseInds [NUM_GROB_TYPES];
 };
 
 
 /// Fills a map which associates grobs with consecutive indices
-/** \note   It is assumed, that `cornerInds` holds the corner indices of one or
-*           more *grobs* of the same `grobType` in sequential order.
+/**
+* \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.
+*
+* \note   It is assumed, that `cornerInds` holds the corner indices of one or
+*         more *grobs* of the same `grobType` in sequential order.
+*
 * \note `indexMapInOut is not cleared during this function. It is thus possible
 *        call this method repeatedly on different `cornerInds` and `grobType` to
 *        find fill all element indices of a hybrid grid.
 * \{ */
 index_t FillIndexMap (GrobHashMap <index_t>& indexMapInOut,
-                      const index_t* cornerInds,
-                      const index_t numCornerInds,
-                      const grob_t grobType);
-
-index_t FillIndexMap (GrobHashMap <index_t>& indexMapInOut,
+                      index_t* grobBaseIndsOut,
                       const Mesh& mesh,
                       const grob_t grobType);
 /** \} */
@@ -83,8 +84,12 @@ void CreateFaceInds (Mesh& mesh);
 
 SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities = nullptr);
 
+/**
+ * \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.
+ */
 void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
                               std::vector <index_t>& offsetsOut,
+                              index_t* grobBaseIndsOut,
                               Mesh& mesh,
                               GrobSet elemSet,
                               GrobSet assElemSet);

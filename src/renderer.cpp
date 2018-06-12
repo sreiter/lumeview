@@ -49,6 +49,7 @@ void PrintMeshInfo (SPMesh mesh)
 	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
 	LOGT(mesh, "  #edges:       " << mesh->inds(EDGE)->num_tuples() << std::endl);
 	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
+	LOGT(mesh, "  #quads:       " << mesh->inds(QUAD)->num_tuples() << std::endl);
 	LOGT(mesh, "  #tetrahedra:  " << mesh->inds(TET)->num_tuples() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
@@ -79,23 +80,42 @@ void RendererInit ()
 	g_visualization = new Visualization (SHADER_PATH);
 
 	// const std::string filename = MESH_PATH + "tet.ugx";
-	const std::string filename = MESH_PATH + "tri_and_quad.ugx";
+	const std::string filename = MESH_PATH + "elems.ugx";
+	// const std::string filename = MESH_PATH + "tri_and_quad.ugx";
+	// const std::string filename = MESH_PATH + "bunny.stl";
 	auto mainMesh = CreateMeshFromFile (filename);
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
+	PrintMeshInfo (mainMesh);
+
+	const glm::vec4 solidColor (1.0f, 0.843f, 0.f, 1.0f);
+	const glm::vec4 wireColor (0.2f, 0.2f, 0.2f, 1.0f);
+	const glm::vec4 bndColor (1.0f, 0.2f, 0.2f, 1.0f);
 
 	if (mainMesh->has (CELLS)) {
-
+		auto bndMesh = CreateBoundaryMesh (*mainMesh, CELLS);
+		PrintMeshInfo (bndMesh);
+		ComputeTriVertexNormals3 (*bndMesh, "normals");
+		CreateEdgeInds (*bndMesh);
+		g_visualization->add_stage ("solid", bndMesh, FACES, FLAT);
+		g_visualization->stage_set_color (solidColor);
+		g_visualization->add_stage ("wire", bndMesh, EDGES, FLAT);
+		g_visualization->stage_set_color (wireColor);
 	}
 	else if (mainMesh->has (FACES)) {
 		ComputeTriVertexNormals3 (*mainMesh, "normals");
 		CreateEdgeInds (*mainMesh);
 		g_visualization->add_stage ("solid", mainMesh, FACES, FLAT);
+		g_visualization->stage_set_color (solidColor);
 		g_visualization->add_stage ("wire", mainMesh, EDGES, FLAT);
+		g_visualization->stage_set_color (wireColor);
 		auto bndMesh = CreateBoundaryMesh (*mainMesh, FACES);
 		g_visualization->add_stage ("bnd", bndMesh, EDGES, NONE);
+		g_visualization->stage_set_color (bndColor);
 	}
 	else if (mainMesh->has (EDGES)) {
-
+		ComputeTriVertexNormals3 (*mainMesh, "normals");
+		g_visualization->add_stage ("wire", mainMesh, EDGES, NONE);
+		g_visualization->stage_set_color (wireColor);
 	}
 
 	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");

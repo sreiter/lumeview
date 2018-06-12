@@ -63,6 +63,14 @@ add_stage (	std::string name,
 	m_stages.push_back (std::move(newStage));
 }
 
+void Visualization::
+stage_set_color (const glm::vec4& color, int stageInd)
+{
+	if (stageInd < 0)
+		stageInd = (int)m_stages.size() + stageInd;
+	m_stages.at (stageInd).color = color;
+}
+
 // void Visualization::
 // provide_shading_requirements (Stage& stage)
 glm::vec2 Visualization::

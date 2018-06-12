@@ -34,6 +34,13 @@ public:
 	                const GrobSet grobSet,
 	                ShadingPreset shading);
 
+	size_t num_stages () const	{return m_stages.size();}
+	size_t last_stage () const	{return num_stages() ? num_stages() - 1 : 0;}
+	
+	/// sets the color of the specified stage. If no stage is specified, the last one is used.
+	/** stageInd may be negative. In that case, -1 is the last, -2 the second to last, etc.*/
+	void stage_set_color (const glm::vec4& color, int stageInd = -1);
+
 	///	returns min (x) and max (y) z clip distances required to show all polygons.
 	glm::vec2 estimate_z_clip_dists (const View& view) const;
 
