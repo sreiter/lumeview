@@ -72,8 +72,8 @@ void RendererInit ()
 	if (g_visualization)
 		return;
 
-	impl::PrintGrobDescs();
-	impl::PrintGrobSetDescs();
+	// impl::PrintGrobDescs();
+	// impl::PrintGrobSetDescs();
 
 	// if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) {
 	// 	THROW("GLAD::INITIALIZATION\n  Failed to initialize GLAD" << endl);
@@ -98,9 +98,7 @@ void RendererInit ()
 	const glm::vec4 bndColor (1.0f, 0.2f, 0.2f, 1.0f);
 
 	if (mainMesh->has (CELLS)) {
-		LOG("HAS CELLS\n");
 		auto bndMesh = CreateBoundaryMesh (*mainMesh, CELLS);
-		PrintMeshInfo (bndMesh);
 		ComputeTriVertexNormals3 (*bndMesh, "normals");
 		CreateEdgeInds (*bndMesh);
 		g_visualization->add_stage ("solid", bndMesh, FACES, FLAT);
@@ -109,7 +107,6 @@ void RendererInit ()
 		g_visualization->stage_set_color (wireColor);
 	}
 	else if (mainMesh->has (FACES)) {
-		LOG("HAS FACES\n");
 		ComputeTriVertexNormals3 (*mainMesh, "normals");
 		CreateEdgeInds (*mainMesh);
 		g_visualization->add_stage ("solid", mainMesh, FACES, FLAT);
@@ -121,7 +118,6 @@ void RendererInit ()
 		g_visualization->stage_set_color (bndColor);
 	}
 	else if (mainMesh->has (EDGES)) {
-		LOG("HAS EDGES\n");
 		ComputeTriVertexNormals3 (*mainMesh, "normals");
 		g_visualization->add_stage ("wire", mainMesh, EDGES, NONE);
 		g_visualization->stage_set_color (wireColor);
