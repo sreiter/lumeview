@@ -68,6 +68,7 @@ add_definitions (-DUSE_GL_VERSION_MINOR=${GL_VERSION_MINOR})
 
 include_directories (${GLAD_PATH}/include)
 include_directories (deps/glm-0.9.8.5)
+include_directories (deps/rapidxml-1.13)
 include_directories (deps)
 
 find_package(OpenGL REQUIRED)

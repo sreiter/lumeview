@@ -76,7 +76,7 @@ void RendererInit ()
 
 	g_visualization = new Visualization (SHADER_PATH);
 
-	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "bunny.stl");
+	auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ugx");
 	// auto mainMesh = CreateMeshWithEdges (MESH_PATH + "tet.ele");
 	g_visualization->add_stage ("solid", mainMesh, TRI, FLAT);
 	g_visualization->add_stage ("wire", mainMesh, EDGE, FLAT);
@@ -121,7 +121,7 @@ void RendererDraw ()
 {
 	glEnable (GL_DEPTH_TEST);
 
-	glClearColor (0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor (0.25f, 0.25f, 0.25f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	const glm::vec2 clipDists = g_visualization->estimate_z_clip_dists(g_arcBallView.view());
