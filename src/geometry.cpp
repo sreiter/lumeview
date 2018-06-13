@@ -20,48 +20,47 @@ real_t* TriangleNormal3 (real_t* normalOut,
 }
 
 
-void ComputeVertexNormals3 (real_t* normalsOut,
-							const real_t* coords,
-							const index_t numCoords,
-							const index_t* cornerInds,
-							const index_t numCornerInds,
-							const grob_t grobType)
-{
-	VecSet (normalsOut, 0, numCoords);
-
-	if (grobType == TRI) {
-		for(index_t itri = 0; itri < numCornerInds; itri+=3) {
-			const index_t* tri = &cornerInds [itri];
-			real_t n[3];
-			TriangleNormal3 (n, &coords [tri [0]*3], &coords [tri [1]*3], &coords [tri [2]*3]);
-
-			for(index_t i = 0; i < 3; ++i) 
-				VecAppend (&normalsOut [tri [i]*3], 3, n);
-		}
-
-		VecTupNormalize (normalsOut, numCoords, 3);
-	}
-	else {
-		THROW("VertexNormals3 is currently only implemented for triangle meshes");
-	}
-}
-
-
 std::shared_ptr <DataBuffer <real_t>>
-ComputeTriVertexNormals3 (Mesh& mesh,
+ComputeFaceVertexNormals3 (Mesh& mesh,
 						  const std::string& normalId)
 {
-	auto normals = mesh.data<real_t> (normalId, VERTEX);
-	normals->set_tuple_size (3);
-	normals->data().resize (mesh.num_coords());
+	COND_THROW (mesh.coords()->tuple_size() != 3,
+	            "ComputeFaceVertexNormals3: Coordinates have to be 3-tuples!");
 
-	ComputeVertexNormals3 (normals->raw_data(),
-	            		   mesh.coords()->raw_data(),
-	            		   mesh.num_coords(),
-	            		   mesh.inds(TRI)->raw_data(),
-	            		   mesh.inds(TRI)->size(),
-	            		   TRI);
-	return normals;
+	auto normalData = mesh.data<real_t> (normalId, VERTEX);
+	normalData->set_tuple_size (3);
+	normalData->data().resize (mesh.num_coords());
+
+	const real_t*	coords		= mesh.coords()->raw_data();
+	const index_t	numCoords	= mesh.num_coords();
+	real_t* 		normals		= normalData->raw_data();
+
+	VecSet (normals, 0, numCoords);
+	
+	for(auto gt : GrobSet (FACES)) {
+		const index_t*	inds		= mesh.inds (gt)->raw_data();
+		const index_t	numInds		= mesh.inds (gt)->size();
+		const index_t	numCorners	= mesh.inds (gt)->tuple_size();
+		const index_t	offset = numCorners / 2;
+
+		for (index_t i = 0; i < numInds; i += numCorners) {
+			const index_t* elem = inds + i;
+
+			real_t d0[3];
+			real_t d1[3];
+
+			VecSub (d0, 3, coords + elem[offset] * 3, coords + elem[0] * 3);
+			VecSub (d1, 3, coords + elem[1 + offset] * 3, coords + elem[1] * 3);
+
+			real_t n[3];
+			VecNormalize (VecCross3 (n, d0, d1), 3);
+
+			for(index_t j = 0; j < numCorners; ++j)
+				VecAppend (normals + elem [j] * 3, 3, n);
+		}
+	}
+
+	return normalData;
 }
 
 }// end of namespace slimesh

@@ -21,26 +21,11 @@ real_t* TriangleNormal3 (real_t* normalOut,
                          const real_t* c1,
                          const real_t* c2);
 
-/**
- * \param normalsOut	array of the same size as 'coords'
- * \param coords		coordinates of the corners
- * \param numCoords		total number of coordinates
- *						(at least: (highest referenced corner in cornerInds) * 3)
- * \param cornerInds	indices of triangle corners. Each triplet describes on triangle.
- * \param numCornerInds	total number of corner indices.
- */
-void ComputeVertexNormals3 (real_t* normalsOut,
-                    		const real_t* coords,
-                    		const index_t numCoords,
-                    		const index_t* cornerInds,
-                    		const index_t numCornerInds,
-                    		const grob_t grobType);
-
 
 ///	computes the vertex normals of a mesh and stores them in the specified data array
 std::shared_ptr <DataBuffer <real_t>>
-ComputeTriVertexNormals3 (Mesh& meshInOut,
-                		  const std::string& normalId = "vrtNormals");
+ComputeFaceVertexNormals3 (Mesh& meshInOut,
+                           const std::string& normalId = "normals");
 
 }// end of namespace slimesh
 

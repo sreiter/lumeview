@@ -99,7 +99,7 @@ void RendererInit ()
 
 	if (mainMesh->has (CELLS)) {
 		auto bndMesh = CreateBoundaryMesh (*mainMesh, CELLS);
-		ComputeTriVertexNormals3 (*bndMesh, "normals");
+		ComputeFaceVertexNormals3 (*bndMesh, "normals");
 		CreateEdgeInds (*bndMesh);
 		g_visualization->add_stage ("solid", bndMesh, FACES, FLAT);
 		g_visualization->stage_set_color (solidColor);
@@ -107,7 +107,7 @@ void RendererInit ()
 		g_visualization->stage_set_color (wireColor);
 	}
 	else if (mainMesh->has (FACES)) {
-		ComputeTriVertexNormals3 (*mainMesh, "normals");
+		ComputeFaceVertexNormals3 (*mainMesh, "normals");
 		CreateEdgeInds (*mainMesh);
 		g_visualization->add_stage ("solid", mainMesh, FACES, FLAT);
 		g_visualization->stage_set_color (solidColor);
@@ -118,7 +118,7 @@ void RendererInit ()
 		g_visualization->stage_set_color (bndColor);
 	}
 	else if (mainMesh->has (EDGES)) {
-		ComputeTriVertexNormals3 (*mainMesh, "normals");
+		ComputeFaceVertexNormals3 (*mainMesh, "normals");
 		g_visualization->add_stage ("wire", mainMesh, EDGES, NONE);
 		g_visualization->stage_set_color (wireColor);
 	}
