@@ -27,6 +27,22 @@ private:
     index_t           m_grobBaseInds [NUM_GROB_TYPES];
 };
 
+/// Maps consecutively indexed grid objects of different types to their respective grob indices
+/** While slimesh indices grid objects for each type starting from zero, other
+ * indexing schemata are possible. E.g. first indexing all triangles and afterwards
+ * all quadrilaterals in a consicutive way (the first quad index is thus equal to
+ * the number of triangles). If such an indexing scheme is encountered, this class
+ * allows to map thos indices to slimesh's indexing scheme.*/
+class TotalToGrobIndexMap {
+public:
+  TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs);
+  std::pair <index_t, grob_t> operator () (const index_t ind) const;
+
+private:
+  index_t m_baseInds [MAX_GROB_SET_SIZE + 1];
+  const GrobSet m_grobSet;
+};
+
 
 /// Fills a map which associates grobs with consecutive indices
 /**

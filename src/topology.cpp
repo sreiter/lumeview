@@ -55,6 +55,36 @@ ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElem
 
 
 
+TotalToGrobIndexMap::
+TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
+    m_grobSet (gs)
+{
+    COND_THROW (gs.size() > MAX_GROB_SET_SIZE, "Internal error: MAX_GROB_SET_SIZE is wrong!");
+
+    m_baseInds[0] = 0;
+    for(index_t i = 0; i < gs.size(); ++i) {
+      	const index_t numTuples = gs.grob_type (i) == VERTEX ?
+          								mesh.coords()->num_tuples() :
+          								mesh.num_tuples (gs.grob_type (i));
+          
+     	m_baseInds [i+1] = m_baseInds [i] + numTuples;
+    }
+}
+
+std::pair <index_t, grob_t> TotalToGrobIndexMap::
+operator () (const index_t ind) const
+{
+    for(size_t i = 0; i < m_grobSet.size(); ++i) {
+      	if (ind >= m_baseInds [i] && ind < m_baseInds [i+1])
+        	return make_pair (ind - m_baseInds[i], m_grobSet.grob_type(index_t(i)));
+    }
+
+    THROW("TotalToGrobIndexMap: Couldn't map index " << ind << " to GrobSet " << m_grobSet.name());
+    return make_pair <index_t, grob_t> (0, INVALID_GROB);
+}
+
+
+
 void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
                        index_t* grobBaseIndsOut,
                        const Mesh& mesh,
