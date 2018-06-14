@@ -200,7 +200,7 @@ void CreateFaceInds (Mesh& mesh)
 SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities)
 {
 	auto bndMesh = make_shared <Mesh> ();
-	mesh.share_data_with (*bndMesh);
+	mesh.share_all_with (*bndMesh);
 	
 	if (grobSet.dim() == 0)
 		return bndMesh;

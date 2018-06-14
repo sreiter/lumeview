@@ -21,6 +21,7 @@ set (sources
     	camera.cpp
         file_util.cpp
         shapes.cpp
+        subset_info_attachment.cpp
         renderer.cpp
         view.cpp
         visualization.cpp

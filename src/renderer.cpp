@@ -36,6 +36,11 @@ static Visualization* g_visualization = nullptr;
 static bool g_guiShowLog = false;
 static bool g_guiShowDemo = false;
 static bool g_guiShowVisualization = true;
+static bool g_guiShowMeshes = true;
+
+
+std::vector <SPMesh> g_meshes;
+
 
 WindowEventListener* RendererGetEventListener ()
 {
@@ -96,6 +101,8 @@ void RendererInit ()
 	const glm::vec4 solidColor (1.0f, 0.843f, 0.f, 1.0f);
 	const glm::vec4 wireColor (0.2f, 0.2f, 0.2f, 1.0f);
 	const glm::vec4 bndColor (1.0f, 0.2f, 0.2f, 1.0f);
+
+	g_meshes.push_back (mainMesh);
 
 	if (mainMesh->has (CELLS)) {
 		auto bndMesh = CreateBoundaryMesh (*mainMesh, CELLS);
@@ -173,6 +180,34 @@ void RendererProcessGUI (bool draw)
 
 	if (g_guiShowDemo)
 		ImGui::ShowDemoWindow (&g_guiShowDemo);
+
+	if (g_guiShowMeshes) {
+		if (!ImGui::Begin("Meshes", &g_guiShowMeshes, 0)) {
+	        // Early out if the window is collapsed, as an optimization.
+	        ImGui::End();
+	        return;
+	    }
+		for(auto& mesh : g_meshes) {
+			ImGui::PushID (mesh.get());
+			if (ImGui::CollapsingHeader("mesh")) {
+				for (auto attIter = mesh->attachments_begin();
+				     attIter != mesh->attachments_end(); ++attIter)
+				{
+					if (attIter != mesh->attachments_begin())
+						ImGui::Separator();
+					
+					string label = string (attIter->second->class_name()) + ": " + attIter->first.c_str();
+					if (ImGui::TreeNode (label.c_str()))
+					{
+						attIter->second->do_imgui();
+						ImGui::TreePop();
+					}
+				}
+			}
+			ImGui::PopID();
+		}
+		ImGui::End();
+	}
 
 	ImGui::Render();
 	if (draw) {

@@ -14,9 +14,23 @@
 
 namespace slimesh {
 
+class MeshAttachment {
+public:
+	virtual ~MeshAttachment () {};
+	virtual const char* class_name () const = 0;
+	virtual void do_imgui () {};
+};
+
+using SPMeshAttachment	= std::shared_ptr <MeshAttachment>;
+using CSPMeshAttachment	= std::shared_ptr <const MeshAttachment>;
+
+
 
 class Mesh {
 public:
+	using attachment_iterator_t = std::map <std::string, SPMeshAttachment>::iterator;
+	using const_attachment_iterator_t = std::map <std::string, SPMeshAttachment>::const_iterator;
+
 	struct DataKey {
 		DataKey ()									: name (""), grobId (INVALID_GROB) {}
 		// DataKey (const char* _name)					: name (_name), grobId (INVALID_GROB) {}
@@ -37,45 +51,15 @@ public:
 	
 	~Mesh () {}
 	
-	template <class T>
-	void share_data_with (Mesh& target, grob_t gt) const
-	{
-		auto& dataMap = storage(T{}).data_map();
-
-		for (auto& entry : dataMap) {
-			if (entry.first.grobId == gt) {
-				target.set_data (entry.first, entry.second);
-			}
-		}
-	}
-
-	void share_data_with (Mesh& target, grob_t gt) const
-	{
-		share_data_with <real_t> (target, gt);
-		share_data_with <index_t> (target, gt);
-	}
-
-	template <class T>
-	void share_data_with (Mesh& target) const
-	{
-		auto& dataMap = storage(T{}).data_map();
-
-		for (auto& entry : dataMap)
-			target.set_data (entry.first, entry.second);
-	}
-
-	void share_data_with (Mesh& target) const
-	{
-		share_data_with <real_t> (target);
-		share_data_with <index_t> (target);
-	}
-
+	// COORDINATES
 	SPRealDataBuffer coords ()						{return m_coords;}
 	SPCRealDataBuffer coords () const				{return m_coords;}
 	index_t num_coords () const						{return m_coords->size();}
 
 	void set_coords (const SPRealDataBuffer& coords)		{m_coords = coords;}
 
+
+	// INDICES
 	SPIndexDataBuffer inds (const grob_t gt)
 	{
 		auto t = grob_storage().data(gt);
@@ -148,7 +132,7 @@ public:
 	}
 
 
-
+	// DATA
 	template <class T>
 	bool has_data (const DataKey& key) const		{return storage(T{}).has_data (key);}
 
@@ -200,6 +184,99 @@ public:
 
 	template <class T>
 	void remove_data (const std::string& name, grob_t gt) const		{remove_data <T> (DataKey (name, gt));}
+
+
+	void share_all_with (Mesh& target) const
+	{
+		share_data_with (target);
+		share_attachments_with (target);
+	}
+
+	void share_data_with (Mesh& target, grob_t gt) const
+	{
+		share_data_with <real_t> (target, gt);
+		share_data_with <index_t> (target, gt);
+	}
+
+	template <class T>
+	void share_data_with (Mesh& target) const
+	{
+		auto& dataMap = storage(T{}).data_map();
+
+		for (auto& entry : dataMap)
+			target.set_data (entry.first, entry.second);
+	}
+
+	void share_data_with (Mesh& target) const
+	{
+		share_data_with <real_t> (target);
+		share_data_with <index_t> (target);
+	}
+
+
+	// ATTACHMENTS
+	void attach (const std::string& name, SPMeshAttachment a)
+	{
+		auto& val = m_attachments [name];
+		COND_THROW (val.get() != nullptr,
+		            "Mesh::attach: Attachment '" << name << "' exists already!");
+		val = a;
+	}
+
+	void detach (const std::string& name, SPMeshAttachment a)
+	{
+		auto i = m_attachments.find (name);
+		if (i != m_attachments.end())
+			m_attachments.erase (i);
+	}
+
+	SPMeshAttachment attachment (const std::string& name)
+	{
+		auto i = m_attachments.find (name);
+		if (i != m_attachments.end())
+			return i->second;
+		return SPMeshAttachment ();
+	}
+
+	CSPMeshAttachment attachment (const std::string& name) const
+	{
+		auto i = m_attachments.find (name);
+		if (i != m_attachments.end())
+			return i->second;
+		return CSPMeshAttachment ();
+	}
+
+	bool has_attachment (const std::string& name) const
+	{
+		auto i = m_attachments.find (name);
+		return (i != m_attachments.end());
+	}
+
+	attachment_iterator_t attachments_begin ()	{return m_attachments.begin();}
+	attachment_iterator_t attachments_end ()	{return m_attachments.end();}
+
+	const_attachment_iterator_t attachments_begin () const	{return m_attachments.begin();}
+	const_attachment_iterator_t attachments_end () const	{return m_attachments.end();}
+
+	template <class T>
+	void share_data_with (Mesh& target, grob_t gt) const
+	{
+		auto& dataMap = storage(T{}).data_map();
+
+		for (auto& entry : dataMap) {
+			if (entry.first.grobId == gt) {
+				target.set_data (entry.first, entry.second);
+			}
+		}
+	}
+
+	void share_attachments_with (Mesh& target) const
+	{
+		for (auto& e : m_attachments) {
+			if (!target.has_attachment (e.first))
+				target.attach (e.first, e.second);
+		}
+	}
 
 
 private:
@@ -307,6 +384,8 @@ private:
 	DataStorage <DataKey, index_t>	m_indexDataStorage;
 	
 	DataStorage <grob_t, index_t>	m_grobDataStorage;
+
+	std::map <std::string, SPMeshAttachment>	m_attachments;
 };
 
 using SPMesh = std::shared_ptr <Mesh>;

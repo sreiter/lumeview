@@ -30,12 +30,10 @@ ComputeFaceVertexNormals3 (Mesh& mesh,
 	auto normalData = mesh.data<real_t> (normalId, VERTEX);
 	normalData->set_tuple_size (3);
 	normalData->data().resize (mesh.num_coords());
+	VecSet (UNPACK_DS(*normalData), 0);
 
 	const real_t*	coords		= mesh.coords()->raw_data();
-	const index_t	numCoords	= mesh.num_coords();
 	real_t* 		normals		= normalData->raw_data();
-
-	VecSet (normals, 0, numCoords);
 	
 	for(auto gt : GrobSet (FACES)) {
 		const index_t*	inds		= mesh.inds (gt)->raw_data();
@@ -59,6 +57,8 @@ ComputeFaceVertexNormals3 (Mesh& mesh,
 				VecAppend (normals + elem [j] * 3, 3, n);
 		}
 	}
+
+	VecTupNormalize (UNPACK_DST(*normalData));
 
 	return normalData;
 }

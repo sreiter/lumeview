@@ -3,6 +3,9 @@
 #include <algorithm>
 #include "mesh.h"
 #include "cond_throw.h"
+#include "subset_info_attachment.h"
+#include "vec_math_raw.h"
+
 #include "stl_reader/stl_reader.h"
 #include "rapidxml/rapidxml.hpp"
 
@@ -172,11 +175,115 @@ static void ReadIndicesToBuffer (vector <index_t>& indsOut, xml_node<>* node)
 {
 	char* p = strtok (node->value(), " ");
 	while (p) {
-	//	read the data
 		indsOut.push_back (atoi(p));
 		p = strtok (nullptr, " ");
 	}
 }
+
+static glm::vec4 ParseColor (char* colStr)
+{
+	char* p = strtok (colStr, " ");
+	int i = 0;
+	glm::vec4 col (1.f);
+	while (p && i < 4) {
+		col [i] = real_t (atof(p));
+		p = strtok (nullptr, " ");
+		++i;
+	}
+	return col;
+}
+
+
+class TotalToGrobIndexMap {
+public:
+	TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
+		m_grobSet (gs)
+	{
+		COND_THROW (gs.size() > MAX_GROB_SET_SIZE, "Internal error: MAX_GROB_SET_SIZE is wrong!");
+
+		m_baseInds[0] = 0;
+		for(index_t i = 0; i < gs.size(); ++i) {
+			const index_t numTuples = gs.grob_type (i) == VERTEX ?
+					mesh.coords()->num_tuples() :
+					mesh.num_tuples (gs.grob_type (i));
+					
+			m_baseInds [i+1] = m_baseInds [i] + numTuples;
+		}
+	}
+
+	std::pair <index_t, grob_t> operator () (const index_t ind) const
+	{
+		for(size_t i = 0; i < m_grobSet.size(); ++i) {
+			if (ind >= m_baseInds [i] && ind < m_baseInds [i+1])
+				return make_pair (ind - m_baseInds[i], m_grobSet.grob_type(index_t(i)));
+		}
+
+		THROW("TotalToGrobIndexMap: Couldn't map index " << ind << " to GrobSet " << m_grobSet.name());
+		return make_pair <index_t, grob_t> (0, INVALID_GROB);
+	}
+
+private:
+	index_t m_baseInds [MAX_GROB_SET_SIZE + 1];
+	const GrobSet m_grobSet;
+};
+
+
+template <class T>
+static void ParseElementIndicesToDataArray (Mesh& mesh,
+                                            const string& dataName,
+                                            xml_node<>* node,
+                                            const T value,
+                                            const GrobSet& gs)
+{
+	if (!node) return;
+	
+	// indices in the node are referring to all elements of one dimension.
+	// we have to map them to indices of individual grob types.
+	TotalToGrobIndexMap indMap (mesh, gs);
+
+	// For fast access, we store the raw pointers to data arrays of individual
+	// grob types in an array
+	T* rawData [NUM_GROB_TYPES];
+	VecSet (rawData, NUM_GROB_TYPES, nullptr);
+
+	// allocate data arrays and set up the rawData array
+	for(auto gt : gs) {
+		if (gt != VERTEX && !mesh.has (gt))
+			continue;
+
+		auto dataBuffer = mesh.data <T> (dataName, gt);
+
+		if (gt == VERTEX)
+			dataBuffer->data().resize (mesh.coords ()->num_tuples());
+		else
+			dataBuffer->data().resize (mesh.inds (gt)->num_tuples());
+
+		VecSet (UNPACK_DS(*dataBuffer), 0);
+		rawData [gt] = dataBuffer->raw_data();
+	}
+
+	// parse the node values and assign indices
+	char* p = strtok (node->value(), " ");
+	while (p) {
+		const auto ig = indMap (index_t (atoi(p)));
+		rawData [ig.second] [ig.first] = value;
+		p = strtok (nullptr, " ");
+	}
+
+}
+
+template <class T>
+static void ParseElementIndicesToDataArray (Mesh& mesh,
+                                            const string& dataName,
+                                            xml_node<>* node,
+                                            const T value)
+{
+	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("vertices"), value, VERTICES);
+	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("edges"), value, EDGES);
+	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("faces"), value, FACES);
+	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("volumes"), value, CELLS);
+}
+
 
 std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 {
@@ -279,6 +386,32 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 
 		// else if(strcmp(name, "octahedrons") == 0)
 		// 	bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
+
+		else if(strcmp(name, "subset_handler") == 0) {
+			string siName = "subsetHandler";
+			if (xml_attribute<>* attrib = curNode->first_attribute("name"))
+				siName = attrib->value();
+
+			SPSubsetInfo subsetInfo = make_shared <SubsetInfo> (siName);
+			subsetInfo->add_subset (SubsetInfo::Properties ());
+
+			xml_node<>* subsetNode = curNode->first_node("subset");
+			index_t subsetIndex = 1;
+			for(;subsetNode; subsetNode = subsetNode->next_sibling()) {
+				SubsetInfo::Properties props;
+				if (xml_attribute<>* attrib = subsetNode->first_attribute("name"))
+					props.name = attrib->value();
+				if (xml_attribute<>* attrib = subsetNode->first_attribute("color"))
+					props.color = ParseColor (attrib->value());
+
+				ParseElementIndicesToDataArray (*mesh, siName, subsetNode, subsetIndex);
+
+				subsetInfo->add_subset (std::move (props));
+				++subsetIndex;
+			}
+
+			mesh->attach (siName, subsetInfo);
+		}
 
 		// else if(strcmp(name, "vertex_attachment") == 0)
 		// 	bSuccess = read_attachment<Vertex>(grid, curNode);

@@ -37,6 +37,7 @@ enum grob_set_t {
 
 static const index_t MAX_GROB_DIM = 2;
 static const index_t NUM_GROB_TYPES = INVALID_GROB;
+static const index_t MAX_GROB_SET_SIZE = 4;
 
 static const index_t MAX_CORNERS [] = {
 	0,	// Max corners of elements with dim 0
@@ -53,35 +54,8 @@ namespace impl {
 /** Please do not work with this array directly, but use the `GrobDesc` class
  * instead.
  * 
- * The structure of each element entry is as follows:
- * \code
- * TYPE,
- * DIM,
- *
- * NUM 0D SIDES, // (if DIM > 0)
- * OFFSET TO 1D SIDES counting from the this entry, // (if DIM > 0)
- *
- * NUM 1D SIDES, // (if DIM > 1)
- * OFFSET TO 1D SIDES counting from the this entry, // (if DIM > 1)
- *
- * NUM 2D SIDES, //	(if DIM > 2)
- * OFFSET TO 2D SIDES counting from the this entry, // (if DIM > 2)
- * // ... if DIM > 3
- *
- * // (if DIM > 1)
- * ELEMENT_TYPE, corner1, ..., cornerN,	// (1D SIDE 1)
- * ...
- * ELEMENT_TYPE, corner1, ..., cornerN,	// (1D SIDE M)
- *
- * // (if DIM > 2)
- * ELEMENT_TYPE, corner1, ..., cornerN,	// (2D SIDE 1)
- * ...
- * ELEMENT_TYPE, corner1, ..., cornerN,	// (2D SIDE M)
- * \endcode
- *
  * Offsets to individual elements in this list are stored in GROB_DESC_OFFSETS.
  */
-
 static const index_t GROB_DESCS[] = {
 //	VERTEX
 	VERTEX,	// TYPE
@@ -372,6 +346,7 @@ static const index_t GROB_DESC_OFFSETS[] = {
 };
 
 
+// when changing this, make sure to adjust 'MAX_GROB_SET_SIZE' accordingly
 static const index_t GROB_SET_DESCS[] = {
 	VERTICES,	// TYPE
 	0,			// DIM
