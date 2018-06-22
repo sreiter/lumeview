@@ -20,8 +20,8 @@ public:
     grob_t ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const;
 
 private:
-    SPIndexDataBuffer m_offsets;
-    SPIndexDataBuffer m_assElemMap;
+    SPIndexBuffer m_offsets;
+    SPIndexBuffer m_assElemMap;
     index_t*          m_rawOffsets;
     index_t*          m_rawAssElemMap;
     index_t           m_grobBaseInds [NUM_GROB_TYPES];
@@ -30,9 +30,9 @@ private:
 /// Maps consecutively indexed grid objects of different types to their respective grob indices
 /** While slimesh indices grid objects for each type starting from zero, other
  * indexing schemata are possible. E.g. first indexing all triangles and afterwards
- * all quadrilaterals in a consicutive way (the first quad index is thus equal to
+ * all quadrilaterals in a consecutive way (the first quad index is thus equal to
  * the number of triangles). If such an indexing scheme is encountered, this class
- * allows to map thos indices to slimesh's indexing scheme.*/
+ * allows to map those indices to slimesh's indexing scheme.*/
 class TotalToGrobIndexMap {
 public:
   TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs);

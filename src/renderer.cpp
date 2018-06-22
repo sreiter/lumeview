@@ -190,17 +190,19 @@ void RendererProcessGUI (bool draw)
 		for(auto& mesh : g_meshes) {
 			ImGui::PushID (mesh.get());
 			if (ImGui::CollapsingHeader("mesh")) {
-				for (auto attIter = mesh->attachments_begin();
-				     attIter != mesh->attachments_end(); ++attIter)
+				for (auto attIter = mesh->data_begin();
+				     attIter != mesh->data_end(); ++attIter)
 				{
-					if (attIter != mesh->attachments_begin())
-						ImGui::Separator();
-					
-					string label = string (attIter->second->class_name()) + ": " + attIter->first.c_str();
-					if (ImGui::TreeNode (label.c_str()))
-					{
-						attIter->second->do_imgui();
-						ImGui::TreePop();
+					if (attIter->second->has_gui()) {
+						if (attIter != mesh->data_begin())
+							ImGui::Separator();
+						
+						string label = string (attIter->second->class_name()) + ": " + attIter->first.name.c_str();
+						if (ImGui::TreeNode (label.c_str()))
+						{
+							attIter->second->do_imgui();
+							ImGui::TreePop();
+						}
 					}
 				}
 			}

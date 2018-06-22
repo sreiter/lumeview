@@ -25,9 +25,9 @@ std::shared_ptr <Mesh> CreateMeshFromSTL (std::string filename)
 	std::vector <index_t> solids;
 
 	stl_reader::ReadStlFile (filename.c_str(),
-	                         mesh->coords()->data(),
+	                         mesh->coords()->vector(),
 							 normals,
-							 mesh->inds(TRI)->data(),
+							 mesh->inds(TRI)->vector(),
 							 solids);
 
 	mesh->coords()->set_tuple_size(3);
@@ -50,8 +50,8 @@ std::shared_ptr <Mesh> CreateMeshFromELE(std::string filename)
 	auto mesh = make_shared <Mesh> ();
 
 //	read nodes and store them in an array for index access
-	mesh->coords()->set_tuple_size (3);
-	vector <real_t>& vertices = mesh->coords()->data();
+	auto& coords = *mesh->coords();
+	coords.set_tuple_size (3);
 
 	{
 		ifstream in(nodesFilename);
@@ -63,21 +63,21 @@ std::shared_ptr <Mesh> CreateMeshFromELE(std::string filename)
 		in >> numAttribs;
 		in >> numBoundaryMarkers;
 
-		vertices.reserve(numNodes + 1);
+		coords.reserve((numNodes + 1) * 3);
 
-	//	read the vertices
+	//	read the coords
 		int index;
 		for(uint i = 0; i < numNodes; ++i)
 		{
 		//	read index and coords
 			in >> index;
-			if(index > (int) vertices.size())
-				vertices.resize(index * 3, 0);
+			if(index > (int) coords.size())
+				coords.resize(index * 3, 0);
 
 			for(uint j = 0; j < 3; ++j) {
 				real_t coord;
 				in >> coord;
-				vertices.push_back (coord);
+				coords.push_back (coord);
 			}
 
 		//	todo: apply attributes
@@ -151,7 +151,7 @@ std::shared_ptr <Mesh> CreateMeshFromELE(std::string filename)
 		COND_THROW (numNodesPerTet != 4, "CreateMeshFromELE: Unsupported number "
 		            "of tetrahedron corners in file '" << filename << "': " << numNodesPerTet);
 		
-		vector <index_t>& tets = mesh->inds (TET)->data();
+		auto& tets = *mesh->inds (TET);
 		tets.resize (numTets * numNodesPerTet);
 
 		for(int i = 0; i < numTets; ++i)
@@ -172,7 +172,7 @@ std::shared_ptr <Mesh> CreateMeshFromELE(std::string filename)
 	return mesh;
 }
 
-static void ReadIndicesToBuffer (vector <index_t>& indsOut, xml_node<>* node)
+static void ReadIndicesToBuffer (IndexBuffer& indsOut, xml_node<>* node)
 {
 	char* p = strtok (node->value(), " ");
 	while (p) {
@@ -218,15 +218,15 @@ static void ParseElementIndicesToDataArray (Mesh& mesh,
 		if (gt != VERTEX && !mesh.has (gt))
 			continue;
 
-		auto dataBuffer = mesh.data <T> (dataName, gt);
+		auto& dataBuffer = *mesh.data <DataBuffer<T>> (dataName, gt);
 
 		if (gt == VERTEX)
-			dataBuffer->data().resize (mesh.coords ()->num_tuples());
+			dataBuffer.resize (mesh.coords ()->num_tuples());
 		else
-			dataBuffer->data().resize (mesh.inds (gt)->num_tuples());
+			dataBuffer.resize (mesh.inds (gt)->num_tuples());
 
-		VecSet (UNPACK_DS(*dataBuffer), 0);
-		rawData [gt] = dataBuffer->raw_data();
+		VecSet (UNPACK_DS(dataBuffer), 0);
+		rawData [gt] = dataBuffer.raw_ptr();
 	}
 
 	// parse the node values and assign indices
@@ -284,7 +284,7 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 	            << "' does not contain a grid");
 
 	auto mesh = make_shared <Mesh> ();
-	vector <real_t>& vertices = mesh->coords()->data();
+	auto& coords = *mesh->coords();
 
 	int lastNumSrcCoords = -1;
 	xml_node<>* curNode = gridNode->first_node();
@@ -307,13 +307,13 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 			            "of coordinates from file " << filename);
 
 			lastNumSrcCoords = numSrcCoords;
-			mesh->coords()->set_tuple_size (numSrcCoords);
+			coords.set_tuple_size (numSrcCoords);
 			
 		//	create a buffer with which we can access the data
 			char* p = strtok (curNode->value(), " ");
 			while (p) {
 			//	read the data
-				vertices.push_back (real_t (atof(p)));
+				coords.push_back (real_t (atof(p)));
 				p = strtok (nullptr, " ");
 			}
 		}
@@ -322,34 +322,34 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 		        || strcmp(name, "constraining_edges") == 0
 		        || strcmp(name, "constrained_edges") == 0)
 		{
-			ReadIndicesToBuffer (mesh->inds (EDGE)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (EDGE), curNode);
 		}
 
 		else if(strcmp(name, "triangles") == 0
 		        || strcmp(name, "constraining_triangles") == 0
 		        || strcmp(name, "constrained_triangles") == 0)
 		{
-			ReadIndicesToBuffer (mesh->inds (TRI)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (TRI), curNode);
 		}
 
 		else if(strcmp(name, "quadrilaterals") == 0
 		        || strcmp(name, "constraining_quadrilaterals") == 0
 		        || strcmp(name, "constrained_quadrilaterals") == 0)
 		{
-			ReadIndicesToBuffer (mesh->inds (QUAD)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (QUAD), curNode);
 		}
 
 		else if(strcmp(name, "tetrahedrons") == 0)
-			ReadIndicesToBuffer (mesh->inds (TET)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (TET), curNode);
 
 		else if(strcmp(name, "hexahedrons") == 0)
-			ReadIndicesToBuffer (mesh->inds (HEX)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (HEX), curNode);
 
 		else if(strcmp(name, "pyramids") == 0)
-			ReadIndicesToBuffer (mesh->inds (PYRA)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (PYRA), curNode);
 
 		else if(strcmp(name, "prisms") == 0)
-			ReadIndicesToBuffer (mesh->inds (PRISM)->data(), curNode);
+			ReadIndicesToBuffer (*mesh->inds (PRISM), curNode);
 
 		// else if(strcmp(name, "octahedrons") == 0)
 		// 	bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
@@ -377,7 +377,7 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 				++subsetIndex;
 			}
 
-			mesh->attach (siName, subsetInfo);
+			mesh->set_data (siName, NO_GROB, subsetInfo);
 		}
 
 		// else if(strcmp(name, "vertex_attachment") == 0)

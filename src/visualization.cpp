@@ -115,7 +115,7 @@ prepare_buffers ()
 					(curStage.shadingPreset == SMOOTH)
 				||	(curStage.grobSet.type() == EDGES && (curStage.shadingPreset == FLAT));
 
-		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<real_t>("normals", VERTEX),
+		COND_THROW(curMeshNeedsVrtNormals && !mesh->has_data<RealBuffer>("normals", VERTEX),
 		           "Requested shader needs normal information!");
 
 		//	check whether we can reuse buffer objects
@@ -127,8 +127,8 @@ prepare_buffers ()
 				curStage.bndSphere = stage.bndSphere;
 			}
 
-			if (curMeshNeedsVrtNormals && stage.mesh->has_data<real_t>("normals", VERTEX)
-			    && stage.mesh->data<real_t>("normals", VERTEX) == mesh->data<real_t>("normals", VERTEX))
+			if (curMeshNeedsVrtNormals && stage.mesh->has_data<RealBuffer>("normals", VERTEX)
+			    && stage.mesh->data<RealBuffer>("normals", VERTEX) == mesh->data<RealBuffer>("normals", VERTEX))
 			{
 				curStage.normBuf = stage.normBuf;
 			}
@@ -148,7 +148,7 @@ prepare_buffers ()
 		else {
 			curStage.bndSphere = SphereFromCoords (UNPACK_DST(*mesh->coords()));
 			curStage.coordBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-			curStage.coordBuf->set_data (mesh->coords()->raw_data(),
+			curStage.coordBuf->set_data (mesh->coords()->raw_ptr(),
 			                           sizeof(real_t) * mesh->num_coords());
 			glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (0);
@@ -162,8 +162,8 @@ prepare_buffers ()
 		}
 		else if (curMeshNeedsVrtNormals){
 			curStage.normBuf = std::make_shared <GLBuffer> (GL_ARRAY_BUFFER);
-			curStage.normBuf->set_data (mesh->data<real_t>("normals", VERTEX)->raw_data(),
-			                            sizeof(real_t) * mesh->data<real_t>("normals", VERTEX)->size());
+			curStage.normBuf->set_data (mesh->data<RealBuffer>("normals", VERTEX)->raw_ptr(),
+			                            sizeof(real_t) * mesh->data<RealBuffer>("normals", VERTEX)->size());
 			glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray (1);
 		}
@@ -186,7 +186,7 @@ prepare_buffers ()
 					case TRI:
 						curStage.indBuf->set_sub_data (
 						                fill,
-						                mesh->inds(gt)->raw_data(),
+						                mesh->inds(gt)->raw_ptr(),
 			                        	uint (sizeof(index_t) * mesh->inds(gt)->size()));
 						fill += uint (sizeof(index_t) * mesh->inds(gt)->size());
 						break;
@@ -197,7 +197,7 @@ prepare_buffers ()
 						std::vector <index_t> tris;
 						tris.reserve (numQuads * 6);
 
-						const index_t* quads = mesh->inds(gt)->raw_data();
+						const index_t* quads = mesh->inds(gt)->raw_ptr();
 						for(index_t i = 0; i < numQuadInds; i += 4) {
 							tris.push_back (quads[i]);
 							tris.push_back (quads[i + 1]);

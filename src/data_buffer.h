@@ -9,47 +9,71 @@
 #include <vector>
 #include "unpack.h"
 #include "types.h"
+#include "mesh_data.h"
 
 namespace slimesh {
 
 template <class T>
-class DataBuffer {
+class DataBuffer : public MeshData {
 public:
 	using value_type = T;
 	using value_t = value_type;
 	using size_type = index_t;
+	using iterator = typename std::vector<T>::iterator;
+	using const_iterator = typename std::vector<T>::const_iterator;
 
 	DataBuffer ()	: m_tupleSize (1) {}
 	DataBuffer (const index_t tupleSize) : m_tupleSize (tupleSize) {}
 
-	/// total number of entries, counting individual components
-	index_t size () const			{return static_cast<index_t>(m_data.size());}
+	const char* class_name () const override	{return "DataBuffer";}
 
-	index_t num_tuples () const		{return size() / tuple_size();}
+	inline void clear ()					{m_vector.clear();}
+
+	/// total number of entries, counting individual components
+	inline index_t size () const			{return static_cast<index_t>(m_vector.size());}
+
+	inline index_t num_tuples () const		{return size() / tuple_size();}
 
 	/// number of individual components making up a tuple
-	index_t tuple_size () const				{return m_tupleSize;}
-	void set_tuple_size (const index_t ts)	{m_tupleSize = ts;}
+	inline index_t tuple_size () const				{return m_tupleSize;}
+	inline void set_tuple_size (const index_t ts)	{m_tupleSize = ts;}
 
-	T* raw_data ()					{return &m_data[0];}
-	const T* raw_data () const		{return &m_data[0];}
+	inline T* raw_ptr ()					{return &m_vector[0];}
+	inline const T* raw_ptr () const		{return &m_vector[0];}
 
-	std::vector <T>& data ()				{return m_data;}
-	const std::vector <T>& data () const	{return m_data;}
+	inline std::vector <T>& vector ()				{return m_vector;}
+	inline const std::vector <T>& vector () const	{return m_vector;}
+
+	inline void resize (const index_t s)				{m_vector.resize (s);}
+	inline void resize (const index_t s, const T& v)	{m_vector.resize (s, v);}
+	inline void reserve (const index_t s)				{m_vector.reserve (s);}
+
+	inline void push_back (const T& v)				{m_vector.push_back (v);}
+
+	inline T& operator [] (const index_t i)				{return m_vector[i];}
+	inline const T& operator [] (const index_t i) const	{return m_vector[i];}
+
+	inline T& at (const index_t i)					{return m_vector.at(i);}
+	inline const T& at (const index_t i) const		{return m_vector.at(i);}
+
+	inline iterator begin ()				{return m_vector.begin();}
+	inline iterator end ()					{return m_vector.end();}
+	inline const_iterator begin () const	{return m_vector.begin();}
+	inline const_iterator end () const		{return m_vector.end();}
 
 private:
-	std::vector <T>	m_data;
+	std::vector <T>	m_vector;
 	index_t			m_tupleSize;
 };
 
 
-using RealDataBuffer		= DataBuffer <real_t>;
-using IndexDataBuffer	= DataBuffer <index_t>;
+using RealBuffer	= DataBuffer <real_t>;
+using IndexBuffer	= DataBuffer <index_t>;
 
-using SPRealDataBuffer	= std::shared_ptr <RealDataBuffer>;
-using SPIndexDataBuffer	= std::shared_ptr <IndexDataBuffer>;
-using SPCRealDataBuffer	= std::shared_ptr <const RealDataBuffer>;
-using SPCIndexDataBuffer	= std::shared_ptr <const IndexDataBuffer>;
+using SPRealBuffer		= std::shared_ptr <RealBuffer>;
+using SPIndexBuffer		= std::shared_ptr <IndexBuffer>;
+using CSPRealBuffer		= std::shared_ptr <const RealBuffer>;
+using CSPIndexBuffer	= std::shared_ptr <const IndexBuffer>;
 
 }//	end of namespace slimesh
 

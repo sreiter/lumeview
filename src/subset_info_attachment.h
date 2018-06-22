@@ -12,7 +12,7 @@
 
 namespace slimesh {
 
-class SubsetInfo : public MeshAttachment
+class SubsetInfo : public MeshData
 {
 public:
 	struct Properties {
@@ -45,6 +45,7 @@ public:
 	void set_subset (const size_t i, Properties&& p);
 
 	void do_imgui () override;
+	bool has_gui () const override	{return true;}
 
 private:
 	std::string					m_name;

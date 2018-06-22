@@ -9,7 +9,7 @@ namespace impl {
 void PrintGrobDescs ()
 {
 	LOG ("Overview over all available grid objects:\n\n");
-	for(index_t igrob = 0; igrob < INVALID_GROB; ++igrob) {
+	for(index_t igrob = 0; igrob < NO_GROB; ++igrob) {
 		GrobDesc desc (static_cast<grob_t> (igrob));
 
 		LOG(igrob + 1 << ": " << desc.name() << endl);

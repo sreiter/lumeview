@@ -9,8 +9,8 @@ namespace slimesh {
 
 AssociatedElems::
 AssociatedElems () :
-	m_offsets (make_shared <IndexDataBuffer> ()),
-	m_assElemMap (make_shared <IndexDataBuffer> ()),
+	m_offsets (make_shared <IndexBuffer> ()),
+	m_assElemMap (make_shared <IndexBuffer> ()),
 	m_rawOffsets (nullptr),
 	m_rawAssElemMap (nullptr)
 {
@@ -19,20 +19,20 @@ AssociatedElems () :
 
 AssociatedElems::
 AssociatedElems (Mesh& mesh, GrobSet elemTypes, GrobSet assElemTypes) :
-	m_offsets (make_shared <IndexDataBuffer> ()),
-	m_assElemMap (make_shared <IndexDataBuffer> ())
+	m_offsets (make_shared <IndexBuffer> ()),
+	m_assElemMap (make_shared <IndexBuffer> ())
 {
 	m_assElemMap->set_tuple_size (2);
 	
-	CreateAssociatedElemMap (m_assElemMap->data(),
-	                         m_offsets->data(),
+	CreateAssociatedElemMap (m_assElemMap->vector(),
+	                         m_offsets->vector(),
 	                         m_grobBaseInds,
 	                         mesh,
 	                         elemTypes,
 	                         assElemTypes);
 
-	m_rawOffsets	= m_offsets->raw_data();
-	m_rawAssElemMap	= m_assElemMap->raw_data();
+	m_rawOffsets	= m_offsets->raw_ptr();
+	m_rawAssElemMap	= m_assElemMap->raw_ptr();
 }
 
 index_t AssociatedElems::
@@ -80,7 +80,7 @@ operator () (const index_t ind) const
     }
 
     THROW("TotalToGrobIndexMap: Couldn't map index " << ind << " to GrobSet " << m_grobSet.name());
-    return make_pair <index_t, grob_t> (0, INVALID_GROB);
+    return make_pair <index_t, grob_t> (0, NO_GROB);
 }
 
 
@@ -102,7 +102,7 @@ void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
 
 		Grob grob (grobType);
 
-		const index_t* cornerInds = mesh.inds (grobType)->raw_data();
+		const index_t* cornerInds = mesh.inds (grobType)->raw_ptr();
 		const index_t numCornerInds = mesh.inds (grobType)->size();
 		const index_t numCorners = grob.num_corners();
 
@@ -194,15 +194,15 @@ void CreateEdgeInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 1) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->raw_data(),
+							 mesh.inds(gt)->raw_ptr(),
 							 mesh.inds(gt)->size(),
 							 gt,
 							 1);
 		}
 	}
 	
-	mesh.inds(slimesh::EDGE)->data().clear();
-	GrobHashToIndexArray (mesh.inds(slimesh::EDGE)->data(), hash);
+	mesh.inds(slimesh::EDGE)->vector().clear();
+	GrobHashToIndexArray (mesh.inds(slimesh::EDGE)->vector(), hash);
 }
 
 
@@ -215,22 +215,22 @@ void CreateFaceInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 2) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->raw_data(),
+							 mesh.inds(gt)->raw_ptr(),
 							 mesh.inds(gt)->size(),
 							 gt,
 							 2);
 		}
 	}
 	
-	mesh.inds(TRI)->data().clear();
-	GrobHashToIndexArray (mesh.inds(TRI)->data(), hash);
+	mesh.inds(TRI)->vector().clear();
+	GrobHashToIndexArray (mesh.inds(TRI)->vector(), hash);
 }
 
 
 SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities)
 {
 	auto bndMesh = make_shared <Mesh> ();
-	mesh.share_all_with (*bndMesh);
+	mesh.share_data_with (*bndMesh);
 	
 	if (grobSet.dim() == 0)
 		return bndMesh;
@@ -245,9 +245,9 @@ SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities
 		const index_t numElemCorners = bndGrobDesc.num_corners();
 		const index_t numElemInds = mesh.inds (bndGrobType)->size();
 		const index_t numElems = numElemInds / numElemCorners;
-		const index_t* elemInds = mesh.inds (bndGrobType)->raw_data();
+		const index_t* elemInds = mesh.inds (bndGrobType)->raw_ptr();
 
-		vector <index_t>& newElemInds = bndMesh->inds (bndGrobType)->data();
+		auto& newElemInds = *bndMesh->inds (bndGrobType);
 
 		if (!visibilities) {
 			for(index_t ielem = 0; ielem < numElems; ++ielem) {
@@ -292,7 +292,7 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 		for (auto assElemType : assElemTypes) {
 			const index_t numAssElemInds = mesh.inds (assElemType)->size ();
 			const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
-			const index_t* assElemCorners = mesh.inds (assElemType)->raw_data ();
+			const index_t* assElemCorners = mesh.inds (assElemType)->raw_ptr ();
 			Grob assElem (assElemType);
 
 			for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
@@ -315,12 +315,12 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 		offsetsOut[i] = curOffset;
 	}
 
-	elemMapOut.resize (offsetsOut.back() * 2, INVALID_GROB);
+	elemMapOut.resize (offsetsOut.back() * 2, NO_GROB);
 
 	for (auto assElemType : assElemTypes) {
 		const index_t numAssElemInds = mesh.inds (assElemType)->size ();
 		const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
-		const index_t* assElemCorners = mesh.inds (assElemType)->raw_data ();
+		const index_t* assElemCorners = mesh.inds (assElemType)->raw_ptr ();
 		Grob assElem (assElemType);
 
 		for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
@@ -330,7 +330,7 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 				const index_t offset = 2 * offsetsOut [eind];
 				const index_t numAss = offsetsOut [eind + 1] - offsetsOut [eind];
 				for(index_t j = offset; j < offset + 2 * numAss; j+=2) {
-					if (elemMapOut [j] == INVALID_GROB){
+					if (elemMapOut [j] == NO_GROB){
 						elemMapOut [j] = assElemType;
 						elemMapOut [j+1] = i / numAssElemCorners;
 						break;

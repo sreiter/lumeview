@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 
+namespace slimesh {
+
 template<typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
     out << "{";
@@ -14,6 +16,8 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
     }
     out << "}";
     return out;
+}
+
 }
 
 #endif	//__H__iostream_util

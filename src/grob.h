@@ -16,7 +16,7 @@ enum grob_t {
 	HEX,
 	PYRA,
 	PRISM,
-	INVALID_GROB
+	NO_GROB
 };
 
 enum grob_set_t {
@@ -29,14 +29,14 @@ enum grob_set_t {
 	PYRAS		= PYRA,
 	PRISMS		= PRISM,
 
-	INVALID_GROB_SET	= INVALID_GROB,
+	NO_GROB_SET	= NO_GROB,
 
 	FACES,
 	CELLS
 };
 
 static const index_t MAX_GROB_DIM = 2;
-static const index_t NUM_GROB_TYPES = INVALID_GROB;
+static const index_t NUM_GROB_TYPES = NO_GROB;
 static const index_t MAX_GROB_SET_SIZE = 4;
 
 static const index_t MAX_CORNERS [] = {
@@ -60,7 +60,7 @@ static const index_t GROB_DESCS[] = {
 //	VERTEX
 	VERTEX,	// TYPE
 	0, 		// DIM
-	INVALID_GROB_SET,	// grob_set_t of sides
+	NO_GROB_SET,	// grob_set_t of sides
 
 //	EDGE
 	EDGE,	// TYPE
@@ -405,7 +405,7 @@ static const index_t GROB_SET_DESCS[] = {
 	EDGES,		// 1D side list
 	FACES,		// 2D side list
 
-	INVALID_GROB_SET,	// TYPE
+	NO_GROB_SET,	// TYPE
 	0,					// DIM
 	0,					// SIZE
 
@@ -438,7 +438,7 @@ static const index_t GROB_SET_DESC_OFFESTS[] = {
 	28,	// HEXS
 	35,	// PYRAS
 	42,	// PRISMS
-	49,	// INVALID_GROB_SET
+	49,	// NO_GROB_SET
 
 	52,	// FACES
 	59,	// CELLS
@@ -713,7 +713,7 @@ public:
 	};
 
 	GrobSet () :
-		m_offset (impl::GROB_SET_DESC_OFFESTS [INVALID_GROB_SET])
+		m_offset (impl::GROB_SET_DESC_OFFESTS [NO_GROB_SET])
 	{}
 	
 	GrobSet (const grob_set_t glt) :

@@ -20,23 +20,23 @@ real_t* TriangleNormal3 (real_t* normalOut,
 }
 
 
-std::shared_ptr <DataBuffer <real_t>>
+void
 ComputeFaceVertexNormals3 (Mesh& mesh,
 						  const std::string& normalId)
 {
 	COND_THROW (mesh.coords()->tuple_size() != 3,
 	            "ComputeFaceVertexNormals3: Coordinates have to be 3-tuples!");
 
-	auto normalData = mesh.data<real_t> (normalId, VERTEX);
-	normalData->set_tuple_size (3);
-	normalData->data().resize (mesh.num_coords());
-	VecSet (UNPACK_DS(*normalData), 0);
+	auto& normalData = *mesh.data<RealBuffer> (normalId, VERTEX);
+	normalData.set_tuple_size (3);
+	normalData.resize (mesh.num_coords());
+	VecSet (UNPACK_DS(normalData), 0);
 
-	const real_t*	coords		= mesh.coords()->raw_data();
-	real_t* 		normals		= normalData->raw_data();
+	const real_t*	coords		= mesh.coords()->raw_ptr();
+	real_t* 		normals		= normalData.raw_ptr();
 	
 	for(auto gt : GrobSet (FACES)) {
-		const index_t*	inds		= mesh.inds (gt)->raw_data();
+		const index_t*	inds		= mesh.inds (gt)->raw_ptr();
 		const index_t	numInds		= mesh.inds (gt)->size();
 		const index_t	numCorners	= mesh.inds (gt)->tuple_size();
 		const index_t	offset = numCorners / 2;
@@ -58,9 +58,7 @@ ComputeFaceVertexNormals3 (Mesh& mesh,
 		}
 	}
 
-	VecTupNormalize (UNPACK_DST(*normalData));
-
-	return normalData;
+	VecTupNormalize (UNPACK_DST(normalData));
 }
 
 }// end of namespace slimesh

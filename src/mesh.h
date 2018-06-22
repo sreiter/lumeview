@@ -11,70 +11,62 @@
 #include "grob.h"
 #include "grob_hash.h"
 #include "data_buffer.h"
+#include "mesh_data.h"
 
 namespace slimesh {
 
-class MeshAttachment {
-public:
-	virtual ~MeshAttachment () {};
-	virtual const char* class_name () const = 0;
-	virtual void do_imgui () {};
-};
-
-using SPMeshAttachment	= std::shared_ptr <MeshAttachment>;
-using CSPMeshAttachment	= std::shared_ptr <const MeshAttachment>;
-
-
-
 class Mesh {
 public:
-	using attachment_iterator_t = std::map <std::string, SPMeshAttachment>::iterator;
-	using const_attachment_iterator_t = std::map <std::string, SPMeshAttachment>::const_iterator;
 
 	struct DataKey {
-		DataKey ()									: name (""), grobId (INVALID_GROB) {}
-		// DataKey (const char* _name)					: name (_name), grobId (INVALID_GROB) {}
-		// DataKey (std::string _name)					: name (std::move(_name)), grobId (INVALID_GROB) {}
+		DataKey ()									: name (""), grobId (NO_GROB) {}
+		// DataKey (const char* _name)					: name (_name), grobId (NO_GROB) {}
+		// DataKey (std::string _name)					: name (std::move(_name)), grobId (NO_GROB) {}
 		DataKey (std::string _name, grob_t _grobId)	: name (std::move(_name)), grobId (_grobId) {}
-		bool operator < (const DataKey& key) const	{return grobId < key.grobId || (grobId == key.grobId && name < key.name);}
-
+		bool operator < (const DataKey& key) const			{return grobId < key.grobId || (grobId == key.grobId && name < key.name);}
+		// std::ostream& operator << (std::ostream& out) const	{out << name; return out;}
+		
 		std::string name;
 		grob_t		grobId;
 	};
 
+	using data_iterator_t = std::map <DataKey, SPMeshData>::iterator;
+	using const_data_iterator_t = std::map <DataKey, SPMeshData>::const_iterator;
+
+
 
 	Mesh () :
-		m_coords (std::make_shared <RealDataBuffer> ())
+		m_coords (std::make_shared <RealBuffer> ())
 	{
-		set_data <real_t> (DataKey ("coords", VERTEX), m_coords);
+		set_data (DataKey ("coords", VERTEX), m_coords);
 	}
 	
 	~Mesh () {}
 	
 	// COORDINATES
-	SPRealDataBuffer coords ()						{return m_coords;}
-	SPCRealDataBuffer coords () const				{return m_coords;}
+	SPRealBuffer coords ()						{return m_coords;}
+	CSPRealBuffer coords () const				{return m_coords;}
 	index_t num_coords () const						{return m_coords->size();}
 
-	void set_coords (const SPRealDataBuffer& coords)		{m_coords = coords;}
+	void set_coords (const SPRealBuffer& coords)		{m_coords = coords;}
 
 
 	// INDICES
-	SPIndexDataBuffer inds (const grob_t gt)
+	SPIndexBuffer inds (const grob_t gt)
 	{
-		auto t = grob_storage().data(gt);
+		auto t = m_grobStorage.data(gt);
 		t->set_tuple_size (GrobDesc(gt).num_corners());
 		return t;
 	}
 
-	SPCIndexDataBuffer inds (const grob_t gt) const
+	CSPIndexBuffer inds (const grob_t gt) const
 	{
-		return grob_storage().data(gt);
+		return m_grobStorage.data(gt);
 	}
 
 	bool inds_allocated (const grob_t gt) const
 	{
-		return grob_storage().has_data(gt);
+		return m_grobStorage.has_data(gt);
 	}
 
 	bool has (const grob_t gt) const
@@ -93,12 +85,12 @@ public:
 
 	void remove_inds (const grob_t gt)
 	{
-		grob_storage().remove_data (gt);
+		m_grobStorage.remove_data (gt);
 	}
 
 	std::vector <grob_t> grob_types() const
 	{
-		return grob_storage().collect_keys();
+		return m_grobStorage.collect_keys();
 	}
 
 	index_t num_inds (grob_t grob)
@@ -133,8 +125,12 @@ public:
 
 
 	// DATA
+	bool has_data (const DataKey& key) const						{return m_dataStorage.has_data (key);}
+
+	bool has_data (const std::string& name, grob_t gt) const		{return has_data (DataKey (name, gt));}
+
 	template <class T>
-	bool has_data (const DataKey& key) const		{return storage(T{}).has_data (key);}
+	bool has_data (const DataKey& key) const						{return m_dataStorage.has_data (key) && data <T> (key);}
 
 	template <class T>
 	bool has_data (const std::string& name, grob_t gt) const		{return has_data <T> (DataKey (name, gt));}
@@ -142,127 +138,54 @@ public:
 
 	///	returns the data array for the given id. If none was present, a new one will be created.
 	template <class T>
-	std::shared_ptr <DataBuffer <T>>
-	data (const DataKey& key)							{return storage(T{}).data (key);}
+	std::shared_ptr <T>
+	data (const DataKey& key)							{return std::dynamic_pointer_cast<T> (m_dataStorage.data <T> (key));}
 
 	template <class T>
-	std::shared_ptr <DataBuffer <T>>
+	std::shared_ptr <T>
 	data (const std::string& name, grob_t gt)			{return data <T> (DataKey (name, gt));}
-	template <class T>
-	std::shared_ptr <const DataBuffer <T>>
-	data (const DataKey& key) const						{return storage(T{}).data (key);}
 
 	template <class T>
-	std::shared_ptr <const DataBuffer <T>>
+	std::shared_ptr <const T>
+	data (const DataKey& key) const						{return std::dynamic_pointer_cast<const T> (m_dataStorage.data (key));}
+
+	template <class T>
+	std::shared_ptr <const T>
 	data (const std::string& name, grob_t gt) const		{return data <T> (DataKey (name, gt));}
 
 
-	///	explicitly set a data array of a mesh
-	template <class T>
+	///	explicitly set data for a mesh
 	void set_data (const DataKey& key,
-	               const std::shared_ptr <DataBuffer <T>>& data)
+	               const SPMeshData& data)
 	{
-		storage(T{}).set_data (key, data);
+		m_dataStorage.set_data (key, data);
 		if (key.name == "coords")
 			set_coords (data);
 	}
 
-	template <class T>
 	void set_data (const std::string& name, grob_t gt,
-	               const std::shared_ptr <DataBuffer <T>>& data)
+	               const SPMeshData& data)
 	{
-		set_data <T> (DataKey (name, gt), data);
+		set_data (DataKey (name, gt), data);
 	}
 
-	// template <class T>
-	// SPCRealDataBuffer data (const std::string& id) const
+	///	removes data from a mesh.
+	/** This will decrement the shared_ptr but not necessarily delete the data.*/
+	void remove_data (const DataKey& key)					{m_dataStorage.remove_data (key);}
 
-	///	removes a data array from a mesh.
-	/** This will decrement the shared_ptr but not necessarily delete the array.*/
-	template <class T>
-	void remove_data (const DataKey& key)		{storage(T{}).remove_data (key);}
-
-	template <class T>
-	void remove_data (const std::string& name, grob_t gt) const		{remove_data <T> (DataKey (name, gt));}
+	void remove_data (const std::string& name, grob_t gt)	{remove_data (DataKey (name, gt));}
 
 
-	void share_all_with (Mesh& target) const
-	{
-		share_data_with (target);
-		share_attachments_with (target);
-	}
-
-	void share_data_with (Mesh& target, grob_t gt) const
-	{
-		share_data_with <real_t> (target, gt);
-		share_data_with <index_t> (target, gt);
-	}
-
-	template <class T>
 	void share_data_with (Mesh& target) const
 	{
-		auto& dataMap = storage(T{}).data_map();
-
+		auto& dataMap = m_dataStorage.data_map();
 		for (auto& entry : dataMap)
 			target.set_data (entry.first, entry.second);
 	}
 
-	void share_data_with (Mesh& target) const
-	{
-		share_data_with <real_t> (target);
-		share_data_with <index_t> (target);
-	}
-
-
-	// ATTACHMENTS
-	void attach (const std::string& name, SPMeshAttachment a)
-	{
-		auto& val = m_attachments [name];
-		COND_THROW (val.get() != nullptr,
-		            "Mesh::attach: Attachment '" << name << "' exists already!");
-		val = a;
-	}
-
-	void detach (const std::string& name, SPMeshAttachment a)
-	{
-		auto i = m_attachments.find (name);
-		if (i != m_attachments.end())
-			m_attachments.erase (i);
-	}
-
-	SPMeshAttachment attachment (const std::string& name)
-	{
-		auto i = m_attachments.find (name);
-		if (i != m_attachments.end())
-			return i->second;
-		return SPMeshAttachment ();
-	}
-
-	CSPMeshAttachment attachment (const std::string& name) const
-	{
-		auto i = m_attachments.find (name);
-		if (i != m_attachments.end())
-			return i->second;
-		return CSPMeshAttachment ();
-	}
-
-	bool has_attachment (const std::string& name) const
-	{
-		auto i = m_attachments.find (name);
-		return (i != m_attachments.end());
-	}
-
-	attachment_iterator_t attachments_begin ()	{return m_attachments.begin();}
-	attachment_iterator_t attachments_end ()	{return m_attachments.end();}
-
-	const_attachment_iterator_t attachments_begin () const	{return m_attachments.begin();}
-	const_attachment_iterator_t attachments_end () const	{return m_attachments.end();}
-
-	template <class T>
 	void share_data_with (Mesh& target, grob_t gt) const
 	{
-		auto& dataMap = storage(T{}).data_map();
-
+		auto& dataMap = m_dataStorage.data_map();
 		for (auto& entry : dataMap) {
 			if (entry.first.grobId == gt) {
 				target.set_data (entry.first, entry.second);
@@ -270,30 +193,31 @@ public:
 		}
 	}
 
-	void share_attachments_with (Mesh& target) const
-	{
-		for (auto& e : m_attachments) {
-			if (!target.has_attachment (e.first))
-				target.attach (e.first, e.second);
-		}
-	}
+	data_iterator_t data_begin ()	{return m_dataStorage.data_map().begin();}
+	data_iterator_t data_end ()		{return m_dataStorage.data_map().end();}
 
+	const_data_iterator_t data_begin () const	{return m_dataStorage.data_map().begin();}
+	const_data_iterator_t data_end () const		{return m_dataStorage.data_map().end();}
 
 private:
 	template <class T>
-	void set_coords (const std::shared_ptr<T>& coords) {THROW("Mesh::set_coords only supported for type real_t");}
+	void set_coords (const std::shared_ptr<T>& coords) {
+		if (auto t = std::dynamic_pointer_cast <RealBuffer> (coords))
+			set_coords (t);
+		else
+			THROW("Mesh::set_coords only supported for type real_t");
+	}
 
 	template <class TKey, class T> class DataStorage
 	{
-		using sp_data_array_t	= std::shared_ptr <DataBuffer<T>>;
-		using spc_data_array_t	= std::shared_ptr <const DataBuffer<T>>;
-		using data_map_t		= std::map <TKey, sp_data_array_t>;
+		using value_t		= std::shared_ptr <T>;
+		using const_value_t	= std::shared_ptr <const T>;
+		using data_map_t	= std::map <TKey, value_t>;
 
 		public:
-		const data_map_t& data_map () const
-		{
-			return m_dataMap;
-		}
+		data_map_t& data_map ()						{return m_dataMap;}
+
+		const data_map_t& data_map () const			{return m_dataMap;}
 
 		bool has_data (const TKey& id) const
 		{
@@ -302,21 +226,22 @@ private:
 		}
 
 		///	returns the data array for the given id. If none was present, a new one will be created.
-		sp_data_array_t data (const TKey& id)
+		template <class TConstruct = T>
+		value_t data (const TKey& id)
 		{
 			auto d = m_dataMap[id];
 			if(!d)
-				m_dataMap[id] = d = std::make_shared <DataBuffer <T>> ();
+				m_dataMap[id] = d = std::make_shared <TConstruct> ();
 			return d;
 		}
 
 		///	explicitly set a data array of a mesh
-		void set_data (const TKey& id, sp_data_array_t data)
+		void set_data (const TKey& id, const value_t& data)
 		{
 			m_dataMap[id] = data;
 		}
 
-		spc_data_array_t data (const TKey& id) const
+		const_value_t data (const TKey& id) const
 		{
 			auto i = m_dataMap.find (id);
 			COND_THROW (i == m_dataMap.end(),
@@ -343,52 +268,22 @@ private:
 		data_map_t	m_dataMap;
 	};
 
-	template <class T>
-	DataStorage <DataKey, T>& storage (const T&) {// dummy parameter to allow for overloads
-		THROW("Unsupported data type: " << typeid(T).name());
-	}
-
-	template <class T>
-	const DataStorage <DataKey, T>& storage (const T&) const {// dummy parameter to allow for overloads
-		THROW("Unsupported data type: " << typeid(T).name());
-	}
-
-	DataStorage <DataKey, real_t>& storage (const real_t&) {
-		return m_realDataStorage;
-	}
-
-	const DataStorage <DataKey, real_t>& storage (const real_t&) const {
-		return m_realDataStorage;
-	}
-
-	DataStorage <DataKey, index_t>& storage (const index_t&) {
-		return m_indexDataStorage;
-	}
-
-	const DataStorage <DataKey, index_t>& storage (const index_t&) const {
-		return m_indexDataStorage;
-	}
-
-	DataStorage<grob_t, index_t>& grob_storage () {
-		return m_grobDataStorage;
-	}
-
-	const DataStorage<grob_t, index_t>& grob_storage () const {
-		return m_grobDataStorage;
-	}
-
+	using index_data_storage_t	= DataStorage <grob_t, IndexBuffer>;
+	using mesh_data_storage_t	= DataStorage <DataKey, MeshData>;
 
 	//	MEMBER VARIABLES
-	SPRealDataBuffer				m_coords;
-	DataStorage <DataKey, real_t>	m_realDataStorage;
-	DataStorage <DataKey, index_t>	m_indexDataStorage;
-	
-	DataStorage <grob_t, index_t>	m_grobDataStorage;
-
-	std::map <std::string, SPMeshAttachment>	m_attachments;
+	SPRealBuffer			m_coords;
+	index_data_storage_t	m_grobStorage;
+	mesh_data_storage_t		m_dataStorage;
 };
 
+inline std::ostream& operator<< (std::ostream& out, const Mesh::DataKey& v) {
+    out << v.name;
+    return out;
+}
+
 using SPMesh = std::shared_ptr <Mesh>;
+using CSPMesh = std::shared_ptr <const Mesh>;
 
 SPMesh CreateMeshFromFile (std::string filename);
 

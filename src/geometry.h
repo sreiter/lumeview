@@ -23,7 +23,7 @@ real_t* TriangleNormal3 (real_t* normalOut,
 
 
 ///	computes the vertex normals of a mesh and stores them in the specified data array
-std::shared_ptr <DataBuffer <real_t>>
+void
 ComputeFaceVertexNormals3 (Mesh& meshInOut,
                            const std::string& normalId = "normals");
 

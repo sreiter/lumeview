@@ -7,7 +7,7 @@
 
 ///	Unpacks a buffer into arguments `data` and `size`.
 /** This macro is useful if a function takes a data pointer and a size argument.
- * Instead of manually specifying `buf.raw_data(), buf.size()`, or in case of
+ * Instead of manually specifying `buf.raw_ptr(), buf.size()`, or in case of
  * std::vector `&buf.front(), &buf.size()`, one can call
  * the macro `UNPACK_DS(buf)` which automatically extends to the above arguments.
  *
@@ -34,7 +34,7 @@ struct buf_traits {
 template <class buf_t>
 typename buf_traits <buf_t>::value_ptr_t
 buf_data_ptr (buf_t& b) {
-	return b.raw_data();
+	return b.raw_ptr();
 }
 
 template <class T>
@@ -47,7 +47,7 @@ T* buf_data_ptr (std::vector<T>& b) {
 template <class buf_t>
 typename buf_traits <buf_t>::const_value_ptr_t
 buf_data_ptr (const buf_t& b) {
-	return b.raw_data();
+	return b.raw_ptr();
 }
 
 template <class T>
