@@ -9,8 +9,8 @@ namespace slimesh {
 
 AssociatedElems::
 AssociatedElems () :
-	m_offsets (make_shared <IndexBuffer> ()),
-	m_assElemMap (make_shared <IndexBuffer> ()),
+	m_offsets (make_shared <IndexArrayAnnex> ()),
+	m_assElemMap (make_shared <IndexArrayAnnex> ()),
 	m_rawOffsets (nullptr),
 	m_rawAssElemMap (nullptr)
 {
@@ -19,8 +19,8 @@ AssociatedElems () :
 
 AssociatedElems::
 AssociatedElems (Mesh& mesh, GrobSet elemTypes, GrobSet assElemTypes) :
-	m_offsets (make_shared <IndexBuffer> ()),
-	m_assElemMap (make_shared <IndexBuffer> ())
+	m_offsets (make_shared <IndexArrayAnnex> ()),
+	m_assElemMap (make_shared <IndexArrayAnnex> ())
 {
 	m_assElemMap->set_tuple_size (2);
 	
@@ -230,7 +230,7 @@ void CreateFaceInds (Mesh& mesh)
 SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities)
 {
 	auto bndMesh = make_shared <Mesh> ();
-	mesh.share_data_with (*bndMesh);
+	mesh.share_annexes_with (*bndMesh);
 	
 	if (grobSet.dim() == 0)
 		return bndMesh;

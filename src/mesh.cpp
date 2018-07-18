@@ -172,7 +172,7 @@ std::shared_ptr <Mesh> CreateMeshFromELE(std::string filename)
 	return mesh;
 }
 
-static void ReadIndicesToBuffer (IndexBuffer& indsOut, xml_node<>* node)
+static void ReadIndicesToArrayAnnex (IndexArrayAnnex& indsOut, xml_node<>* node)
 {
 	char* p = strtok (node->value(), " ");
 	while (p) {
@@ -196,8 +196,8 @@ static glm::vec4 ParseColor (char* colStr)
 
 
 template <class T>
-static void ParseElementIndicesToDataArray (Mesh& mesh,
-                                            const string& dataName,
+static void ParseElementIndicesToArrayAnnex (Mesh& mesh,
+                                            const string& annexName,
                                             xml_node<>* node,
                                             const T value,
                                             const GrobSet& gs)
@@ -218,15 +218,15 @@ static void ParseElementIndicesToDataArray (Mesh& mesh,
 		if (gt != VERTEX && !mesh.has (gt))
 			continue;
 
-		auto& dataBuffer = *mesh.data <DataBuffer<T>> (dataName, gt);
+		auto& arrayAnnex = *mesh.annex <ArrayAnnex<T>> (annexName, gt);
 
 		if (gt == VERTEX)
-			dataBuffer.resize (mesh.coords ()->num_tuples());
+			arrayAnnex.resize (mesh.coords ()->num_tuples());
 		else
-			dataBuffer.resize (mesh.inds (gt)->num_tuples());
+			arrayAnnex.resize (mesh.inds (gt)->num_tuples());
 
-		VecSet (UNPACK_DS(dataBuffer), 0);
-		rawData [gt] = dataBuffer.raw_ptr();
+		VecSet (UNPACK_DS(arrayAnnex), 0);
+		rawData [gt] = arrayAnnex.raw_ptr();
 	}
 
 	// parse the node values and assign indices
@@ -240,15 +240,15 @@ static void ParseElementIndicesToDataArray (Mesh& mesh,
 }
 
 template <class T>
-static void ParseElementIndicesToDataArray (Mesh& mesh,
-                                            const string& dataName,
+static void ParseElementIndicesToArrayAnnex (Mesh& mesh,
+                                            const string& annexName,
                                             xml_node<>* node,
                                             const T value)
 {
-	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("vertices"), value, VERTICES);
-	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("edges"), value, EDGES);
-	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("faces"), value, FACES);
-	ParseElementIndicesToDataArray (mesh, dataName, node->first_node ("volumes"), value, CELLS);
+	ParseElementIndicesToArrayAnnex (mesh, annexName, node->first_node ("vertices"), value, VERTICES);
+	ParseElementIndicesToArrayAnnex (mesh, annexName, node->first_node ("edges"), value, EDGES);
+	ParseElementIndicesToArrayAnnex (mesh, annexName, node->first_node ("faces"), value, FACES);
+	ParseElementIndicesToArrayAnnex (mesh, annexName, node->first_node ("volumes"), value, CELLS);
 }
 
 
@@ -322,34 +322,34 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 		        || strcmp(name, "constraining_edges") == 0
 		        || strcmp(name, "constrained_edges") == 0)
 		{
-			ReadIndicesToBuffer (*mesh->inds (EDGE), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (EDGE), curNode);
 		}
 
 		else if(strcmp(name, "triangles") == 0
 		        || strcmp(name, "constraining_triangles") == 0
 		        || strcmp(name, "constrained_triangles") == 0)
 		{
-			ReadIndicesToBuffer (*mesh->inds (TRI), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (TRI), curNode);
 		}
 
 		else if(strcmp(name, "quadrilaterals") == 0
 		        || strcmp(name, "constraining_quadrilaterals") == 0
 		        || strcmp(name, "constrained_quadrilaterals") == 0)
 		{
-			ReadIndicesToBuffer (*mesh->inds (QUAD), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (QUAD), curNode);
 		}
 
 		else if(strcmp(name, "tetrahedrons") == 0)
-			ReadIndicesToBuffer (*mesh->inds (TET), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (TET), curNode);
 
 		else if(strcmp(name, "hexahedrons") == 0)
-			ReadIndicesToBuffer (*mesh->inds (HEX), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (HEX), curNode);
 
 		else if(strcmp(name, "pyramids") == 0)
-			ReadIndicesToBuffer (*mesh->inds (PYRA), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (PYRA), curNode);
 
 		else if(strcmp(name, "prisms") == 0)
-			ReadIndicesToBuffer (*mesh->inds (PRISM), curNode);
+			ReadIndicesToArrayAnnex (*mesh->inds (PRISM), curNode);
 
 		// else if(strcmp(name, "octahedrons") == 0)
 		// 	bSuccess = create_octahedrons(volumes, grid, curNode, vertices);
@@ -371,13 +371,13 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 				if (xml_attribute<>* attrib = subsetNode->first_attribute("color"))
 					props.color = ParseColor (attrib->value());
 
-				ParseElementIndicesToDataArray (*mesh, siName, subsetNode, subsetIndex);
+				ParseElementIndicesToArrayAnnex (*mesh, siName, subsetNode, subsetIndex);
 
 				subsetInfo->add_subset (std::move (props));
 				++subsetIndex;
 			}
 
-			mesh->set_data (siName, NO_GROB, subsetInfo);
+			mesh->set_annex (siName, NO_GROB, subsetInfo);
 		}
 
 		// else if(strcmp(name, "vertex_attachment") == 0)

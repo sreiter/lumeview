@@ -4,6 +4,7 @@
 #include <vector>
 #include "grob.h"
 #include "grob_hash.h"
+#include "array_annex.h"
 
 namespace slimesh {
 
@@ -20,8 +21,8 @@ public:
     grob_t ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const;
 
 private:
-    SPIndexBuffer m_offsets;
-    SPIndexBuffer m_assElemMap;
+    SPIndexArrayAnnex m_offsets;
+    SPIndexArrayAnnex m_assElemMap;
     index_t*          m_rawOffsets;
     index_t*          m_rawAssElemMap;
     index_t           m_grobBaseInds [NUM_GROB_TYPES];

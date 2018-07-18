@@ -9,12 +9,12 @@
 #include <vector>
 #include "unpack.h"
 #include "types.h"
-#include "mesh_data.h"
+#include "mesh_annex.h"
 
 namespace slimesh {
 
 template <class T>
-class DataBuffer : public MeshData {
+class ArrayAnnex : public MeshAnnex {
 public:
 	using value_type = T;
 	using value_t = value_type;
@@ -22,10 +22,10 @@ public:
 	using iterator = typename std::vector<T>::iterator;
 	using const_iterator = typename std::vector<T>::const_iterator;
 
-	DataBuffer ()	: m_tupleSize (1) {}
-	DataBuffer (const index_t tupleSize) : m_tupleSize (tupleSize) {}
+	ArrayAnnex ()	: m_tupleSize (1) {}
+	ArrayAnnex (const index_t tupleSize) : m_tupleSize (tupleSize) {}
 
-	const char* class_name () const override	{return "DataBuffer";}
+	const char* class_name () const override	{return "ArrayAnnex";}
 
 	inline void clear ()					{m_vector.clear();}
 
@@ -67,13 +67,13 @@ private:
 };
 
 
-using RealBuffer	= DataBuffer <real_t>;
-using IndexBuffer	= DataBuffer <index_t>;
+using RealArrayAnnex		= ArrayAnnex <real_t>;
+using IndexArrayAnnex	= ArrayAnnex <index_t>;
 
-using SPRealBuffer		= std::shared_ptr <RealBuffer>;
-using SPIndexBuffer		= std::shared_ptr <IndexBuffer>;
-using CSPRealBuffer		= std::shared_ptr <const RealBuffer>;
-using CSPIndexBuffer	= std::shared_ptr <const IndexBuffer>;
+using SPRealArrayAnnex	= std::shared_ptr <RealArrayAnnex>;
+using SPIndexArrayAnnex	= std::shared_ptr <IndexArrayAnnex>;
+using CSPRealArrayAnnex	= std::shared_ptr <const RealArrayAnnex>;
+using CSPIndexArrayAnnex	= std::shared_ptr <const IndexArrayAnnex>;
 
 }//	end of namespace slimesh
 

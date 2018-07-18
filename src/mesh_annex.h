@@ -2,24 +2,24 @@
 //
 // Copyright (C) 2018 Sebastian Reiter <s.b.reiter@gmail.com>
 
-#ifndef __H__slimesh_mesh_data
-#define __H__slimesh_mesh_data
+#ifndef __H__slimesh_mesh_annex
+#define __H__slimesh_mesh_annex
 
 #include <memory>
 
 namespace slimesh {
 
-class MeshData {
+class MeshAnnex {
 public:
-	virtual ~MeshData () {};
+	virtual ~MeshAnnex () {};
 	virtual const char* class_name () const = 0;
 	virtual void do_imgui () {};
 	virtual bool has_gui () const	{return false;}
 };
 
-using SPMeshData	= std::shared_ptr <MeshData>;
-using CSPMeshData	= std::shared_ptr <const MeshData>;
+using SPMeshAnnex	= std::shared_ptr <MeshAnnex>;
+using CSPMeshAnnex	= std::shared_ptr <const MeshAnnex>;
 
 }//	end of namespace slimesh
 
-#endif	//__H__slimesh_mesh_data
+#endif	//__H__slimesh_mesh_annex

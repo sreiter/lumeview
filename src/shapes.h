@@ -60,14 +60,14 @@ template <class real_t>
 TBox <real_t> BoxFromCoords (const real_t* coords, index_t num, index_t stride);
 
 
-///	Calcualtes the bounding box to coordinates in a `DataBuffer`
+///	Calcualtes the bounding box to coordinates in a `ArrayAnnex`
 /**
- * \param coords	`DataBuffer` of all coordinates of the form:
+ * \param coords	`ArrayAnnex` of all coordinates of the form:
  *					`x0y0x1y1x2y2x3y3` (num 8, tuple_size 2) or
  *					`x0y0z0x1y1z1x2y2z2` (num 9, tuple_size 3).
  */
 // template <class real_t>
-// TBox <real_t> BoxFromCoords (DataBuffer <real_t>& coords)
+// TBox <real_t> BoxFromCoords (ArrayAnnex <real_t>& coords)
 // {
 // 	return BoxFromCoords (coords.raw_data(), coords.size(), coords.tuple_size());
 // }
@@ -90,22 +90,6 @@ TBox <real_t> BoxFromCoords (const real_t* coords, index_t num, index_t stride);
  *			point lies on the rim of the sphere.*/
 template <class real_t>
 TSphere <real_t> SphereFromCoords (const real_t* coords, index_t num, index_t stride);
-
-
-///	Calcualtes a bounding sphere to coordinates in a `DataBuffer`
-/**
- * \param coords	`DataBuffer` of all coordinates of the form:
- *					`x0y0x1y1x2y2x3y3` (num 8, tuple_size 2) or
- *					`x0y0z0x1y1z1x2y2z2` (num 9, tuple_size 3).
- *
- * \note	The computed sphere is not necessarily the minimal sphere containing all points.
- *			However, it is guaranteed that the sphere contains all points and that at least one
- *			point lies on the rim of the sphere.*/
-// template <class real_t>
-// TSphere <real_t> SphereFromCoords (DataBuffer <real_t>& coords)
-// {
-// 	return SphereFromCoords (coords.raw_data(), coords.size(), coords.tuple_size());
-// }
 
 }// end of namespace slimesh
 

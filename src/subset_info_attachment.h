@@ -7,12 +7,12 @@
 
 #include <string>
 #include <vector>
-#include "mesh.h"
+#include "mesh_annex.h"
 #include <glm/vec4.hpp>
 
 namespace slimesh {
 
-class SubsetInfo : public MeshData
+class SubsetInfo : public MeshAnnex
 {
 public:
 	struct Properties {

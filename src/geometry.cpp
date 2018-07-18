@@ -27,13 +27,13 @@ ComputeFaceVertexNormals3 (Mesh& mesh,
 	COND_THROW (mesh.coords()->tuple_size() != 3,
 	            "ComputeFaceVertexNormals3: Coordinates have to be 3-tuples!");
 
-	auto& normalData = *mesh.data<RealBuffer> (normalId, VERTEX);
-	normalData.set_tuple_size (3);
-	normalData.resize (mesh.num_coords());
-	VecSet (UNPACK_DS(normalData), 0);
+	auto& normalArray = *mesh.annex<RealArrayAnnex> (normalId, VERTEX);
+	normalArray.set_tuple_size (3);
+	normalArray.resize (mesh.num_coords());
+	VecSet (UNPACK_DS(normalArray), 0);
 
 	const real_t*	coords		= mesh.coords()->raw_ptr();
-	real_t* 		normals		= normalData.raw_ptr();
+	real_t* 		normals		= normalArray.raw_ptr();
 	
 	for(auto gt : GrobSet (FACES)) {
 		const index_t*	inds		= mesh.inds (gt)->raw_ptr();
@@ -58,7 +58,7 @@ ComputeFaceVertexNormals3 (Mesh& mesh,
 		}
 	}
 
-	VecTupNormalize (UNPACK_DST(normalData));
+	VecTupNormalize (UNPACK_DST(normalArray));
 }
 
 }// end of namespace slimesh
