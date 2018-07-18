@@ -28,7 +28,7 @@ public:
 		bool			visible;
 	};
 
-
+	
 	SubsetInfo(const std::string& name);
 	virtual ~SubsetInfo();
 
@@ -41,15 +41,20 @@ public:
 	void add_subset (Properties&& p);
 
 	void set_subset (const size_t i, const Properties& p);
-
 	void set_subset (const size_t i, Properties&& p);
 
-	void do_imgui () override;
-	bool has_gui () const override	{return true;}
+
+	using ImGuiExecutor = void (*) (std::vector<Properties>&);
+	static void set_imgui_executor (ImGuiExecutor exec)	{s_imguiExecutor = exec;}
+
+	void do_imgui () override							{if(s_imguiExecutor) s_imguiExecutor (m_properties);}
+	bool has_gui () const override						{return s_imguiExecutor != nullptr;}
 
 private:
+	static ImGuiExecutor		s_imguiExecutor;
 	std::string					m_name;
 	std::vector <Properties>	m_properties;
+
 };
 
 using SPSubsetInfo = std::shared_ptr <SubsetInfo>;

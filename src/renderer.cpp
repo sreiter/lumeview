@@ -23,6 +23,8 @@
 #include "vec_math_raw.h"
 #include "visualization.h"
 
+#include "subset_info_attachment_imgui.h"
+
 using namespace std;
 
 namespace slimesh {
@@ -77,6 +79,7 @@ void RendererInit ()
 	if (g_visualization)
 		return;
 
+	SubsetInfo::set_imgui_executor (&SubsetInfoAttachment_ImGui);
 	// impl::PrintGrobDescs();
 	// impl::PrintGrobSetDescs();
 
