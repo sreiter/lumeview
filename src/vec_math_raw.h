@@ -148,9 +148,9 @@ real_t* VecTupAppend (real_t* vInOut, const index_t n, const index_t ntup, const
 /** Considers the contents of `v` to be a sequence of tuples of size `ntup`.
  * \param vOut		resulting vector of size `n`
  * \param v			vector of size `n`
- * \param vtup		vector of size `ntup`
  * \param n			number of entries in `v`
  * \param ntup		number of entries of one tuple
+ * \param vtup		vector of size `ntup`
  */
 template <class real_t>
 real_t* VecTupAdd (real_t* vOut, const real_t* v, const index_t n, const index_t ntup, const real_t* vtup)
@@ -164,9 +164,9 @@ real_t* VecTupAdd (real_t* vOut, const real_t* v, const index_t n, const index_t
 /** Considers the contents of `v` to be a sequence of tuples of size `ntup`.
  * \param vOut		resulting vector of size `n`
  * \param v			vector of size `n`
- * \param vtup		vector of size `ntup`
  * \param n			number of entries in `v`
  * \param ntup		number of entries of one tuple
+ * \param vtup		vector of size `ntup`
  */
 template <class real_t>
 real_t* VecTupSub (real_t* vOut, const real_t* v, const index_t n, const index_t ntup, const real_t* vtup)

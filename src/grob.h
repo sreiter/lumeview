@@ -2,8 +2,8 @@
 #define __H__slimesh__grob
 
 #include <cstdint>
-#include "../types.h"
-#include "../log.h"
+#include "types.h"
+#include "log.h"
 
 namespace slimesh {
 
