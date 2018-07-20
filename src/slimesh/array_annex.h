@@ -9,12 +9,12 @@
 #include <vector>
 #include "unpack.h"
 #include "types.h"
-#include "mesh_annex.h"
+#include "annex.h"
 
 namespace slimesh {
 
 template <class T>
-class ArrayAnnex : public MeshAnnex {
+class ArrayAnnex : public Annex {
 public:
 	using value_type = T;
 	using value_t = value_type;

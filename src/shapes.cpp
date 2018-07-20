@@ -3,7 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "cond_throw.h"
 #include "shapes.h"
-#include "vec_math_raw.h"
+#include "slimesh/vec_math_raw.h"
 using namespace std;
 
 namespace slimesh {

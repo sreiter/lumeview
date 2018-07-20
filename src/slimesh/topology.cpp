@@ -1,6 +1,5 @@
 #include "mesh.h"
 #include "topology.h"
-#include "log.h"
 #include "vec_math_raw.h"
 
 using namespace std;

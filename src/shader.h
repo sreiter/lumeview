@@ -16,7 +16,7 @@
 
 #include "cond_throw.h"
 #include "file_util.h"
-#include "types.h"
+#include "config.h"
 
 namespace slimesh {
 

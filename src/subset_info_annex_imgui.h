@@ -2,14 +2,13 @@
 //
 // Copyright (C) 2018 Sebastian Reiter <s.b.reiter@gmail.com>
 
-#ifndef __H__slimesh_subset_info_attachment_imgui
-#define __H__slimesh_subset_info_attachment_imgui
+#ifndef __H__slimesh_subset_info_annex_imgui
+#define __H__slimesh_subset_info_annex_imgui
 
-#include "subset_info_attachment.h"
-
+#include "slimesh/subset_info_annex.h"
 namespace slimesh {
 
-void SubsetInfoAttachment_ImGui	(std::vector<SubsetInfo::Properties>& properties)
+void SubsetInfoAnnex_ImGui	(std::vector<SubsetInfoAnnex::SubsetProperties>& properties)
 {
 	if (!properties.empty()) {
 		ImGui::NewLine ();
@@ -23,14 +22,14 @@ void SubsetInfoAttachment_ImGui	(std::vector<SubsetInfo::Properties>& properties
 	}
 
 	for(size_t iprop = 0; iprop < properties.size(); ++iprop) {
-		SubsetInfo::Properties& prop = properties [iprop];
+		SubsetInfoAnnex::SubsetProperties& prop = properties [iprop];
 		ImGui::PushID(&prop);
 		ImGui::AlignTextToFramePadding();
 	    ImGui::Text("%d:", iprop);
 	    ImGui::SameLine(60);
 	    ImGui::Text(prop.name.c_str());
 		ImGui::SameLine(160);
-		ImGui::ColorEdit4("", glm::value_ptr(prop.color), ImGuiColorEditFlags_NoInputs);
+		ImGui::ColorEdit4("", prop.color.data_ptr(), ImGuiColorEditFlags_NoInputs);
 		ImGui::SameLine(210);
 		ImGui::Checkbox ("", &prop.visible);
 
@@ -43,4 +42,4 @@ void SubsetInfoAttachment_ImGui	(std::vector<SubsetInfo::Properties>& properties
 
 }//	end of namespace slimesh
 
-#endif	//__H__slimesh_subset_info_attachment_imgui
+#endif	//__H__slimesh_subset_info_annex_imgui

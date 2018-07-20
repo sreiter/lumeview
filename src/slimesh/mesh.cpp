@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "mesh.h"
 #include "cond_throw.h"
-#include "subset_info_attachment.h"
+#include "subset_info_annex.h"
 #include "vec_math_raw.h"
 #include "topology.h"
 
@@ -181,11 +181,11 @@ static void ReadIndicesToArrayAnnex (IndexArrayAnnex& indsOut, xml_node<>* node)
 	}
 }
 
-static glm::vec4 ParseColor (char* colStr)
+static SubsetInfoAnnex::Color ParseColor (char* colStr)
 {
 	char* p = strtok (colStr, " ");
 	int i = 0;
-	glm::vec4 col (1.f);
+	SubsetInfoAnnex::Color col (1.f);
 	while (p && i < 4) {
 		col [i] = real_t (atof(p));
 		p = strtok (nullptr, " ");
@@ -359,13 +359,13 @@ std::shared_ptr <Mesh> CreateMeshFromUGX (std::string filename)
 			if (xml_attribute<>* attrib = curNode->first_attribute("name"))
 				siName = attrib->value();
 
-			SPSubsetInfo subsetInfo = make_shared <SubsetInfo> (siName);
-			subsetInfo->add_subset (SubsetInfo::Properties ());
+			SPSubsetInfoAnnex subsetInfo = make_shared <SubsetInfoAnnex> (siName);
+			subsetInfo->add_subset (SubsetInfoAnnex::SubsetProperties ());
 
 			xml_node<>* subsetNode = curNode->first_node("subset");
 			index_t subsetIndex = 1;
 			for(;subsetNode; subsetNode = subsetNode->next_sibling()) {
-				SubsetInfo::Properties props;
+				SubsetInfoAnnex::SubsetProperties props;
 				if (xml_attribute<>* attrib = subsetNode->first_attribute("name"))
 					props.name = attrib->value();
 				if (xml_attribute<>* attrib = subsetNode->first_attribute("color"))

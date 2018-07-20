@@ -2,7 +2,7 @@
 #define __H__shapes
 
 #include <glm/detail/type_vec3.hpp>
-#include "types.h"
+#include "config.h"
 
 namespace slimesh {
 

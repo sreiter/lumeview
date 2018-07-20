@@ -5,6 +5,8 @@
 #ifndef __H__slimesh_unpack
 #define __H__slimesh_unpack
 
+#include "types.h"
+
 ///	Unpacks a buffer into arguments `data` and `size`.
 /** This macro is useful if a function takes a data pointer and a size argument.
  * Instead of manually specifying `buf.raw_ptr(), buf.size()`, or in case of

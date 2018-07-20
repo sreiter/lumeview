@@ -2,7 +2,7 @@
 #define __H__slimesh__gl_buffer
 
 #include <glad/glad.h>	// include before other OpenGL related includes
-#include "types.h"
+#include "config.h"
 #include "cond_throw.h"
 
 namespace slimesh {

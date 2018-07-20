@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
+add_subdirectory (slimesh)
+
 set (GL_VERSION_MAJOR "3")
 set (GL_VERSION_MINOR "3")
 
@@ -21,16 +23,10 @@ set (sources
     	camera.cpp
         file_util.cpp
         shapes.cpp
-        subset_info_attachment.cpp
         renderer.cpp
         view.cpp
         visualization.cpp
     	window_event_listener.cpp
-
-        geometry.cpp
-        grob.cpp
-        mesh.cpp
-        topology.cpp
 
         imgui/imgui_binding.cpp
     )
@@ -69,10 +65,10 @@ add_definitions (-DUSE_GL_VERSION_MINOR=${GL_VERSION_MINOR})
 
 include_directories (${GLAD_PATH}/include)
 include_directories (deps/glm-0.9.8.5)
-include_directories (deps/rapidxml-1.13)
 include_directories (deps)
 
 find_package(OpenGL REQUIRED)
+
 
 if (MSVC)
     #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "/EHsc")
@@ -106,7 +102,7 @@ if (GLFW)
 
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)
-    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${glfw_LibDeps} ${OPENGL_LIBRARIES})
+    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${glfw_LibDeps} ${OPENGL_LIBRARIES} slimeshlib)
 endif ()
 
 if (JNI)
@@ -117,7 +113,7 @@ if (JNI)
     include_directories(${JNI_INCLUDE_DIRS})
 
     add_library(vrl_native_opengl_binding SHARED ${jniSources} ${sources} ${depSources})
-    target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} ${OPENGL_LIBRARIES})
+    target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} ${OPENGL_LIBRARIES} slimeshlib)
 endif ()
 
 

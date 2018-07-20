@@ -1,5 +1,6 @@
-#include "grob.h"
 #include <algorithm>
+#include <iostream>
+#include "grob.h"
 
 using namespace std;
 
@@ -8,54 +9,54 @@ namespace impl {
 
 void PrintGrobDescs ()
 {
-	LOG ("Overview over all available grid objects:\n\n");
+	cout << "Overview over all available grid objects:\n\n";
 	for(index_t igrob = 0; igrob < NO_GROB; ++igrob) {
 		GrobDesc desc (static_cast<grob_t> (igrob));
 
-		LOG(igrob + 1 << ": " << desc.name() << endl);
-		LOG("dim: " << desc.dim() << endl);
+		cout << igrob + 1 << ": " << desc.name().c_str() << endl;
+		cout << "dim: " << desc.dim() << endl;
 
 		for(index_t sideDim = 0; sideDim < desc.dim(); ++sideDim) {
 			const index_t numSides = desc.num_sides (sideDim);
-			LOG("side set of dim " << sideDim << ": " << GrobSetName (desc.side_set_type (sideDim)) << endl);
-			LOG("sides of dim " << sideDim << ": " << numSides << endl);
+			cout << "side set of dim " << sideDim << ": " << GrobSetName (desc.side_set_type (sideDim)).c_str() << endl;
+			cout << "sides of dim " << sideDim << ": " << numSides << endl;
 			for(index_t iside = 0; iside < numSides; ++iside) {
-				LOG("  side " << iside << ": type = " <<
-				    desc.side_desc (sideDim, iside).name() << ", on corners:");
+				cout << "  side " << iside << ": type = " <<
+				    desc.side_desc (sideDim, iside).name().c_str() << ", on corners:";
 
 				const index_t* corners = desc.local_side_corners (sideDim, iside);
 				for(index_t i = 0; i < desc.num_side_corners (sideDim, iside); ++i)
 				{
-					LOG(" " << corners[i]);
+					cout << " " << corners[i];
 				}
-				LOG(endl);
+				cout << endl;
 			}
 		}
-		LOG(endl);
+		cout << endl;
 	}
 }
 
 void PrintGrobSetDescs ()
 {
-	LOG ("Overview over all available grid objects sets:\n\n");
+	cout << "Overview over all available grid objects sets:\n\n";
 	for(index_t igrobSet = 0; igrobSet <= CELLS; ++igrobSet) {
 		GrobSet gs (static_cast<grob_set_t> (igrobSet));
 
-		LOG(igrobSet + 1 << ": " << gs.name() << endl);
-		LOG("dim:  " << gs.dim() << endl);
-		LOG("size: " << gs.size() << endl);
+		cout << igrobSet + 1 << ": " << gs.name().c_str() << endl;
+		cout << "dim:  " << gs.dim() << endl;
+		cout << "size: " << gs.size() << endl;
 
-		LOG("grobs:")
+		cout << "grobs:";
 		
 		for (auto gt : gs)
-			LOG(" " << GrobName (gt));
+			cout << " " << GrobName (gt).c_str();
 
-		LOG(endl);
+		cout << endl;
 
 		for(index_t sideDim = 0; sideDim < gs.dim(); ++sideDim) 
-			LOG("side set " << sideDim << "D: " << GrobSetName (gs.side_set(sideDim)) << endl);
+			cout << "side set " << sideDim << "D: " << GrobSetName (gs.side_set(sideDim)).c_str() << endl;
 
-		LOG(endl);
+		cout << endl;
 	}
 }
 

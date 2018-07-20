@@ -6,12 +6,13 @@
 #include <vector>
 #include <string>
 
+#include "annex.h"
+#include "annex_storage.h"
+#include "array_annex.h"
 #include "cond_throw.h"
-#include "types.h"
 #include "grob.h"
 #include "grob_hash.h"
-#include "array_annex.h"
-#include "mesh_annex.h"
+#include "types.h"
 
 namespace slimesh {
 
@@ -30,8 +31,8 @@ public:
 		grob_t		grobId;
 	};
 
-	using annex_iterator_t = std::map <AnnexKey, SPMeshAnnex>::iterator;
-	using const_annex_iterator_t = std::map <AnnexKey, SPMeshAnnex>::const_iterator;
+	using annex_iterator_t = std::map <AnnexKey, SPAnnex>::iterator;
+	using const_annex_iterator_t = std::map <AnnexKey, SPAnnex>::const_iterator;
 
 
 
@@ -156,7 +157,7 @@ public:
 
 	///	explicitly set an annex for a mesh (old one will be replaced)
 	void set_annex (const AnnexKey& key,
-	               const SPMeshAnnex& annex)
+	               const SPAnnex& annex)
 	{
 		m_annexStorage.set_annex (key, annex);
 		if (key.name == "coords")
@@ -164,7 +165,7 @@ public:
 	}
 
 	void set_annex (const std::string& name, grob_t gt,
-	               const SPMeshAnnex& annex)
+	               const SPAnnex& annex)
 	{
 		set_annex (AnnexKey (name, gt), annex);
 	}
@@ -208,64 +209,8 @@ private:
 			THROW("Mesh::set_coords only supported for type real_t");
 	}
 
-	template <class TKey, class T> class AnnexStorage
-	{
-		using value_t		= std::shared_ptr <T>;
-		using const_value_t	= std::shared_ptr <const T>;
-		using annex_map_t	= std::map <TKey, value_t>;
-
-		public:
-		annex_map_t& annex_map ()						{return m_annexMap;}
-
-		const annex_map_t& annex_map () const			{return m_annexMap;}
-
-		bool has_annex (const TKey& id) const
-		{
-			auto i = m_annexMap.find (id);
-			return i != m_annexMap.end ();
-		}
-
-		template <class TConstruct = T>
-		value_t annex (const TKey& id)
-		{
-			auto d = m_annexMap[id];
-			if(!d)
-				m_annexMap[id] = d = std::make_shared <TConstruct> ();
-			return d;
-		}
-
-		void set_annex (const TKey& id, const value_t& annex)
-		{
-			m_annexMap[id] = annex;
-		}
-
-		const_value_t annex (const TKey& id) const
-		{
-			auto i = m_annexMap.find (id);
-			COND_THROW (i == m_annexMap.end(),
-			            "Queried annex '" << id << "'not available in the mesh.");
-			return i->second;
-		}
-
-		void remove_annex (const TKey& id)
-		{
-			m_annexMap.erase (id);
-		}
-
-		std::vector <TKey> collect_keys () const
-		{
-			std::vector <TKey> keys;
-			for (auto& e : m_annexMap)
-				keys.push_back (e.first);
-			return keys;
-		}
-		
-		private:
-		annex_map_t	m_annexMap;
-	};
-
 	using index_annex_storage_t	= AnnexStorage <grob_t, IndexArrayAnnex>;
-	using mesh_annex_storage_t	= AnnexStorage <AnnexKey, MeshAnnex>;
+	using mesh_annex_storage_t	= AnnexStorage <AnnexKey, Annex>;
 
 	//	MEMBER VARIABLES
 	SPRealArrayAnnex			m_coords;

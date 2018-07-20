@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "gl_buffer.h"
-#include "mesh.h"
+#include "slimesh/mesh.h"
 #include "shader.h"
 #include "vec_math.h"
 #include "shapes.h"

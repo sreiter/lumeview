@@ -5,25 +5,23 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/io.hpp>
 
-#include "stl_reader/stl_reader.h"
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_binding.h"
 
 #include "arc_ball_view.h"
 #include "cond_throw.h"
 #include "file_util.h"
-#include "geometry.h"
+#include "slimesh/geometry.h"
 #include "log.h"
 #include "renderer.h"
-#include "types.h"
-#include "mesh.h"
-#include "topology.h"
+#include "config.h"
+#include "slimesh/mesh.h"
+#include "slimesh/topology.h"
 #include "shapes.h"
-#include "vec_math_raw.h"
+#include "slimesh/vec_math_raw.h"
 #include "visualization.h"
 
-#include "subset_info_attachment_imgui.h"
+#include "subset_info_annex_imgui.h"
 
 using namespace std;
 
@@ -79,7 +77,7 @@ void RendererInit ()
 	if (g_visualization)
 		return;
 
-	SubsetInfo::set_imgui_executor (&SubsetInfoAttachment_ImGui);
+	SubsetInfoAnnex::set_imgui_executor (&SubsetInfoAnnex_ImGui);
 	// impl::PrintGrobDescs();
 	// impl::PrintGrobSetDescs();
 
