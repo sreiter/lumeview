@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 3.1)
 
 set (sources
         subset_info_annex.cpp
-        geometry.cpp
         grob.cpp
         mesh.cpp
+        normals.cpp
         topology.cpp
     )
 

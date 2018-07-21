@@ -11,7 +11,7 @@
 #include "arc_ball_view.h"
 #include "cond_throw.h"
 #include "file_util.h"
-#include "slimesh/geometry.h"
+#include "slimesh/normals.h"
 #include "log.h"
 #include "renderer.h"
 #include "config.h"

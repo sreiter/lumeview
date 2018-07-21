@@ -1,5 +1,5 @@
 #include "cond_throw.h"
-#include "geometry.h"
+#include "normals.h"
 #include "mesh.h"
 #include "vec_math_raw.h"
 

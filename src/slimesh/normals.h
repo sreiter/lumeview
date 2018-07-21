@@ -1,5 +1,5 @@
-#ifndef __H__slimesh__geometry
-#define __H__slimesh__geometry
+#ifndef __H__slimesh__normals
+#define __H__slimesh__normals
 
 #include <memory>
 #include "grob.h"
@@ -29,4 +29,4 @@ ComputeFaceVertexNormals3 (Mesh& meshInOut,
 
 }// end of namespace slimesh
 
-#endif	//__H__slimesh__geometry
+#endif	//__H__slimesh__normals
