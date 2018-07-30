@@ -8,10 +8,13 @@
 #include <map>
 #include <memory>
 #include <vector>
-
-#include "cond_throw.h"
+#include <string>
+#include "annex.h"
+#include "custom_exception.h"
 
 namespace slimesh {
+
+DECLARE_CUSTOM_EXCEPTION (NoSuchAnnexError, AnnexError)
 
 template <class TKey, class T>
 class AnnexStorage
@@ -48,8 +51,9 @@ public:
 	const_value_t annex (const TKey& id) const
 	{
 		auto i = m_annexMap.find (id);
-		COND_THROW (i == m_annexMap.end(),
-		            "Queried annex '" << id << "'not available in the mesh.");
+		if (i == m_annexMap.end())
+			throw NoSuchAnnexError (std::to_string (id));
+		            
 		return i->second;
 	}
 

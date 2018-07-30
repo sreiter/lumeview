@@ -6,8 +6,11 @@
 #define __H__slimesh_annex
 
 #include <memory>
+#include "custom_exception.h"
 
 namespace slimesh {
+
+DECLARE_CUSTOM_EXCEPTION (AnnexError, SlimeshError);
 
 ///	Base class for annexes, which can e.g. be annexed to an instance of Mesh
 class Annex {

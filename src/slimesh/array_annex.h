@@ -10,8 +10,11 @@
 #include "unpack.h"
 #include "types.h"
 #include "annex.h"
+#include "custom_exception.h"
 
 namespace slimesh {
+
+DECLARE_CUSTOM_EXCEPTION (BadTupleSizeError, AnnexError);
 
 template <class T>
 class ArrayAnnex : public Annex {

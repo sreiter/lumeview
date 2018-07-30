@@ -2,6 +2,7 @@
 #define __H__slimesh__grob
 
 #include <cstdint>
+#include <string>
 #include "types.h"
 
 namespace slimesh {

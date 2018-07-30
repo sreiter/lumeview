@@ -11,15 +11,17 @@
 #include "arc_ball_view.h"
 #include "cond_throw.h"
 #include "file_util.h"
-#include "slimesh/normals.h"
 #include "log.h"
 #include "renderer.h"
 #include "config.h"
+#include "shapes.h"
+#include "visualization.h"
+
+#include "slimesh/normals.h"
 #include "slimesh/mesh.h"
 #include "slimesh/topology.h"
-#include "shapes.h"
 #include "slimesh/vec_math_raw.h"
-#include "visualization.h"
+#include "slimesh/file_io.h"
 
 #include "subset_info_annex_imgui.h"
 

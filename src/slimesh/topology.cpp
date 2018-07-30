@@ -58,7 +58,8 @@ TotalToGrobIndexMap::
 TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
     m_grobSet (gs)
 {
-    COND_THROW (gs.size() > MAX_GROB_SET_SIZE, "Internal error: MAX_GROB_SET_SIZE is wrong!");
+    if (gs.size() > MAX_GROB_SET_SIZE)
+    	SlimeshError ("Internal error: MAX_GROB_SET_SIZE is wrong!");
 
     m_baseInds[0] = 0;
     for(index_t i = 0; i < gs.size(); ++i) {
@@ -78,7 +79,10 @@ operator () (const index_t ind) const
         	return make_pair (ind - m_baseInds[i], m_grobSet.grob_type(index_t(i)));
     }
 
-    THROW("TotalToGrobIndexMap: Couldn't map index " << ind << " to GrobSet " << m_grobSet.name());
+    throw SlimeshError (string("TotalToGrobIndexMap: Couldn't map index ").
+    					append (to_string(ind)).
+    					append (" to GrobSet ").
+    					append (m_grobSet.name()));
     return make_pair <index_t, grob_t> (0, NO_GROB);
 }
 
@@ -303,7 +307,7 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 		}
 	}
 	else {
-		THROW ("CreateAssociatedElemMap: Currently, nbr dimension > elem dimension has to hold true");
+		throw SlimeshError ("CreateAssociatedElemMap: Currently, nbr dimension > elem dimension has to hold true");
 	}
 
 	// Compute an offset into elemMapOut for each element (convert count -> offset)

@@ -9,12 +9,13 @@
 #include "annex.h"
 #include "annex_storage.h"
 #include "array_annex.h"
-#include "cond_throw.h"
 #include "grob.h"
 #include "grob_hash.h"
 #include "types.h"
 
 namespace slimesh {
+
+DECLARE_CUSTOM_EXCEPTION (AnnexTypeError, AnnexError);
 
 class Mesh {
 public:
@@ -206,7 +207,7 @@ private:
 		if (auto t = std::dynamic_pointer_cast <RealArrayAnnex> (coords))
 			set_coords (t);
 		else
-			THROW("Mesh::set_coords only supported for type real_t");
+			throw AnnexTypeError ("Mesh::set_coords only supported for type real_t");
 	}
 
 	using index_annex_storage_t	= AnnexStorage <grob_t, IndexArrayAnnex>;
@@ -223,11 +224,16 @@ inline std::ostream& operator<< (std::ostream& out, const Mesh::AnnexKey& v) {
     return out;
 }
 
+
 using SPMesh = std::shared_ptr <Mesh>;
 using CSPMesh = std::shared_ptr <const Mesh>;
 
-SPMesh CreateMeshFromFile (std::string filename);
-
 }// end of namespace slimesh
 
+
+namespace std {
+	inline string to_string (const slimesh::Mesh::AnnexKey& v) {
+		return v.name;
+	}
+}
 #endif	//__H__slimesh__mesh

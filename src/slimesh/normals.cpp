@@ -1,4 +1,3 @@
-#include "cond_throw.h"
 #include "normals.h"
 #include "mesh.h"
 #include "vec_math_raw.h"
@@ -24,8 +23,8 @@ void
 ComputeFaceVertexNormals3 (Mesh& mesh,
 						  const std::string& normalId)
 {
-	COND_THROW (mesh.coords()->tuple_size() != 3,
-	            "ComputeFaceVertexNormals3: Coordinates have to be 3-tuples!");
+	if (mesh.coords()->tuple_size() != 3)
+		throw BadTupleSizeError (std::to_string (mesh.coords()->tuple_size()));
 
 	auto& normalArray = *mesh.annex<RealArrayAnnex> (normalId, VERTEX);
 	normalArray.set_tuple_size (3);
