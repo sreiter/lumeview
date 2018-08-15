@@ -44,9 +44,6 @@ public:
 	inline T* raw_ptr ()					{return &m_vector[0];}
 	inline const T* raw_ptr () const		{return &m_vector[0];}
 
-	inline std::vector <T>& vector ()				{return m_vector;}
-	inline const std::vector <T>& vector () const	{return m_vector;}
-
 	inline void resize (const index_t s)				{m_vector.resize (s);}
 	inline void resize (const index_t s, const T& v)	{m_vector.resize (s, v);}
 	inline void reserve (const index_t s)				{m_vector.reserve (s);}
@@ -58,6 +55,9 @@ public:
 
 	inline T& at (const index_t i)					{return m_vector.at(i);}
 	inline const T& at (const index_t i) const		{return m_vector.at(i);}
+
+	inline T& back ()						{return m_vector.back();}
+	inline const T& back () const			{return m_vector.back();}
 
 	inline iterator begin ()				{return m_vector.begin();}
 	inline iterator end ()					{return m_vector.end();}

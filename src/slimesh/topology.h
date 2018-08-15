@@ -1,7 +1,7 @@
 #ifndef __H__slimesh__topology
 #define __H__slimesh__topology
 
-#include <vector>
+#include <utility>
 #include "grob.h"
 #include "grob_hash.h"
 #include "array_annex.h"
@@ -76,17 +76,21 @@ index_t FindUniqueSides (GrobHash& sideHashInOut,
                         const index_t sideDim);
 
 
-void GrobHashToIndexArray (std::vector <index_t>& indArrayInOut,
+template <class TIndexVector>
+void GrobHashToIndexArray (TIndexVector& indArrayInOut,
                            const GrobHash& hash);
 
-void GrobHashToTypeArray (std::vector <index_t>& typeArrayInOut,
+template <class TIndexVector>
+void GrobHashToTypeArray (TIndexVector& typeArrayInOut,
                           const GrobHash& hash);
 
-void GrobHashToIndexArray (std::vector <index_t>& indArrayInOut,
+template <class TIndexVector>
+void GrobHashToIndexArray (TIndexVector& indArrayInOut,
                            const GrobHash& hash,
                            grob_t grobType);
 
-void UniqueSidesToIndexArray (std::vector <index_t>& indArrayInOut,
+template <class TIndexVector>
+void UniqueSidesToIndexArray (TIndexVector& indArrayInOut,
                               const index_t* cornerInds,
                               const index_t numCornerInds,
                               const grob_t grobType,
@@ -104,8 +108,9 @@ SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities
 /**
  * \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.
  */
-void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
-                              std::vector <index_t>& offsetsOut,
+template <class TIndexVector>
+void CreateAssociatedElemMap (TIndexVector& elemMapOut,
+                              TIndexVector& offsetsOut,
                               index_t* grobBaseIndsOut,
                               Mesh& mesh,
                               GrobSet elemSet,
@@ -114,5 +119,9 @@ void CreateAssociatedElemMap (std::vector <index_t>& elemMapOut,
 
 
 }//	end of namespace slimesh
+
+
+// INCLUDE IMPLEMENTATION
+#include "topology_impl.h"
 
 #endif	//__H__slimesh__topology

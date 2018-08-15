@@ -24,13 +24,13 @@ namespace slimesh {
 std::shared_ptr <Mesh> CreateMeshFromSTL (std::string filename)
 {
 	auto mesh = make_shared <Mesh> ();
-	std::vector <real_t> normals;
-	std::vector <index_t> solids;
+	ArrayAnnex <real_t> normals;
+	ArrayAnnex <index_t> solids;
 
 	stl_reader::ReadStlFile (filename.c_str(),
-	                         mesh->coords()->vector(),
+	                         *mesh->coords(),
 							 normals,
-							 mesh->inds(TRI)->vector(),
+							 *mesh->inds(TRI),
 							 solids);
 
 	mesh->coords()->set_tuple_size(3);
