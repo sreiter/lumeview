@@ -18,7 +18,7 @@ public:
 	virtual ~Annex () {};
 	virtual const char* class_name () const = 0;
 	virtual void do_imgui () {};
-	virtual bool has_gui () const	{return false;}
+	virtual bool has_imgui () const	{return false;}
 };
 
 using SPAnnex	= std::shared_ptr <Annex>;

@@ -196,7 +196,7 @@ void RendererProcessGUI (bool draw)
 				for (auto annexIter = mesh->annex_begin();
 				     annexIter != mesh->annex_end(); ++annexIter)
 				{
-					if (annexIter->second->has_gui()) {
+					if (annexIter->second->has_imgui()) {
 						if (annexIter != mesh->annex_begin())
 							ImGui::Separator();
 						

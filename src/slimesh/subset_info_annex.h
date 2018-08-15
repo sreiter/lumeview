@@ -87,7 +87,7 @@ public:
 	static void set_imgui_executor (ImGuiExecutor exec)	{s_imguiExecutor = exec;}
 
 	void do_imgui () override							{if(s_imguiExecutor) s_imguiExecutor (m_subsetProps);}
-	bool has_gui () const override						{return s_imguiExecutor != nullptr;}
+	bool has_imgui () const override					{return s_imguiExecutor != nullptr;}
 
 private:
 	static ImGuiExecutor			s_imguiExecutor;
