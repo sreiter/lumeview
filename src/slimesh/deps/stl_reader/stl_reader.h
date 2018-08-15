@@ -458,7 +458,7 @@ namespace stl_reader_impl {
 		sort (coordsWithIndexInOut.begin(), coordsWithIndexInOut.end());
 	
 	//	first count unique indices
-		size_t numUnique = 1;
+		index_t numUnique = 1;
 		for(size_t i = 1; i < coordsWithIndexInOut.size(); ++i){
 			if(coordsWithIndexInOut[i] != coordsWithIndexInOut[i - 1])
 				++numUnique;
@@ -469,26 +469,26 @@ namespace stl_reader_impl {
 
 	//	copy unique coordinates to 'uniqueCoordsOut' and create an index-map
 	//	'newIndex', which allows to re-index triangles later on.
-		size_t curInd = 0;
+		index_t curInd = 0;
 		newIndex[0] = 0;
-		for(size_t i = 0; i < 3; ++i)
+		for(index_t i = 0; i < 3; ++i)
 			uniqueCoordsOut[i] = coordsWithIndexInOut[0][i];
 
 		for(size_t i = 1; i < coordsWithIndexInOut.size(); ++i){
 			const CoordWithIndex <number_t, index_t> c = coordsWithIndexInOut[i];
 			if(c != coordsWithIndexInOut[i - 1]){
 				++curInd;
-				for(size_t j = 0; j < 3; ++j)
+				for(index_t j = 0; j < 3; ++j)
 					uniqueCoordsOut[curInd * 3 + j] = coordsWithIndexInOut[i][j];
 			}
 
-			newIndex[c.index] = static_cast<index_t> (curInd);
+			newIndex[c.index] = curInd;
 		}
 
 	//	re-index triangles, so that they refer to 'uniqueCoordsOut'
 	//	make sure to only add triangles which refer to three different indices
-		size_t numUniqueTriInds = 0;
-		for(size_t i = 0; i < trisInOut.size(); i+=3){
+		index_t numUniqueTriInds = 0;
+		for(index_t i = 0; i < trisInOut.size(); i+=3){
 			int ni[3];
 			for(int j = 0; j < 3; ++j)
 				ni[j] = newIndex[trisInOut[i+j]];
@@ -615,13 +615,13 @@ bool ReadStlFile_ASCII(const char* filename,
 				trisOut.push_back(static_cast<index_t> (coordsWithIndex.size() - 1));
 			}
 			else if(tok.compare("solid") == 0){
-				solidRangesOut.push_back(static_cast<index_t> (trisOut.size() / 3));
+				solidRangesOut.push_back(trisOut.size() / 3);
 			}
 		}
 		lineCount++;
 	}
 
-	solidRangesOut.push_back(static_cast<index_t> (trisOut.size() / 3));
+	solidRangesOut.push_back(trisOut.size() / 3);
 
 	RemoveDoubles (coordsOut, trisOut, coordsWithIndex);
 
@@ -676,9 +676,9 @@ bool ReadStlFile_BINARY(const char* filename,
 			coordsWithIndex.push_back(c);
 		}
 
-		trisOut.push_back(static_cast<index_t> (coordsWithIndex.size() - 3));
-		trisOut.push_back(static_cast<index_t> (coordsWithIndex.size() - 2));
-		trisOut.push_back(static_cast<index_t> (coordsWithIndex.size() - 1));
+		trisOut.push_back(coordsWithIndex.size() - 3);
+		trisOut.push_back(coordsWithIndex.size() - 2);
+		trisOut.push_back(coordsWithIndex.size() - 1);
 
 		char addData[2];
 		in.read(addData, 2);
@@ -686,7 +686,7 @@ bool ReadStlFile_BINARY(const char* filename,
 	}
 
 	solidRangesOut.push_back(0);
-	solidRangesOut.push_back(static_cast<index_t> (trisOut.size() / 3));
+	solidRangesOut.push_back(trisOut.size() / 3);
 
 	RemoveDoubles (coordsOut, trisOut, coordsWithIndex);
 
