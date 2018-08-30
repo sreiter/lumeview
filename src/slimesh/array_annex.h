@@ -32,6 +32,8 @@ public:
 
 	inline void clear ()					{m_vector.clear();}
 
+	bool empty() const { return m_vector.empty(); }
+
 	/// total number of entries, counting individual components
 	inline index_t size () const			{return static_cast<index_t>(m_vector.size());}
 
@@ -41,8 +43,8 @@ public:
 	inline index_t tuple_size () const				{return m_tupleSize;}
 	inline void set_tuple_size (const index_t ts)	{m_tupleSize = ts;}
 
-	inline T* raw_ptr ()					{return &m_vector[0];}
-	inline const T* raw_ptr () const		{return &m_vector[0];}
+	inline T* raw_ptr() { if (size()) return &m_vector[0]; return NULL; }
+	inline const T* raw_ptr () const { if (size()) return &m_vector[0]; return NULL; }
 
 	inline void resize (const index_t s)				{m_vector.resize (s);}
 	inline void resize (const index_t s, const T& v)	{m_vector.resize (s, v);}
@@ -71,11 +73,11 @@ private:
 
 
 using RealArrayAnnex		= ArrayAnnex <real_t>;
-using IndexArrayAnnex	= ArrayAnnex <index_t>;
+using IndexArrayAnnex		= ArrayAnnex <index_t>;
 
-using SPRealArrayAnnex	= std::shared_ptr <RealArrayAnnex>;
-using SPIndexArrayAnnex	= std::shared_ptr <IndexArrayAnnex>;
-using CSPRealArrayAnnex	= std::shared_ptr <const RealArrayAnnex>;
+using SPRealArrayAnnex		= std::shared_ptr <RealArrayAnnex>;
+using SPIndexArrayAnnex		= std::shared_ptr <IndexArrayAnnex>;
+using CSPRealArrayAnnex		= std::shared_ptr <const RealArrayAnnex>;
 using CSPIndexArrayAnnex	= std::shared_ptr <const IndexArrayAnnex>;
 
 }//	end of namespace slimesh

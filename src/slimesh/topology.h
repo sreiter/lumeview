@@ -10,24 +10,6 @@ namespace slimesh {
 
 class Mesh;
 
-
-class AssociatedElems {
-public:
-    AssociatedElems ();
-    AssociatedElems (Mesh& mesh, GrobSet elemSet, GrobSet assElemSet);
-
-    index_t num_associated (const index_t elemInd, const grob_t elemGT) const;
-    index_t ass_elem_ind (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const;
-    grob_t ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const;
-
-private:
-    SPIndexArrayAnnex m_offsets;
-    SPIndexArrayAnnex m_assElemMap;
-    index_t*          m_rawOffsets;
-    index_t*          m_rawAssElemMap;
-    index_t           m_grobBaseInds [NUM_GROB_TYPES];
-};
-
 /// Maps consecutively indexed grid objects of different types to their respective grob indices
 /** While slimesh indices grid objects for each type starting from zero, other
  * indexing schemata are possible. E.g. first indexing all triangles and afterwards
@@ -45,7 +27,7 @@ private:
 };
 
 
-/// Fills a map which associates grobs with consecutive indices
+/// Fills a map which associates grobs, each specified by a sequence of vertex indices with consecutive indices
 /**
 * \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.
 *
@@ -56,10 +38,10 @@ private:
 *        call this method repeatedly on different `cornerInds` and `grobType` to
 *        find fill all element indices of a hybrid grid.
 * \{ */
-index_t FillIndexMap (GrobHashMap <index_t>& indexMapInOut,
-                      index_t* grobBaseIndsOut,
-                      const Mesh& mesh,
-                      const grob_t grobType);
+void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
+                       index_t* grobBaseIndsOut,
+                       const Mesh& mesh,
+                       const GrobSet grobType);
 /** \} */
 
 
@@ -103,7 +85,7 @@ void CreateEdgeInds (Mesh& mesh);
 /** \todo:  add support for elements with quadrilateral sides!*/
 void CreateFaceInds (Mesh& mesh);
 
-SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities = nullptr);
+SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities = nullptr);
 
 /**
  * \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.

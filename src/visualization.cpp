@@ -181,6 +181,9 @@ prepare_buffers ()
 			
 			uint fill = 0;
 			for(auto gt : gs) {
+				if (mesh->inds(gt)->empty())
+					continue;
+
 				switch (gt) {
 					case EDGE:
 					case TRI:

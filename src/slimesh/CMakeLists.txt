@@ -7,6 +7,8 @@ set (sources
         file_io.cpp
         grob.cpp
         mesh.cpp
+        neighborhoods.cpp
+        neighbors.cpp
         normals.cpp
         topology.cpp
     )

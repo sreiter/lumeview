@@ -2,57 +2,12 @@
 #include "topology.h"
 #include "vec_math_raw.h"
 
+//todo: remove this include
+#include "neighborhoods.h"
+
 using namespace std;
 
 namespace slimesh {
-
-AssociatedElems::
-AssociatedElems () :
-	m_offsets (make_shared <IndexArrayAnnex> ()),
-	m_assElemMap (make_shared <IndexArrayAnnex> ()),
-	m_rawOffsets (nullptr),
-	m_rawAssElemMap (nullptr)
-{
-	m_assElemMap->set_tuple_size (2);
-}
-
-AssociatedElems::
-AssociatedElems (Mesh& mesh, GrobSet elemTypes, GrobSet assElemTypes) :
-	m_offsets (make_shared <IndexArrayAnnex> ()),
-	m_assElemMap (make_shared <IndexArrayAnnex> ())
-{
-	m_assElemMap->set_tuple_size (2);
-	
-	CreateAssociatedElemMap (*m_assElemMap,
-	                         *m_offsets,
-	                         m_grobBaseInds,
-	                         mesh,
-	                         elemTypes,
-	                         assElemTypes);
-
-	m_rawOffsets	= m_offsets->raw_ptr();
-	m_rawAssElemMap	= m_assElemMap->raw_ptr();
-}
-
-index_t AssociatedElems::
-num_associated (const index_t elemInd, const grob_t elemGT) const
-{
-	return m_rawOffsets [m_grobBaseInds[elemGT] + elemInd + 1] - m_rawOffsets [m_grobBaseInds[elemGT] + elemInd];
-}
-
-index_t AssociatedElems::
-ass_elem_ind (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const
-{
-	return m_rawAssElemMap [(m_rawOffsets [m_grobBaseInds[elemGT] + elemInd] + assElemInd) * 2 + 1];
-}
-
-grob_t AssociatedElems::
-ass_elem_type (const index_t elemInd, const grob_t elemGT, const index_t assElemInd) const
-{
-	return grob_t(m_rawAssElemMap [(m_rawOffsets [m_grobBaseInds[elemGT] + elemInd] + assElemInd) * 2]);
-}
-
-
 
 TotalToGrobIndexMap::
 TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
@@ -182,31 +137,34 @@ void CreateFaceInds (Mesh& mesh)
 }
 
 
-SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities)
+// TODO: THIS IS THE NEW CODE. DEBUG IT...
+
+SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities)
 {
 	auto bndMesh = make_shared <Mesh> ();
-	mesh.share_annexes_with (*bndMesh);
+	mesh->share_annexes_with (*bndMesh);
 	
 	if (grobSet.dim() == 0)
 		return bndMesh;
 
 	GrobSet bndGrobSet = grobSet.side_set (grobSet.dim() - 1);
-	AssociatedElems assElems (mesh, bndGrobSet, grobSet);
+	Neighborhoods neighborhoods (mesh, bndGrobSet, grobSet);
 
 //todo: iterate over all grobs
 	for (auto bndGrobType : bndGrobSet) {
 		GrobDesc bndGrobDesc (bndGrobType);
 		
 		const index_t numElemCorners = bndGrobDesc.num_corners();
-		const index_t numElemInds = mesh.inds (bndGrobType)->size();
+		const index_t numElemInds = mesh->inds (bndGrobType)->size();
 		const index_t numElems = numElemInds / numElemCorners;
-		const index_t* elemInds = mesh.inds (bndGrobType)->raw_ptr();
+		const index_t* elemInds = mesh->inds (bndGrobType)->raw_ptr();
 
 		auto& newElemInds = *bndMesh->inds (bndGrobType);
 
 		if (!visibilities) {
 			for(index_t ielem = 0; ielem < numElems; ++ielem) {
-				if (assElems.num_associated (ielem, bndGrobType) == 1) {
+				const GrobIndex gi (static_cast<grob_t>(bndGrobType), ielem);
+				if (neighborhoods.neighbors (gi).size() == 1) {
 					const index_t firstInd = ielem * numElemCorners;
 
 					for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
@@ -219,6 +177,45 @@ SPMesh CreateBoundaryMesh (Mesh& mesh, GrobSet grobSet, const bool* visibilities
 
 	return bndMesh;
 }
+
+// SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities)
+// {
+// // TODO: NEW CODE IS ABOVE. DEBUG IT...
+// 	auto bndMesh = make_shared <Mesh> ();
+// 	mesh->share_annexes_with (*bndMesh);
+	
+// 	if (grobSet.dim() == 0)
+// 		return bndMesh;
+
+// 	GrobSet bndGrobSet = grobSet.side_set (grobSet.dim() - 1);
+// 	AssociatedElems assElems (*mesh, bndGrobSet, grobSet);
+
+// //todo: iterate over all grobs
+// 	for (auto bndGrobType : bndGrobSet) {
+// 		GrobDesc bndGrobDesc (bndGrobType);
+		
+// 		const index_t numElemCorners = bndGrobDesc.num_corners();
+// 		const index_t numElemInds = mesh->inds (bndGrobType)->size();
+// 		const index_t numElems = numElemInds / numElemCorners;
+// 		const index_t* elemInds = mesh->inds (bndGrobType)->raw_ptr();
+
+// 		auto& newElemInds = *bndMesh->inds (bndGrobType);
+
+// 		if (!visibilities) {
+// 			for(index_t ielem = 0; ielem < numElems; ++ielem) {
+// 				if (assElems.num_associated (ielem, bndGrobType) == 1) {
+// 					const index_t firstInd = ielem * numElemCorners;
+
+// 					for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
+// 						newElemInds.push_back (elemInds [i]);
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	return bndMesh;
+// }
 
 
 }//	end of namespace
