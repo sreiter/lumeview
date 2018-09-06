@@ -141,7 +141,7 @@ void CreateEdgeInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 1) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->underlying_array().raw_ptr(),
+							 mesh.inds(gt)->raw_ptr(),
 							 mesh.inds(gt)->num_indices(),
 							 gt,
 							 1);
@@ -162,7 +162,7 @@ void CreateFaceInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 2) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->underlying_array().raw_ptr(),
+							 mesh.inds(gt)->raw_ptr(),
 							 mesh.inds(gt)->num_indices(),
 							 gt,
 							 2);

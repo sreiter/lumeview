@@ -101,7 +101,7 @@ public:
 	index_t num_inds (grob_t grob)
 	{
 		if (inds_allocated (grob))
-			return inds (grob)->underlying_array ().size();
+			return inds (grob)->num_indices();
 		return 0;
 	}
 

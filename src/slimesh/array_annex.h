@@ -26,43 +26,6 @@ public:
 	using iterator = typename std::vector<T>::iterator;
 	using const_iterator = typename std::vector<T>::const_iterator;
 
-	// template <class base_iter_t>
-	// class tuple_iterator_impl {
-	// public:
-	// 	using iterator_category = typename std::iterator_traits<base_iter_t>::iterator_category;
-	// 	using value_type = typename std::iterator_traits<base_iter_t>::value_type;
-	// 	using difference_type = typename std::iterator_traits<base_iter_t>::difference_type;
-	// 	using pointer = typename std::iterator_traits<base_iter_t>::pointer;
-	// 	using reference = typename std::iterator_traits<base_iter_t>::reference;
-
-	// 	tuple_iterator_impl (const base_iter_t& baseIter, diffference_type tupleSize) :
-	// 		m_baseIter (baseIter),
-	// 		m_tupleSize (tupleSize)
-	// 	{}
-
-	// 	tuple_iterator_impl& operator += (difference_type n)
-	// 	{
-	// 		m_baseIter += n m_tupleSize;
-	// 		return *this;
-	// 	}
-
-	// 	tuple_iterator_impl& operator -= (difference_type n)
-	// 	{
-	// 		m_baseIter -= n m_tupleSize;
-	// 		return *this;
-	// 	}
-
-	// 	tuple_iterator_impl operator + (difference_type n)
-	// 	{
-	// 		return 
-	// 	}
-
-
-	// private:
-	// 	base_iter_t m_baseIter;
-	// 	difference_type	m_tupleSize;
-	// };
-
 	ArrayAnnex ()	: m_tupleSize (1) {}
 	ArrayAnnex (const index_t tupleSize) : m_tupleSize (tupleSize) {}
 

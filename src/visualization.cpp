@@ -189,7 +189,7 @@ prepare_buffers ()
 					case TRI:
 						curStage.indBuf->set_sub_data (
 						                fill,
-						                mesh->inds(gt)->underlying_array().raw_ptr(),
+						                mesh->inds(gt)->raw_ptr(),
 			                        	uint (sizeof(index_t) * mesh->inds(gt)->num_indices()));
 						fill += uint (sizeof(index_t) * mesh->inds(gt)->num_indices());
 						break;
@@ -200,7 +200,7 @@ prepare_buffers ()
 						std::vector <index_t> tris;
 						tris.reserve (numQuads * 6);
 
-						const index_t* quads = mesh->inds(gt)->underlying_array().raw_ptr();
+						const index_t* quads = mesh->inds(gt)->raw_ptr();
 						for(index_t i = 0; i < numQuadInds; i += 4) {
 							tris.push_back (quads[i]);
 							tris.push_back (quads[i + 1]);

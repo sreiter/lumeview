@@ -33,11 +33,14 @@ public:
 
 	inline void clear ()					{m_array.clear();}
 
-	bool empty() const { return m_array.empty(); }
+	bool empty() const 						{return m_array.empty();}
 
 	/// total number of grobs
-	inline index_t size () const			{return static_cast<index_t>(m_array.num_tuples ());}
-	inline index_t num_indices () const		{return static_cast<index_t>(m_array.size ());}
+	inline index_t size () const			{return m_array.num_tuples ();}
+	inline index_t num_indices () const		{return m_array.size ();}
+
+	inline index_t* raw_ptr() 				{return m_array.raw_ptr();}
+	inline const index_t* raw_ptr () const 	{return m_array.raw_ptr();}
 
 	inline void resize (const index_t s)					{m_array.resize (s * num_grob_corners());}
 	inline void resize (const index_t s, const index_t v)	{m_array.resize (s * num_grob_corners(), v);}
