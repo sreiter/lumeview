@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-add_subdirectory (slimesh)
+add_subdirectory (deps/slimesh)
 
 set (GL_VERSION_MAJOR "3")
 set (GL_VERSION_MINOR "3")
