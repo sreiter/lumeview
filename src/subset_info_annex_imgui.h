@@ -5,11 +5,13 @@
 #ifndef __H__slimesh_subset_info_annex_imgui
 #define __H__slimesh_subset_info_annex_imgui
 
-#include "slimesh/subset_info_annex.h"
+#include "lume/subset_info_annex.h"
 namespace slimesh {
 
-void SubsetInfoAnnex_ImGui	(std::vector<SubsetInfoAnnex::SubsetProperties>& properties)
+void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProperties>& properties)
 {
+	using namespace lume;
+	
 	if (!properties.empty()) {
 		ImGui::NewLine ();
 		ImGui::SameLine (60);

@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include <glm/gtc/type_ptr.hpp>
 
+using namespace lume;
 
 namespace slimesh {
 
@@ -26,7 +27,7 @@ Visualization(std::string shaderPath) :
 
 void Visualization::
 add_stage (	std::string name,
-            std::shared_ptr <Mesh> mesh,
+            SPMesh mesh,
             const GrobSet grobSet,
             ShadingPreset shading)
 {

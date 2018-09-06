@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "gl_buffer.h"
-#include "slimesh/mesh.h"
+#include "lume/mesh.h"
 #include "shader.h"
 #include "vec_math.h"
 #include "shapes.h"
@@ -30,8 +30,8 @@ public:
 	Visualization (const Visualization&) = delete;
 
 	void add_stage (std::string name,
-	                std::shared_ptr <Mesh> mesh,
-	                const GrobSet grobSet,
+	                lume::SPMesh mesh,
+	                const lume::GrobSet grobSet,
 	                ShadingPreset shading);
 
 	size_t num_stages () const	{return m_stages.size();}
@@ -49,7 +49,7 @@ public:
 	void do_imgui (bool* pOpened = NULL);
 
 private:
-	Shader get_shader (const GrobSet grobSet, ShadingPreset shading);
+	Shader get_shader (const lume::GrobSet grobSet, ShadingPreset shading);
 	void prepare_buffers ();
 
 	struct Stage {
@@ -75,7 +75,7 @@ private:
 		~Stage ()	{if (vao) glDeleteVertexArrays (1, &vao);}
 
 		std::string 				name;
-		std::shared_ptr <Mesh>		mesh;
+		lume::SPMesh				mesh;
 		ShadingPreset				shadingPreset;
 		glm::vec4					color;
 		float						zfacNear;
@@ -87,12 +87,12 @@ private:
 		std::shared_ptr <GLBuffer>	indBuf;
 		GLenum						primType;
 		GLsizei						numInds;
-		GrobSet						grobSet;
+		lume::GrobSet				grobSet;
 		Sphere						bndSphere;
 	};
 
 	std::vector <Stage> m_stages;
-	Shader				m_shaders[NUM_GROB_TYPES + 1][NUM_SHADING_PRESETS];
+	Shader				m_shaders[lume::NUM_GROB_TYPES + 1][NUM_SHADING_PRESETS];
 	std::string			m_shaderPath;
 };
 

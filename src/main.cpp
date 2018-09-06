@@ -10,11 +10,12 @@
 #include "cond_throw.h"
 #include "renderer.h"
 
-#include "slimesh/tests.h"
-#include "slimesh/file_io.h"
+#include "lume/tests.h"
+#include "lume/file_io.h"
 
 using namespace std;
 using namespace slimesh;
+using namespace lume;
 
 static WindowEventListener*	g_imguiListener = nullptr;
 static WindowEventListener*	g_renderListener = nullptr;
@@ -122,8 +123,8 @@ int main (int argc, char** argv)
 	try {
 		for(int i = 1; i < argc; ++i) {
 			if (strcmp (argv[i], "-tests") == 0) {
-				if (!slimesh::tests::RunTests ())
-					THROW("slimesh::RunTests did not succeed!");
+				if (!lume::tests::RunTests ())
+					THROW("lume::RunTests did not succeed!");
 			}
 		}
 

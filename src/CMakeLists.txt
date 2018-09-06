@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-add_subdirectory (deps/slimesh)
+add_subdirectory (deps/lume)
 
 set (GL_VERSION_MAJOR "3")
 set (GL_VERSION_MINOR "3")
@@ -102,7 +102,7 @@ if (GLFW)
 
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)
-    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${glfw_LibDeps} ${OPENGL_LIBRARIES} slimeshlib)
+    target_link_libraries (${exeName} ${GLFW_LIBS} glfw3 ${glfw_LibDeps} ${OPENGL_LIBRARIES} lume)
 endif ()
 
 if (JNI)
@@ -113,7 +113,7 @@ if (JNI)
     include_directories(${JNI_INCLUDE_DIRS})
 
     add_library(vrl_native_opengl_binding SHARED ${jniSources} ${sources} ${depSources})
-    target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} ${OPENGL_LIBRARIES} slimeshlib)
+    target_link_libraries(vrl_native_opengl_binding ${JNI_LIBRARIES} ${OPENGL_LIBRARIES} lume)
 endif ()
 
 

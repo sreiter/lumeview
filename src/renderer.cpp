@@ -17,15 +17,16 @@
 #include "shapes.h"
 #include "visualization.h"
 
-#include "slimesh/normals.h"
-#include "slimesh/mesh.h"
-#include "slimesh/topology.h"
-#include "slimesh/vec_math_raw.h"
-#include "slimesh/file_io.h"
+#include "lume/normals.h"
+#include "lume/mesh.h"
+#include "lume/topology.h"
+#include "lume/vec_math_raw.h"
+#include "lume/file_io.h"
 
 #include "subset_info_annex_imgui.h"
 
 using namespace std;
+using namespace lume;
 
 namespace slimesh {
 

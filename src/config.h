@@ -5,6 +5,10 @@
 #ifndef __H__slimesh_config
 #define __H__slimesh_config
 
-#include "slimesh/types.h"
+#include "lume/types.h"
+
+using lume::uint;
+using lume::index_t;
+using lume::real_t;
 
 #endif	//__H__slimesh_config
