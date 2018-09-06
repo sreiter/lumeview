@@ -1,7 +1,7 @@
 #ifndef __H__cond_throw
 #define __H__cond_throw
 
-#include <exception>
+#include <stdexcept>
 #include <sstream>
 #include "iostream_util.h"
 

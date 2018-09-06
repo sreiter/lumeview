@@ -54,13 +54,13 @@ void PrintMeshInfo (SPMesh mesh)
 	Box box = BoxFromCoords (UNPACK_DST(*mesh->coords()));
 
 	LOGT(mesh, "  #vertices:    " << mesh->coords()->num_tuples() << std::endl);
-	LOGT(mesh, "  #edges:       " << mesh->inds(EDGE)->num_tuples() << std::endl);
-	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->num_tuples() << std::endl);
-	LOGT(mesh, "  #quads:       " << mesh->inds(QUAD)->num_tuples() << std::endl);
-	LOGT(mesh, "  #tetrahedra:  " << mesh->inds(TET)->num_tuples() << std::endl);
-	LOGT(mesh, "  #hexahedra:   " << mesh->inds(HEX)->num_tuples() << std::endl);
-	LOGT(mesh, "  #pyramids:    " << mesh->inds(PYRA)->num_tuples() << std::endl);
-	LOGT(mesh, "  #prisms:      " << mesh->inds(PRISM)->num_tuples() << std::endl);
+	LOGT(mesh, "  #edges:       " << mesh->inds(EDGE)->size() << std::endl);
+	LOGT(mesh, "  #triangles:   " << mesh->inds(TRI)->size() << std::endl);
+	LOGT(mesh, "  #quads:       " << mesh->inds(QUAD)->size() << std::endl);
+	LOGT(mesh, "  #tetrahedra:  " << mesh->inds(TET)->size() << std::endl);
+	LOGT(mesh, "  #hexahedra:   " << mesh->inds(HEX)->size() << std::endl);
+	LOGT(mesh, "  #pyramids:    " << mesh->inds(PYRA)->size() << std::endl);
+	LOGT(mesh, "  #prisms:      " << mesh->inds(PRISM)->size() << std::endl);
 	LOGT(mesh, "  Bounding box -> min: " << box.minCorner << std::endl);
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 }
@@ -94,7 +94,7 @@ void RendererInit ()
 	g_visualization = new Visualization (SHADER_PATH);
 
 	// const std::string filename = MESH_PATH + "tet.ugx";
-	const std::string filename = MESH_PATH + "elems.ugx";
+	const std::string filename = MESH_PATH + "elems_refined.ugx";
 	// const std::string filename = MESH_PATH + "tri_and_quad.ugx";
 	// const std::string filename = MESH_PATH + "bunny.stl";
 	auto mainMesh = CreateMeshFromFile (filename);

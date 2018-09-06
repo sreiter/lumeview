@@ -10,6 +10,9 @@
 namespace slimesh {
 
 /// Pairs an index with a grob type
+/** \todo	grobType and index should be private and only availablle through method calls.
+ * \todo	store grobType and index in one 64-bit unsigned integer.
+ */
 struct GrobIndex {
 	GrobIndex () :
 		grobType (NO_GROB),

@@ -35,9 +35,9 @@ ComputeFaceVertexNormals3 (Mesh& mesh,
 	real_t* 		normals		= normalArray.raw_ptr();
 	
 	for(auto gt : GrobSet (FACES)) {
-		const index_t*	inds		= mesh.inds (gt)->raw_ptr();
-		const index_t	numInds		= mesh.inds (gt)->size();
-		const index_t	numCorners	= mesh.inds (gt)->tuple_size();
+		const index_t*	inds		= mesh.inds (gt)->underlying_array().raw_ptr();
+		const index_t	numInds		= mesh.inds (gt)->num_indices();
+		const index_t	numCorners	= mesh.inds (gt)->grob_desc ().num_corners ();
 		const index_t	offset = numCorners / 2;
 
 		for (index_t i = 0; i < numInds; i += numCorners) {

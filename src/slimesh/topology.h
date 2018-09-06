@@ -2,9 +2,10 @@
 #define __H__slimesh__topology
 
 #include <utility>
+#include "array_annex.h"
 #include "grob.h"
 #include "grob_hash.h"
-#include "array_annex.h"
+#include "grob_index.h"
 
 namespace slimesh {
 
@@ -41,9 +42,26 @@ private:
 void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
                        index_t* grobBaseIndsOut,
                        const Mesh& mesh,
-                       const GrobSet grobType);
+                       const GrobSet grobSet);
 /** \} */
 
+
+/// Fills a map which associates grobs, each specified by a sequence of vertex indices with GrobIndices
+/**
+* \note `indexMapInOut is not cleared during this function. It is thus possible
+*        call this method repeatedly on different `grobSets` to
+*        find fill all element indices of a hybrid grid.
+* \{ */
+void FillElemIndexMap (GrobHashMap <GrobIndex>& indexMapInOut,
+                       const Mesh& mesh,
+                       const GrobSet grobSet);
+/** \} */
+
+
+void ComputeGrobValences (GrobHashMap <index_t>& valencesOut,
+                          Mesh& mesh,
+                     	  GrobSet grobs,
+                     	  GrobSet nbrGrobs);
 
 /// Collects all sides of the *grobs* specified by `cornerInds` and `grobType`.
 /** \note It is assumed, that `cornerInds` holds the corner indices of one or

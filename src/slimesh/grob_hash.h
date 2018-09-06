@@ -24,7 +24,7 @@ namespace std
         		const index_t c = grob.corner(i);
         		h += c * c;
         	}
-        	return 10^8 * (grob.type() + 1) + h;
+        	return 10^8 * (grob.grob_type() + 1) + h;
         }
     };
 }//	end of namespace std

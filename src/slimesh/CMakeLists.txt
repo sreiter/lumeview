@@ -10,10 +10,13 @@ set (sources
         neighborhoods.cpp
         neighbors.cpp
         normals.cpp
+        tests.cpp
         topology.cpp
     )
 
 include_directories (deps/rapidxml-1.13)
 include_directories (deps)
+
+file(COPY "test_meshes" DESTINATION "${CMAKE_BINARY_DIR}")
 
 add_library (slimeshlib ${sources})

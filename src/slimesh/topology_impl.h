@@ -63,6 +63,7 @@ void UniqueSidesToIndexArray (TIndexVector& indArrayInOut,
 	GrobHashToIndexArray (indArrayInOut, hash);
 }
 
+
 template <class TIndexVector>
 void CreateAssociatedElemMap (TIndexVector& elemMapOut,
                         	  TIndexVector& offsetsOut,
@@ -78,7 +79,7 @@ void CreateAssociatedElemMap (TIndexVector& elemMapOut,
 	const index_t elemDim = elemTypes.dim();
 	const index_t assElemDim = assElemTypes.dim();
 
-	const index_t numElems = mesh.num_tuples (elemTypes);
+	const index_t numElems = mesh.num (elemTypes);
 	offsetsOut.resize (numElems + 1, 0);
 
 	// We need a hash map which tells us the index of each elem of type elemType
@@ -88,15 +89,9 @@ void CreateAssociatedElemMap (TIndexVector& elemMapOut,
 	// Count how many associated elements each element has
 	if (assElemDim > elemDim) {
 		for (auto assElemType : assElemTypes) {
-			const index_t numAssElemInds = mesh.inds (assElemType)->size ();
-			const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
-			const index_t* assElemCorners = mesh.inds (assElemType)->raw_ptr ();
-			Grob assElem (assElemType);
-
-			for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
-				assElem.set_corners (assElemCorners + i);
-				for(index_t iside = 0; iside < assElem.num_sides(elemDim); ++iside) {
-					++offsetsOut[elemIndHash[assElem.side (elemDim, iside)]];
+			for(auto grob : *mesh.inds (assElemType)) {
+				for(index_t iside = 0; iside < grob.num_sides(elemDim); ++iside) {
+					++offsetsOut[elemIndHash[grob.side (elemDim, iside)]];
 				}
 			}
 		}
@@ -116,25 +111,21 @@ void CreateAssociatedElemMap (TIndexVector& elemMapOut,
 	elemMapOut.resize (offsetsOut.back() * 2, NO_GROB);
 
 	for (auto assElemType : assElemTypes) {
-		const index_t numAssElemInds = mesh.inds (assElemType)->size ();
-		const index_t numAssElemCorners = mesh.inds (assElemType)->tuple_size ();
-		const index_t* assElemCorners = mesh.inds (assElemType)->raw_ptr ();
-		Grob assElem (assElemType);
-
-		for(index_t i = 0; i < numAssElemInds; i += numAssElemCorners) {
-			assElem.set_corners (assElemCorners + i);
-			for(index_t iside = 0; iside < assElem.num_sides(elemDim); ++iside) {
-				const index_t eind = elemIndHash[assElem.side (elemDim, iside)];
+		index_t assGrobIndex = 0;
+		for(auto assGrob : *mesh.inds (assElemType)) {
+			for(index_t iside = 0; iside < assGrob.num_sides(elemDim); ++iside) {
+				const index_t eind = elemIndHash[assGrob.side (elemDim, iside)];
 				const index_t offset = 2 * offsetsOut [eind];
 				const index_t numAss = offsetsOut [eind + 1] - offsetsOut [eind];
 				for(index_t j = offset; j < offset + 2 * numAss; j+=2) {
 					if (elemMapOut [j] == NO_GROB){
 						elemMapOut [j] = assElemType;
-						elemMapOut [j+1] = i / numAssElemCorners;
+						elemMapOut [j+1] = assGrobIndex;
 						break;
 					}
 				}
 			}
+			++assGrobIndex;
 		}
 	}
 }

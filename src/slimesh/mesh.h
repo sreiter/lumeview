@@ -10,6 +10,7 @@
 #include "annex_storage.h"
 #include "array_annex.h"
 #include "grob.h"
+#include "grob_array.h"
 #include "grob_hash.h"
 #include "types.h"
 
@@ -35,8 +36,6 @@ public:
 	using annex_iterator_t = std::map <AnnexKey, SPAnnex>::iterator;
 	using const_annex_iterator_t = std::map <AnnexKey, SPAnnex>::const_iterator;
 
-
-
 	Mesh () :
 		m_coords (std::make_shared <RealArrayAnnex> ())
 	{
@@ -54,14 +53,18 @@ public:
 
 
 	// INDICES
-	SPIndexArrayAnnex inds (const grob_t gt)
+	SPGrobArray inds (const grob_t gt)
 	{
-		auto t = m_grobStorage.annex(gt);
-		t->set_tuple_size (GrobDesc(gt).num_corners());
-		return t;
+		if (!inds_allocated (gt)) {
+			auto t = std::make_shared <GrobArray> (gt);
+			m_grobStorage.set_annex (gt, t);
+			return t;
+		}
+		else
+			return m_grobStorage.annex(gt);
 	}
 
-	CSPIndexArrayAnnex inds (const grob_t gt) const
+	CSPGrobArray inds (const grob_t gt) const
 	{
 		return m_grobStorage.annex(gt);
 	}
@@ -98,7 +101,7 @@ public:
 	index_t num_inds (grob_t grob)
 	{
 		if (inds_allocated (grob))
-			return inds (grob)->size();
+			return inds (grob)->underlying_array ().size();
 		return 0;
 	}
 
@@ -110,19 +113,19 @@ public:
 		return num;
 	}
 
-	index_t num_tuples (grob_t grob)
+	index_t num (grob_t grob)
 	{
 		if (inds_allocated (grob))
-			return inds (grob)->num_tuples();
+			return inds (grob)->size ();
 		return 0;
 	}
 
-	index_t num_tuples (const GrobSet& gs)
+	index_t num (const GrobSet& gs)
 	{
-		index_t num = 0;
+		index_t counter = 0;
 		for(index_t i = 0; i < gs.size(); ++i)
-			num += num_tuples (gs.grob_type (i));
-		return num;
+			counter += num (gs.grob_type (i));
+		return counter;
 	}
 
 
@@ -210,7 +213,7 @@ private:
 			throw AnnexTypeError ("Mesh::set_coords only supported for type real_t");
 	}
 
-	using index_annex_storage_t	= AnnexStorage <grob_t, IndexArrayAnnex>;
+	using index_annex_storage_t	= AnnexStorage <grob_t, GrobArray>;
 	using mesh_annex_storage_t	= AnnexStorage <AnnexKey, Annex>;
 
 	//	MEMBER VARIABLES

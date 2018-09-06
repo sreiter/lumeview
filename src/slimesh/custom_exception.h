@@ -5,7 +5,7 @@
 #ifndef __H__slimesh_custom_exception
 #define __H__slimesh_custom_exception
 
-#include <exception>
+#include <stdexcept>
 
 ///	Declares an exception class. baseClass should derive from std::exception or similar.
 #define DECLARE_CUSTOM_EXCEPTION(className, baseClass) \

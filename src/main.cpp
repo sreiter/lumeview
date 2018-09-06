@@ -10,6 +10,9 @@
 #include "cond_throw.h"
 #include "renderer.h"
 
+#include "slimesh/tests.h"
+#include "slimesh/file_io.h"
+
 using namespace std;
 using namespace slimesh;
 
@@ -114,7 +117,16 @@ void InitImGui (GLFWwindow* window)
 
 int main (int argc, char** argv)
 {
+	int retVal = 0;
+
 	try {
+		for(int i = 1; i < argc; ++i) {
+			if (strcmp (argv[i], "-tests") == 0) {
+				if (!slimesh::tests::RunTests ())
+					THROW("slimesh::RunTests did not succeed!");
+			}
+		}
+
 		glfwSetErrorCallback (HandleGLFWError);
 		glfwInit ();
 		glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, USE_GL_VERSION_MAJOR);
@@ -166,18 +178,20 @@ int main (int argc, char** argv)
 			glfwPollEvents ();
 		}
 
-	} catch (std::exception& e) {
+	} catch (FileNotFoundError& e) {
+		cout << "\nAn ERROR occurred during execution:\n";
+		cout << "File not found: " << e.what() << endl << endl;
+		retVal = 1;
+	}
+	catch (std::exception& e) {
 		cout << "\nAn ERROR occurred during execution:\n";
 		cout << e.what() << endl << endl;
-		slimesh::ImGui_Shutdown ();
-		RendererDispose ();
-		glfwTerminate ();
-		return 1;
+		retVal = 1;
 	}
 
 	slimesh::ImGui_Shutdown ();
 	RendererDispose ();
 	glfwTerminate ();
-	return 0;
+	return retVal;
 }
 

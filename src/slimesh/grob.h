@@ -475,10 +475,10 @@ public:
 		m_offset (impl::GROB_DESC_OFFSETS [grobType])
 	{}
 
-	inline grob_t type () const						{return static_cast<grob_t>(impl::GROB_DESCS [m_offset]);}
-	const std::string& name () const				{return GrobName (type());}
+	inline grob_t grob_type () const						{return static_cast<grob_t>(impl::GROB_DESCS [m_offset]);}
+	const std::string& name () const				{return GrobName (grob_type());}
 	inline index_t dim () const						{return impl::GROB_DESCS [m_offset + 1];}
-	inline index_t num_corners () const				{return (type() == VERTEX) ? 1 : impl::GROB_DESCS [side_offset (0)];}
+	inline index_t num_corners () const				{return (grob_type() == VERTEX) ? 1 : impl::GROB_DESCS [side_offset (0)];}
 
 	inline index_t local_corner (const index_t cornerIndex) const
 	{
@@ -599,7 +599,7 @@ public:
 	///	only compares corners, ignores order and orientation.
 	bool operator == (const Grob& g) const
 	{
-		if (m_desc.type() != g.m_desc.type())
+		if (m_desc.grob_type() != g.m_desc.grob_type())
 			return false;
 
 		index_t gc[TOTAL_MAX_CORNERS];
@@ -625,13 +625,18 @@ public:
 
 	inline index_t dim () const							{return m_desc.dim ();}
 	
-	inline grob_t type () const							{return m_desc.type ();}
+	inline grob_t grob_type () const					{return m_desc.grob_type ();}
 	
 	inline GrobDesc desc () const 						{return m_desc;}
 
-	inline void set_corners (const index_t* corners)
+	inline void set_global_corner_array (const index_t* corners)
 	{
 		m_globCornerInds = corners;
+	}
+
+	inline const index_t* global_corner_array () const
+	{
+		return m_globCornerInds;
 	}
 
 	inline index_t num_corners () const					{return m_desc.num_corners();}

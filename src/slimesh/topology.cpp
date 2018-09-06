@@ -20,7 +20,7 @@ TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
     for(index_t i = 0; i < gs.size(); ++i) {
       	const index_t numTuples = gs.grob_type (i) == VERTEX ?
           								mesh.coords()->num_tuples() :
-          								mesh.num_tuples (gs.grob_type (i));
+          								mesh.num (gs.grob_type (i));
           
      	m_baseInds [i+1] = m_baseInds [i] + numTuples;
     }
@@ -58,16 +58,53 @@ void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
 		
 		grobBaseIndsOut [grobType] = counter;
 
-		Grob grob (grobType);
 
-		const index_t* cornerInds = mesh.inds (grobType)->raw_ptr();
-		const index_t numCornerInds = mesh.inds (grobType)->size();
-		const index_t numCorners = grob.num_corners();
-
-		for (index_t offset = 0; offset < numCornerInds; offset += numCorners, ++counter) {
-			grob.set_corners(cornerInds + offset);
-			indexMapInOut.insert (make_pair (grob, counter));
+		for(auto grob : *mesh.inds (grobType)) {
+			indexMapInOut.insert (make_pair (grob, counter++));
 		}
+	}
+}
+
+
+void FillElemIndexMap (GrobHashMap <GrobIndex>& indexMapInOut,
+                       const Mesh& mesh,
+                       const GrobSet grobSet)
+{
+	
+	for (auto grobType : grobSet) {
+		if (!mesh.has (grobType))
+			continue;
+		
+		index_t counter = 0;
+
+		for(auto grob : *mesh.inds (grobType)) {
+			indexMapInOut.insert (make_pair (grob, GrobIndex (grobType, counter++)));
+		}
+	}
+}
+
+
+void ComputeGrobValences (GrobHashMap <index_t>& valencesOut,
+                          Mesh& mesh,
+                     	  GrobSet grobs,
+                     	  GrobSet nbrGrobs)
+{
+	valencesOut.clear ();
+
+	const index_t grobDim = grobs.dim();
+	const index_t nbrGrobDim = nbrGrobs.dim();
+
+	if (grobDim < nbrGrobDim) {
+		for(auto nbrGT : nbrGrobs) {
+			for(auto nbrGrob : *mesh.inds (nbrGT)) {
+				for(index_t iside = 0; iside < nbrGrob.num_sides (grobDim); ++iside) {
+					++valencesOut [nbrGrob.side (grobDim, iside)];
+				}
+			}
+		}
+	}
+	else {
+		throw SlimeshError ("ComputeGrobValences is currently only implemented for grobs.dim() < nbrGrobs.dim(). Sorry.");
 	}
 }
 
@@ -83,7 +120,7 @@ index_t FindUniqueSides (GrobHash& sideHashInOut,
 	index_t numInsertions = 0;
 	for (index_t igrob = 0; igrob < numCornerInds; igrob += numGrobCorners)
 	{
-		grob.set_corners(cornerInds + igrob);
+		grob.set_global_corner_array(cornerInds + igrob);
 		// LOGT(grob, grob.corner(0) << ", " << grob.corner(1) << ", " << grob.corner(2) << ", " << grob.corner(3) << "\n");
 		for(index_t iside = 0; iside < grob.num_sides(sideDim); ++iside) {
 			// LOGT(grob, grob.side (iside).corner(0) << ", " << grob.side (iside).corner(1) << "\n");
@@ -104,15 +141,15 @@ void CreateEdgeInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 1) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->raw_ptr(),
-							 mesh.inds(gt)->size(),
+							 mesh.inds(gt)->underlying_array().raw_ptr(),
+							 mesh.inds(gt)->num_indices(),
 							 gt,
 							 1);
 		}
 	}
 	
 	mesh.inds(slimesh::EDGE)->clear();
-	GrobHashToIndexArray (*mesh.inds(slimesh::EDGE), hash);
+	GrobHashToIndexArray (mesh.inds(slimesh::EDGE)->underlying_array(), hash);
 }
 
 
@@ -125,19 +162,38 @@ void CreateFaceInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 2) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->raw_ptr(),
-							 mesh.inds(gt)->size(),
+							 mesh.inds(gt)->underlying_array().raw_ptr(),
+							 mesh.inds(gt)->num_indices(),
 							 gt,
 							 2);
 		}
 	}
 	
 	mesh.inds(TRI)->clear();
-	GrobHashToIndexArray (*mesh.inds(TRI), hash);
+	GrobHashToIndexArray (mesh.inds(TRI)->underlying_array(), hash);
 }
 
 
-// TODO: THIS IS THE NEW CODE. DEBUG IT...
+static void CopyGrobsByValence (SPMesh target,
+                                SPMesh source,
+                                GrobSet grobSet,
+                                Neighborhoods& srcGrobNeighborhoods,
+                                const int valence)
+{
+	for(auto grobType : grobSet) {
+		auto& elems = *source->inds (grobType);
+		auto& newElems = *target->inds (grobType);
+
+		index_t index = 0;
+		for(auto& grob : elems) {
+			const GrobIndex gi (grobType, index);
+			if (srcGrobNeighborhoods.neighbors (gi).size() == valence) {
+				newElems.push_back (grob);
+			}
+			++index;
+		}
+	}
+}
 
 SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities)
 {
@@ -150,72 +206,9 @@ SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilitie
 	GrobSet bndGrobSet = grobSet.side_set (grobSet.dim() - 1);
 	Neighborhoods neighborhoods (mesh, bndGrobSet, grobSet);
 
-//todo: iterate over all grobs
-	for (auto bndGrobType : bndGrobSet) {
-		GrobDesc bndGrobDesc (bndGrobType);
-		
-		const index_t numElemCorners = bndGrobDesc.num_corners();
-		const index_t numElemInds = mesh->inds (bndGrobType)->size();
-		const index_t numElems = numElemInds / numElemCorners;
-		const index_t* elemInds = mesh->inds (bndGrobType)->raw_ptr();
-
-		auto& newElemInds = *bndMesh->inds (bndGrobType);
-
-		if (!visibilities) {
-			for(index_t ielem = 0; ielem < numElems; ++ielem) {
-				const GrobIndex gi (static_cast<grob_t>(bndGrobType), ielem);
-				if (neighborhoods.neighbors (gi).size() == 1) {
-					const index_t firstInd = ielem * numElemCorners;
-
-					for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
-						newElemInds.push_back (elemInds [i]);
-					}
-				}
-			}
-		}
-	}
+	CopyGrobsByValence (bndMesh, mesh, bndGrobSet, neighborhoods, 1);
 
 	return bndMesh;
 }
-
-// SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities)
-// {
-// // TODO: NEW CODE IS ABOVE. DEBUG IT...
-// 	auto bndMesh = make_shared <Mesh> ();
-// 	mesh->share_annexes_with (*bndMesh);
-	
-// 	if (grobSet.dim() == 0)
-// 		return bndMesh;
-
-// 	GrobSet bndGrobSet = grobSet.side_set (grobSet.dim() - 1);
-// 	AssociatedElems assElems (*mesh, bndGrobSet, grobSet);
-
-// //todo: iterate over all grobs
-// 	for (auto bndGrobType : bndGrobSet) {
-// 		GrobDesc bndGrobDesc (bndGrobType);
-		
-// 		const index_t numElemCorners = bndGrobDesc.num_corners();
-// 		const index_t numElemInds = mesh->inds (bndGrobType)->size();
-// 		const index_t numElems = numElemInds / numElemCorners;
-// 		const index_t* elemInds = mesh->inds (bndGrobType)->raw_ptr();
-
-// 		auto& newElemInds = *bndMesh->inds (bndGrobType);
-
-// 		if (!visibilities) {
-// 			for(index_t ielem = 0; ielem < numElems; ++ielem) {
-// 				if (assElems.num_associated (ielem, bndGrobType) == 1) {
-// 					const index_t firstInd = ielem * numElemCorners;
-
-// 					for(index_t i = firstInd; i < firstInd + numElemCorners; ++i) {
-// 						newElemInds.push_back (elemInds [i]);
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return bndMesh;
-// }
-
 
 }//	end of namespace

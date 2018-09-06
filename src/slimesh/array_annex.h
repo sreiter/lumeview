@@ -5,6 +5,7 @@
 #ifndef __H__slimesh_data_buffer
 #define __H__slimesh_data_buffer
 
+#include <iterator>
 #include <memory>
 #include <vector>
 #include "unpack.h"
@@ -24,6 +25,43 @@ public:
 	using size_type = index_t;
 	using iterator = typename std::vector<T>::iterator;
 	using const_iterator = typename std::vector<T>::const_iterator;
+
+	// template <class base_iter_t>
+	// class tuple_iterator_impl {
+	// public:
+	// 	using iterator_category = typename std::iterator_traits<base_iter_t>::iterator_category;
+	// 	using value_type = typename std::iterator_traits<base_iter_t>::value_type;
+	// 	using difference_type = typename std::iterator_traits<base_iter_t>::difference_type;
+	// 	using pointer = typename std::iterator_traits<base_iter_t>::pointer;
+	// 	using reference = typename std::iterator_traits<base_iter_t>::reference;
+
+	// 	tuple_iterator_impl (const base_iter_t& baseIter, diffference_type tupleSize) :
+	// 		m_baseIter (baseIter),
+	// 		m_tupleSize (tupleSize)
+	// 	{}
+
+	// 	tuple_iterator_impl& operator += (difference_type n)
+	// 	{
+	// 		m_baseIter += n m_tupleSize;
+	// 		return *this;
+	// 	}
+
+	// 	tuple_iterator_impl& operator -= (difference_type n)
+	// 	{
+	// 		m_baseIter -= n m_tupleSize;
+	// 		return *this;
+	// 	}
+
+	// 	tuple_iterator_impl operator + (difference_type n)
+	// 	{
+	// 		return 
+	// 	}
+
+
+	// private:
+	// 	base_iter_t m_baseIter;
+	// 	difference_type	m_tupleSize;
+	// };
 
 	ArrayAnnex ()	: m_tupleSize (1) {}
 	ArrayAnnex (const index_t tupleSize) : m_tupleSize (tupleSize) {}
@@ -50,7 +88,7 @@ public:
 	inline void resize (const index_t s, const T& v)	{m_vector.resize (s, v);}
 	inline void reserve (const index_t s)				{m_vector.reserve (s);}
 
-	inline void push_back (const T& v)				{m_vector.push_back (v);}
+	inline void push_back (const T& v)					{m_vector.push_back (v);}
 
 	inline T& operator [] (const index_t i)				{return m_vector[i];}
 	inline const T& operator [] (const index_t i) const	{return m_vector[i];}
