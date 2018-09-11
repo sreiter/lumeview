@@ -36,6 +36,22 @@ using namespace std;
 
 namespace lume {
 
+namespace impl {
+	void GenerateVertexIndicesFromCoords (Mesh& mesh)
+	{
+		GrobArray& vrts = mesh.grobs (VERTEX);
+		const index_t oldNumVrts = vrts.size();
+		const index_t newNumVrts = mesh.coords()->num_tuples();
+		if (newNumVrts > oldNumVrts){
+			vrts.reserve (newNumVrts);
+			for(index_t i = oldNumVrts; i < newNumVrts; ++i)
+				vrts.push_back ({i});
+		}
+		else
+			vrts.resize (newNumVrts);
+	}
+}// end of namespace impl
+
 TotalToGrobIndexMap::
 TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
     m_grobSet (gs)
@@ -45,11 +61,7 @@ TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
 
     m_baseInds[0] = 0;
     for(index_t i = 0; i < gs.size(); ++i) {
-      	const index_t numTuples = gs.grob_type (i) == VERTEX ?
-          								mesh.coords()->num_tuples() :
-          								mesh.num (gs.grob_type (i));
-          
-     	m_baseInds [i+1] = m_baseInds [i] + numTuples;
+     	m_baseInds [i+1] = m_baseInds [i] + mesh.num (gs.grob_type (i));
     }
 }
 
@@ -70,7 +82,7 @@ operator () (const index_t ind) const
 
 
 
-void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
+void FillGrobToIndexMap (GrobHashMap <index_t>& indexMapInOut,
                        index_t* grobBaseIndsOut,
                        const Mesh& mesh,
                        const GrobSet grobSet)
@@ -80,31 +92,34 @@ void FillElemIndexMap (GrobHashMap <index_t>& indexMapInOut,
 	index_t counter = 0;
 	
 	for (auto grobType : grobSet) {
-		if (!mesh.has (grobType))
-			continue;
-		
 		grobBaseIndsOut [grobType] = counter;
 
+		if (!mesh.has (grobType))
+			continue;
 
-		for(auto grob : *mesh.inds (grobType)) {
+		for(auto grob : mesh.grobs (grobType)) {
 			indexMapInOut.insert (make_pair (grob, counter++));
 		}
 	}
 }
 
 
-void FillElemIndexMap (GrobHashMap <GrobIndex>& indexMapInOut,
+void FillGrobToIndexMap (GrobHashMap <GrobIndex>& indexMapInOut,
                        const Mesh& mesh,
                        const GrobSet grobSet)
 {
-	
 	for (auto grobType : grobSet) {
+		if (grobType == VERTEX) {
+		// vertices are not contained int the 'inds' arrays
+
+		}
+
 		if (!mesh.has (grobType))
 			continue;
 		
 		index_t counter = 0;
 
-		for(auto grob : *mesh.inds (grobType)) {
+		for(auto grob : mesh.grobs (grobType)) {
 			indexMapInOut.insert (make_pair (grob, GrobIndex (grobType, counter++)));
 		}
 	}
@@ -122,8 +137,15 @@ void ComputeGrobValences (GrobHashMap <index_t>& valencesOut,
 	const index_t nbrGrobDim = nbrGrobs.dim();
 
 	if (grobDim < nbrGrobDim) {
+		// initialize all grob valences with 0
+		for(auto gt : grobs) {
+			for(auto grob : mesh.grobs (gt)) {
+				valencesOut [grob] = 0;
+			}
+		}
+
 		for(auto nbrGT : nbrGrobs) {
-			for(auto nbrGrob : *mesh.inds (nbrGT)) {
+			for(auto nbrGrob : mesh.grobs (nbrGT)) {
 				for(index_t iside = 0; iside < nbrGrob.num_sides (grobDim); ++iside) {
 					++valencesOut [nbrGrob.side (grobDim, iside)];
 				}
@@ -168,15 +190,15 @@ void CreateEdgeInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 1) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->raw_ptr(),
-							 mesh.inds(gt)->num_indices(),
+							 mesh.grobs(gt).raw_ptr(),
+							 mesh.grobs(gt).num_indices(),
 							 gt,
 							 1);
 		}
 	}
 	
-	mesh.inds(EDGE)->clear();
-	GrobHashToIndexArray (mesh.inds(EDGE)->underlying_array(), hash);
+	mesh.grobs(EDGE).clear();
+	GrobHashToIndexArray (mesh.grobs(EDGE).underlying_array(), hash);
 }
 
 
@@ -189,15 +211,15 @@ void CreateFaceInds (Mesh& mesh)
 	for(auto gt : grobs) {
 		if(GrobDesc(gt).dim() > 2) {
 			FindUniqueSides (hash,
-							 mesh.inds(gt)->raw_ptr(),
-							 mesh.inds(gt)->num_indices(),
+							 mesh.grobs(gt).raw_ptr(),
+							 mesh.grobs(gt).num_indices(),
 							 gt,
 							 2);
 		}
 	}
 	
-	mesh.inds(TRI)->clear();
-	GrobHashToIndexArray (mesh.inds(TRI)->underlying_array(), hash);
+	mesh.grobs(TRI).clear();
+	GrobHashToIndexArray (mesh.grobs(TRI).underlying_array(), hash);
 }
 
 
@@ -208,8 +230,8 @@ static void CopyGrobsByValence (SPMesh target,
                                 const int valence)
 {
 	for(auto grobType : grobSet) {
-		auto& elems = *source->inds (grobType);
-		auto& newElems = *target->inds (grobType);
+		auto& elems = source->grobs (grobType);
+		auto& newElems = target->grobs (grobType);
 
 		index_t index = 0;
 		for(auto& grob : elems) {

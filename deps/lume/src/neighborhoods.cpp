@@ -25,25 +25,83 @@
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef __H__lume_custom_exception
-#define __H__lume_custom_exception
+#include "neighborhoods.h"
+#include "topology.h"
+#include <limits>
 
-#include <stdexcept>
+using namespace std;
 
-///	Declares an exception class. baseClass should derive from std::exception or similar.
-#define DECLARE_CUSTOM_EXCEPTION(className, baseClass) \
-	class className : public baseClass {\
-	public:\
-		className () : baseClass ("") {}\
-		className (const char* what) : baseClass (what) {}\
-		className (const std::string& what) : baseClass (what) {}\
-	}; 
-	
 namespace lume {
 
-/// The base class for all exceptions thrown by slimesh
-DECLARE_CUSTOM_EXCEPTION (LumeError, std::runtime_error);
+Neighborhoods::
+Neighborhoods ()
+{
+	for(index_t i = 0; i < MAX_GROB_SET_SIZE; ++i)
+		m_grobBaseInds[i] = 0;
+}
+
+Neighborhoods::
+Neighborhoods (SPMesh mesh, GrobSet centerGrobTypes, GrobSet neighborGrobTypes)
+{
+	refresh (mesh, centerGrobTypes, neighborGrobTypes);
+}
+
+
+void Neighborhoods::
+refresh ()
+{
+	if (m_mesh) {
+		m_nbrs.set_tuple_size (2);
+		impl::FillNeighborMap (m_nbrs, m_offsets, m_grobBaseInds, *m_mesh,
+		                       m_centerGrobTypes, m_neighborGrobTypes);
+	}
+	else {
+		m_nbrs.clear();
+		m_offsets.clear();
+		m_centerGrobTypes = NO_GROB_SET;
+		m_neighborGrobTypes = NO_GROB_SET;
+	}
+}
+
+void Neighborhoods::
+refresh (SPMesh mesh, GrobSet centerGrobTypes, GrobSet neighborGrobTypes)
+{
+	m_mesh = mesh;
+	m_centerGrobTypes = centerGrobTypes;
+	m_neighborGrobTypes = neighborGrobTypes;
+	refresh();
+}
+
+
+SPMesh Neighborhoods::
+mesh ()
+{
+	return m_mesh;
+}
+
+
+Neighbors Neighborhoods::
+neighbors (const GrobIndex gi) const
+{
+	const index_t baseIndex = base_index (gi);
+
+	if (baseIndex >= m_offsets.size())
+		return Neighbors (0, nullptr);
+
+	const index_t numNbrs = m_offsets [baseIndex + gi.index + 1]
+							- m_offsets [baseIndex + gi.index];
+
+	const index_t* firstNbr = m_nbrs.raw_ptr() + baseIndex * 2;
+
+	return Neighbors (numNbrs, firstNbr);
+}
+
+
+index_t Neighborhoods::
+base_index (const GrobIndex gi) const
+{
+	return m_grobBaseInds[gi.grobType];
+}
+
 
 }//	end of namespace lume
-
-#endif	//__H__lume_custom_exception
