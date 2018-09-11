@@ -59,7 +59,10 @@ add_stage (	std::string name,
 	}
 
 	newStage.shadingPreset = shading;
-	newStage.numInds = mesh->num_inds (EDGE) + mesh->num_inds(TRI) + 3 * mesh->num_inds(QUAD) / 2;
+	newStage.numInds = mesh->num_indices (EDGE)
+					 + mesh->num_indices(TRI)
+					 + 3 * mesh->num_indices(QUAD) / 2;
+
 	newStage.name = std::move (name);
 	newStage.grobSet = grobSet;
 	m_stages.push_back (std::move(newStage));
@@ -182,7 +185,7 @@ prepare_buffers ()
 			
 			uint fill = 0;
 			for(auto gt : gs) {
-				if (mesh->inds(gt)->empty())
+				if (mesh->grobs(gt).empty())
 					continue;
 
 				switch (gt) {
@@ -190,18 +193,18 @@ prepare_buffers ()
 					case TRI:
 						curStage.indBuf->set_sub_data (
 						                fill,
-						                mesh->inds(gt)->raw_ptr(),
-			                        	uint (sizeof(index_t) * mesh->inds(gt)->num_indices()));
-						fill += uint (sizeof(index_t) * mesh->inds(gt)->num_indices());
+						                mesh->grobs(gt).raw_ptr(),
+			                        	uint (sizeof(index_t) * mesh->grobs(gt).num_indices()));
+						fill += uint (sizeof(index_t) * mesh->grobs(gt).num_indices());
 						break;
 
 					case QUAD: {
-						const index_t numQuads = mesh->inds(gt)->size();
-						const index_t numQuadInds = mesh->inds(gt)->num_indices();
+						const index_t numQuads = mesh->grobs(gt).size();
+						const index_t numQuadInds = mesh->grobs(gt).num_indices();
 						std::vector <index_t> tris;
 						tris.reserve (numQuads * 6);
 
-						const index_t* quads = mesh->inds(gt)->raw_ptr();
+						const index_t* quads = mesh->grobs(gt).raw_ptr();
 						for(index_t i = 0; i < numQuadInds; i += 4) {
 							tris.push_back (quads[i]);
 							tris.push_back (quads[i + 1]);
