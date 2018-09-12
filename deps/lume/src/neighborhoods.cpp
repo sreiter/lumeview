@@ -38,38 +38,35 @@ Neighborhoods ()
 {
 	for(index_t i = 0; i < MAX_GROB_SET_SIZE; ++i)
 		m_grobBaseInds[i] = 0;
+
+	m_centerGrobTypes = NO_GROB_SET;
+	m_neighborGrobTypes = NO_GROB_SET;
 }
+
 
 Neighborhoods::
 Neighborhoods (SPMesh mesh, GrobSet centerGrobTypes, GrobSet neighborGrobTypes)
 {
-	refresh (mesh, centerGrobTypes, neighborGrobTypes);
-}
-
-
-void Neighborhoods::
-refresh ()
-{
-	if (m_mesh) {
-		m_nbrs.set_tuple_size (2);
-		impl::FillNeighborMap (m_nbrs, m_offsets, m_grobBaseInds, *m_mesh,
-		                       m_centerGrobTypes, m_neighborGrobTypes);
-	}
-	else {
-		m_nbrs.clear();
-		m_offsets.clear();
-		m_centerGrobTypes = NO_GROB_SET;
-		m_neighborGrobTypes = NO_GROB_SET;
-	}
-}
-
-void Neighborhoods::
-refresh (SPMesh mesh, GrobSet centerGrobTypes, GrobSet neighborGrobTypes)
-{
 	m_mesh = mesh;
 	m_centerGrobTypes = centerGrobTypes;
 	m_neighborGrobTypes = neighborGrobTypes;
-	refresh();
+
+	m_nbrs.set_tuple_size (2);
+	impl::FillNeighborMap (m_nbrs, m_offsets, m_grobBaseInds, *m_mesh,
+	                       m_centerGrobTypes, m_neighborGrobTypes);
+}
+
+
+Neighborhoods::
+Neighborhoods (SPMesh mesh, GrobSet grobTypes, const Neighborhoods& grobConnections)
+{
+	m_mesh = mesh;
+	m_centerGrobTypes = grobTypes;
+	m_neighborGrobTypes = grobTypes;
+
+	m_nbrs.set_tuple_size (2);
+	impl::FillNeighborMap (m_nbrs, m_offsets, m_grobBaseInds, *m_mesh,
+	                       grobTypes, grobConnections);
 }
 
 
@@ -80,27 +77,48 @@ mesh ()
 }
 
 
-Neighbors Neighborhoods::
-neighbors (const GrobIndex gi) const
+NeighborIndices Neighborhoods::
+neighbor_indices (const GrobIndex gi) const
 {
 	const index_t baseIndex = base_index (gi);
 
 	if (baseIndex >= m_offsets.size())
-		return Neighbors (0, nullptr);
+		throw LumeError (std::string("This Neighborhoods instance doesn't provide "
+		                             "neighbors for grobs of type ")
+						.append (GrobName (gi.grobType)));
 
-	const index_t numNbrs = m_offsets [baseIndex + gi.index + 1]
-							- m_offsets [baseIndex + gi.index];
-
-	const index_t* firstNbr = m_nbrs.raw_ptr() + baseIndex * 2;
-
-	return Neighbors (numNbrs, firstNbr);
+	return NeighborIndices (gi, this);
 }
 
+NeighborGrobs Neighborhoods::
+neighbor_grobs (const GrobIndex gi) const
+{
+	return NeighborGrobs (neighbor_indices (gi));
+}
+
+index_t Neighborhoods::
+num_neighbors (const GrobIndex gi) const
+{
+	const index_t oi = offset_index(gi);
+	return m_offsets [oi + 1] - m_offsets [oi];
+}
 
 index_t Neighborhoods::
 base_index (const GrobIndex gi) const
 {
 	return m_grobBaseInds[gi.grobType];
+}
+
+index_t Neighborhoods::
+offset_index (const GrobIndex& gi) const
+{
+	return base_index (gi) + gi.index;
+}
+
+const index_t* Neighborhoods::first_neighbor (const GrobIndex& gi) const
+{
+	const index_t o = m_offsets [offset_index (gi)] * 2;
+	return m_nbrs.raw_ptr() +  o;
 }
 
 

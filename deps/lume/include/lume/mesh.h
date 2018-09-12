@@ -39,6 +39,7 @@
 #include "grob.h"
 #include "grob_array.h"
 #include "grob_hash.h"
+#include "grob_index.h"
 #include "types.h"
 
 namespace lume {
@@ -67,9 +68,24 @@ public:
 	Mesh () :
 		m_coords (std::make_shared <RealArrayAnnex> ())
 	{
+		for(index_t i = 0; i < NUM_GROB_TYPES; ++i) {
+			const grob_t grobType = static_cast<grob_t>(i);
+			m_grobArrays [grobType] = std::unique_ptr <GrobArray> (new GrobArray (grobType));
+		}
+
 		set_annex (AnnexKey ("coords", VERTEX), m_coords);
 	}
 	
+	Mesh (std::initializer_list <GrobSet> supportedGrobSets) :
+		m_coords (std::make_shared <RealArrayAnnex> ())
+	{
+		for(auto grobSet : supportedGrobSets) {
+			for(auto grobType : grobSet)
+				m_grobArrays [grobType] = std::unique_ptr <GrobArray> (new GrobArray (grobType));
+		}
+		set_annex (AnnexKey ("coords", VERTEX), m_coords);
+	}
+
 	~Mesh () {}
 	
 	// COORDINATES
@@ -86,23 +102,22 @@ public:
 	// INDICES
 	GrobArray& grobs (const grob_t grobType)
 	{
-		if (!grobs_allocated (grobType)) {
-			auto t = std::make_shared <GrobArray> (grobType);
-			m_grobStorage.set_annex (grobType, t);
-			return *t;
-		}
-		else
-			return *m_grobStorage.annex(grobType);
+		return *m_grobArrays [grobType];
 	}
 
 	const GrobArray& grobs (const grob_t grobType) const
 	{
-		return *m_grobStorage.annex(grobType);
+		return *m_grobArrays [grobType];
+	}
+
+	Grob grob (const GrobIndex& grobIndex) const
+	{
+		return grobs (grobIndex.grobType) [grobIndex.index];
 	}
 
 	bool grobs_allocated (const grob_t grobType) const
 	{
-		return m_grobStorage.has_annex(grobType);
+		return m_grobArrays [grobType].get() != nullptr;
 	}
 
 	bool has (const grob_t grobType) const
@@ -119,14 +134,15 @@ public:
 		return false;
 	}
 
-	void remove_grobs (const grob_t grobType)
-	{
-		m_grobStorage.remove_annex (grobType);
-	}
-
 	std::vector <grob_t> grob_types() const
 	{
-		return m_grobStorage.collect_keys();
+		std::vector <grob_t> grobTypes;
+		for(index_t i = 0; i < NUM_GROB_TYPES; ++i) {
+			const grob_t grobType = static_cast<grob_t> (i);
+			if (has (grobType))
+				grobTypes.push_back (grobType);
+		}
+		return grobTypes;
 	}
 
 	index_t num (grob_t grobType)
@@ -253,13 +269,13 @@ private:
 			throw AnnexTypeError ("Mesh::set_coords only supported for type real_t");
 	}
 
-	using index_annex_storage_t	= AnnexStorage <grob_t, GrobArray>;
 	using mesh_annex_storage_t	= AnnexStorage <AnnexKey, Annex>;
 
 	//	MEMBER VARIABLES
 	SPRealArrayAnnex			m_coords;
-	index_annex_storage_t	m_grobStorage;
-	mesh_annex_storage_t	m_annexStorage;
+	/** \todo	think about different storage with faster access (e.g. plain array)*/
+	std::unique_ptr<GrobArray>	m_grobArrays [NUM_GROB_TYPES];
+	mesh_annex_storage_t		m_annexStorage;
 };
 
 inline std::ostream& operator<< (std::ostream& out, const Mesh::AnnexKey& v) {

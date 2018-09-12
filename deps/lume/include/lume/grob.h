@@ -662,6 +662,11 @@ public:
 		return true;
 	}
 
+	bool operator != (const Grob& g) const
+	{
+		return !((*this) == g);
+	}
+
 	inline index_t dim () const							{return m_desc.dim ();}
 	
 	inline grob_t grob_type () const					{return m_desc.grob_type ();}
@@ -710,7 +715,7 @@ public:
 		return m_desc.side_desc (sideDim, sideIndex);
 	}
 
-	Grob side (const index_t sideDim, const index_t sideIndex)
+	Grob side (const index_t sideDim, const index_t sideIndex) const
 	{
 		impl::Array_16_4 cornerOffsets;
 		const index_t numCorners = m_desc.side_desc(sideDim, sideIndex).num_corners();
@@ -723,6 +728,19 @@ public:
 		// LOG("\n");
 
 		return Grob (m_desc.side_type (sideDim, sideIndex), m_globCornerInds, cornerOffsets);
+	}
+
+	/// returns the index of the side which corresponds to the given grob
+	/** if no such side was found, 'lume::NO_INDEX' is returned.*/
+	index_t find_side (const Grob& sideGrob) const
+	{
+		const index_t sideDim = sideGrob.dim();
+		const index_t numSides = num_sides (sideDim);
+		for(index_t iside = 0; iside < numSides; ++iside) {
+			if (sideGrob == side (sideDim, iside))
+				return iside;
+		}
+		return NO_INDEX;
 	}
 
 private:
@@ -769,6 +787,8 @@ public:
 	{}
 
 	bool operator == (const GrobSet& gs) const			{return m_offset == gs.m_offset;}
+	bool operator != (const GrobSet& gs) const			{return m_offset != gs.m_offset;}
+
 	grob_set_t type () const							{return grob_set_t (impl::GROB_SET_DESCS [m_offset]);}
 	index_t dim () const								{return impl::GROB_SET_DESCS [m_offset + 1];}
 	const std::string& name () const					{return GrobSetName (type ());}

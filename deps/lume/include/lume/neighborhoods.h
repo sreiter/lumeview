@@ -35,21 +35,50 @@
 namespace lume {
 
 
-/// Gives access to the neighbors of all enteties of the mesh
+/// Gives access to the neighbors of all entities of the mesh
 class Neighborhoods {
+	friend class NeighborIndices;
+	friend class NeighborGrobs;
+
 public:
+
     Neighborhoods ();
+
+    /// Creates a neighborhood between grobs of different type and dimension
+    /** \note it has to hold true: centerGrobTypes != neighborGrobTypes*/
     Neighborhoods (SPMesh mesh, GrobSet centerGrobTypes, GrobSet neighborGrobTypes);
 
-    void refresh ();
-    void refresh (SPMesh mesh, GrobSet centerGrobTypes, GrobSet neighborGrobTypes);
+	/// Creates a neighborhood between grobs of the same type using the specified grobConnections as links
+	/** To create a neighborhoods between faces, where two faces are neighbors if
+	 * they are connected by a vertex, one could execute the following code:
+	 * \code
+	 * Neighborhoods faceNbrs (mesh, FACES, Neighborhoods (mesh, VERTICES, FACES));
+	 * \endcode
+	 *
+	 * To receive a neighborhood between faces connected by their edges, this code would work:
+	 * \code
+	 * Neighborhoods faceNbrs (mesh, FACES, Neighborhoods (mesh, EDGES, FACES));
+	 * \endcode
+	 *
+	 * \param neighborGrobTypes	the following properties have to hold true:
+	 *									- `grobConnections.center_grob_types() != grobTypes`
+	 *									- `grobConnections.neighbor_grob_types() == grobTypes`*/
+    Neighborhoods (SPMesh mesh, GrobSet grobTypes, const Neighborhoods& grobConnections);
 
     SPMesh mesh ();
 
-    Neighbors neighbors (const GrobIndex gi) const;
+    NeighborIndices neighbor_indices (const GrobIndex gi) const;
+    NeighborGrobs neighbor_grobs (const GrobIndex gi) const;
 
+    index_t num_neighbors (const GrobIndex gi) const;
+
+    GrobSet center_grob_set () const	{return m_centerGrobTypes;}
+    GrobSet neighbor_grob_set () const	{return m_neighborGrobTypes;}
+    
 private:
 	index_t base_index (const GrobIndex gi) const;
+	index_t offset_index (const GrobIndex& gi) const;
+	const index_t* first_neighbor (const GrobIndex& gi) const;
 
     IndexArrayAnnex m_offsets;
     IndexArrayAnnex m_nbrs;
@@ -80,11 +109,33 @@ namespace impl {
 	 *			
 	 * \sa FillGrobToIndexMap */
 	template <class TIndexVector>
-	void ComputeNeighborOffsetMap (TIndexVector& offsetsOut,
-	                               Mesh& mesh,
-	                     	       GrobSet grobs,
-	                     	       GrobSet nbrGrobs,
-	                     	       const GrobHashMap <index_t>& grobToIndexMap);
+	void FillHigherDimNeighborOffsetMap (TIndexVector& offsetsOut,
+				                         Mesh& mesh,
+				                     	 GrobSet grobSet,
+				                     	 GrobSet nbrGrobSet,
+				                     	 const GrobHashMap <index_t>& grobToIndexMap);
+
+	template <class TIndexVector>
+	void FillLowerDimNeighborOffsetMap (TIndexVector& offsetsOut,
+				                        Mesh& mesh,
+				                     	GrobSet grobSet,
+				                     	GrobSet nbrGrobSet);
+
+	template <class TIndexVector>
+	void FillHigherDimNeighborMap (TIndexVector& nbrMapOut,
+	                        	   TIndexVector& offsetsOut,
+	                        	   index_t* grobBaseIndsOut,
+	                        	   Mesh& mesh,
+	                        	   GrobSet grobSet,
+	                        	   GrobSet nbrGrobSet);
+
+	template <class TIndexVector>
+	void FillLowerDimNeighborMap (TIndexVector& nbrMapOut,
+	                        	   TIndexVector& offsetsOut,
+	                        	   index_t* grobBaseIndsOut,
+	                        	   Mesh& mesh,
+	                        	   GrobSet grobSet,
+	                        	   GrobSet nbrGrobSet);
 
 	/**
 	 * \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.
@@ -96,6 +147,17 @@ namespace impl {
                             Mesh& mesh,
                             GrobSet elemSet,
                             GrobSet assElemSet);
+
+	/**
+	 * \param grobBaseIndsOut Array of size `NUM_GROB_TYPES`.
+	 */
+	template <class TIndexVector>
+	void FillNeighborMap (TIndexVector& elemMapOut,
+                            TIndexVector& offsetsOut,
+                            index_t* grobBaseIndsOut,
+                            Mesh& mesh,
+                            GrobSet elemSet,
+                            const Neighborhoods& grobConnections);
 }
 
 }//	end of namespace lume

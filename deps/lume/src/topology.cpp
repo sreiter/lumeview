@@ -87,7 +87,7 @@ void FillGrobToIndexMap (GrobHashMap <index_t>& indexMapInOut,
                        const Mesh& mesh,
                        const GrobSet grobSet)
 {
-	VecSet (grobBaseIndsOut, 0, NUM_GROB_TYPES);
+	VecSet (grobBaseIndsOut, NUM_GROB_TYPES, NO_INDEX);
 
 	index_t counter = 0;
 	
@@ -109,11 +109,6 @@ void FillGrobToIndexMap (GrobHashMap <GrobIndex>& indexMapInOut,
                        const GrobSet grobSet)
 {
 	for (auto grobType : grobSet) {
-		if (grobType == VERTEX) {
-		// vertices are not contained int the 'inds' arrays
-
-		}
-
 		if (!mesh.has (grobType))
 			continue;
 		
@@ -152,9 +147,15 @@ void ComputeGrobValences (GrobHashMap <index_t>& valencesOut,
 			}
 		}
 	}
-	else {
-		throw LumeError ("ComputeGrobValences is currently only implemented for grobs.dim() < nbrGrobs.dim(). Sorry.");
+	else if (grobDim > nbrGrobDim) {
+		for(auto gt : grobs) {
+			for(auto grob : mesh.grobs (gt)) {
+				valencesOut [grob] = grob.num_sides (nbrGrobDim);
+			}
+		}
 	}
+	else
+		throw LumeError ("ComputeGrobValences is currently not implemented for grobs.dim() == nbrGrobs.dim(). Sorry.");
 }
 
 
@@ -170,9 +171,7 @@ index_t FindUniqueSides (GrobHash& sideHashInOut,
 	for (index_t igrob = 0; igrob < numCornerInds; igrob += numGrobCorners)
 	{
 		grob.set_global_corner_array(cornerInds + igrob);
-		// LOGT(grob, grob.corner(0) << ", " << grob.corner(1) << ", " << grob.corner(2) << ", " << grob.corner(3) << "\n");
 		for(index_t iside = 0; iside < grob.num_sides(sideDim); ++iside) {
-			// LOGT(grob, grob.side (iside).corner(0) << ", " << grob.side (iside).corner(1) << "\n");
 			const auto r = sideHashInOut.insert(grob.side (sideDim, iside));
 			numInsertions += static_cast<index_t> (r.second);
 		}
@@ -236,13 +235,14 @@ static void CopyGrobsByValence (SPMesh target,
 		index_t index = 0;
 		for(auto& grob : elems) {
 			const GrobIndex gi (grobType, index);
-			if (srcGrobNeighborhoods.neighbors (gi).size() == valence) {
+			if (srcGrobNeighborhoods.num_neighbors (gi) == valence) {
 				newElems.push_back (grob);
 			}
 			++index;
 		}
 	}
 }
+
 
 SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities)
 {
