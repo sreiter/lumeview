@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(gltests)
+project(lumeview)
 set (CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -108,7 +108,7 @@ if (GLFW)
 
     include_directories (${GLFW_INCLUDE})
 
-    set (exeName "slimesh")
+    set (exeName "lumeview")
 
     add_executable (${exeName} ${glfwSources} ${sources} ${depSources})
     add_dependencies(${exeName} glfw)
