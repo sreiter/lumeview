@@ -25,12 +25,13 @@
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#include "custom_exception.h"
-#include "grob.h"
-#include "file_io.h"
-#include "tests.h"
-#include "topology.h"
-#include "neighborhoods.h"
+#include "lume/custom_exception.h"
+#include "lume/grob.h"
+#include "lume/file_io.h"
+#include "lume/parallel_for.h"
+#include "lume/tests.h"
+#include "lume/topology.h"
+#include "lume/neighborhoods.h"
 
 #include <iostream>
 #include <sstream>
@@ -620,6 +621,36 @@ static void TestCreateBoundaryMesh ()
 
 }
 
+
+namespace impl {
+	template <int minSyncLoopSize>
+	void TestParallelFor (const size_t size)
+	{
+		vector <int> v;
+		v.resize(size, 0);
+
+		parallel_for <minSyncLoopSize> (0, v.size(), [](size_t i){v[i] = i;})
+
+		for(size_t i = 0; i < v.size(); ++i) {
+			COND_FAIL (i != v[i], "Vector entry doesn't expected value " << i
+			           << ". Instead it contains: " << v[i]);
+		}
+	}
+
+}// end of namespace impl
+static void TestParallelFor ()
+{
+	TestParallelFor <1> (100);
+	TestParallelFor <2> (100);
+	TestParallelFor <10> (100);
+	TestParallelFor <99> (100);
+	TestParallelFor <100> (100);
+	TestParallelFor <101> (100);
+	TestParallelFor <200> (100);
+}
+
+
+}
 
 
 namespace impl {
