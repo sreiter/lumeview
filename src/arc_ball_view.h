@@ -6,7 +6,7 @@
 #include "window_event_listener.h"
 #include "view.h"
 
-namespace slimesh {
+namespace lumeview {
 
 class ArcBallView : public WindowEventListener {
 public:
@@ -27,6 +27,6 @@ private:
   	ArcBall 	m_arcBall;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__arc_ball_view

@@ -1,11 +1,11 @@
-#ifndef __H__slimesh__gl_buffer
-#define __H__slimesh__gl_buffer
+#ifndef __H__lumeview__gl_buffer
+#define __H__lumeview__gl_buffer
 
 #include <glad/glad.h>	// include before other OpenGL related includes
 #include "config.h"
 #include "cond_throw.h"
 
-namespace slimesh {
+namespace lumeview {
 
 class GLBuffer {
 public:
@@ -80,6 +80,6 @@ private:
 	GLenum	m_memHint;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
-#endif	//__H__slimesh__gl_buffer
+#endif	//__H__lumeview__gl_buffer

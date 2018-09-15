@@ -1,4 +1,4 @@
-// This file is part of slimesh, a C++ mesh library
+// This file is part of lumeview, a C++ mesh library
 //
 // Copyright (C) 2017 Sebastian Reiter, G-CSC Frankfurt <s.b.reiter@gmail.com>
 
@@ -11,7 +11,7 @@
 
 using namespace lume;
 
-namespace slimesh {
+namespace lumeview {
 
 static const char* shadingNames[] = {"none", "flat", "smooth"};
 
@@ -328,4 +328,4 @@ void Visualization::do_imgui (bool* pOpened)
 
     ImGui::End(); // Visualization
 }
-}//	end of namespace slimesh
+}//	end of namespace lumeview

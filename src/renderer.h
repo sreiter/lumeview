@@ -3,7 +3,7 @@
 
 #include "window_event_listener.h"
 
-namespace slimesh {
+namespace lumeview {
 
 WindowEventListener* RendererGetEventListener ();
 void RendererInit ();
@@ -11,6 +11,6 @@ void RendererDispose ();
 void RendererDraw ();
 void RendererProcessGUI (bool draw);
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__renderer

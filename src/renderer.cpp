@@ -28,7 +28,7 @@
 using namespace std;
 using namespace lume;
 
-namespace slimesh {
+namespace lumeview {
 
 const std::string SHADER_PATH = string(RESOURCE_ROOT_PATH) + "/shaders/";
 const std::string MESH_PATH = string(RESOURCE_ROOT_PATH) + "/meshes/";
@@ -217,8 +217,8 @@ void RendererProcessGUI (bool draw)
 
 	ImGui::Render();
 	if (draw) {
-		slimesh::ImGui_RenderDrawData(ImGui::GetDrawData());
+		lumeview::ImGui_RenderDrawData(ImGui::GetDrawData());
 	}
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview

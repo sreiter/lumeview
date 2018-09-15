@@ -18,7 +18,7 @@
 #include "file_util.h"
 #include "config.h"
 
-namespace slimesh {
+namespace lumeview {
 
 class Shader
 {
@@ -169,6 +169,6 @@ private:
 	std::shared_ptr <ShaderData>	m_shaderData;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__shader

@@ -3,11 +3,11 @@
 
 #include <string>
 
-namespace slimesh {
+namespace lumeview {
 
 std::string LoadStringFromFile (const char* filename);
 std::string LoadStringFromFile (const std::string& filename);
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__file_util

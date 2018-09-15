@@ -2,11 +2,11 @@
 #define __H__fwds
 
 
-namespace slimesh {
+namespace lumeview {
 
 class Shader;
 class View;
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__fwds

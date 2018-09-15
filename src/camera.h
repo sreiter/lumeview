@@ -7,7 +7,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 
-namespace slimesh {
+namespace lumeview {
 
 class Camera {
   public:
@@ -40,6 +40,6 @@ class Camera {
     glm::vec3 m_trans;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif  //__H__CAMERA_

@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-namespace slimesh {
+namespace lumeview {
 
 template<typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {

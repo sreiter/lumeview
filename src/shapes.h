@@ -4,7 +4,7 @@
 #include <glm/detail/type_vec3.hpp>
 #include "config.h"
 
-namespace slimesh {
+namespace lumeview {
 
 template <class real_t>
 struct TBox {
@@ -91,6 +91,6 @@ TBox <real_t> BoxFromCoords (const real_t* coords, index_t num, index_t stride);
 template <class real_t>
 TSphere <real_t> SphereFromCoords (const real_t* coords, index_t num, index_t stride);
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__shapes

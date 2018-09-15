@@ -1,11 +1,11 @@
-// This file is part of slimesh, a C++ mesh library
+// This file is part of lumeview, a C++ mesh library
 //
 // Copyright (C) 2018 Sebastian Reiter <s.b.reiter@gmail.com>
 
-#ifndef __H__slimesh_imgui_binding
-#define __H__slimesh_imgui_binding
+#ifndef __H__lumeview_imgui_binding
+#define __H__lumeview_imgui_binding
 
-namespace slimesh {
+namespace lumeview {
 
 class WindowEventListener;
 
@@ -15,6 +15,6 @@ void ImGui_Shutdown();
 void ImGui_RenderDrawData(ImDrawData* draw_data);
 void ImGui_NewFrame();
 
-}//	end of namespace slimesh
+}//	end of namespace lumeview
 
-#endif	//__H__slimesh_imgui_binding
+#endif	//__H__lumeview_imgui_binding

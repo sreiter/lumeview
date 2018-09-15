@@ -8,7 +8,7 @@
 using namespace std;
 using namespace lume;
 
-namespace slimesh {
+namespace lumeview {
 
 template <class real_t>
 TBox <real_t>::TBox ()
@@ -165,4 +165,4 @@ TSphere <real_t> SphereFromCoords (const real_t* coords, index_t num, index_t st
 template TSphere <float> SphereFromCoords <float> (const float*, index_t, index_t);
 template TSphere <double> SphereFromCoords <double> (const double*, index_t, index_t);
 
-}// end of namespace slimesh
+}// end of namespace lumeview

@@ -7,7 +7,7 @@
 #include "../log.h"
 
 using namespace std;
-using namespace slimesh;
+using namespace lumeview;
 
 static WindowEventListener* g_imguiListener = nullptr;
 static WindowEventListener* g_renderListener = nullptr;
@@ -25,7 +25,7 @@ void InitImGui ()
     //  init IMGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    slimesh::ImGui_Init();
+    lumeview::ImGui_Init();
     g_imguiListener = ImGui_GetEventListener ();
 
     // Setup style
@@ -50,7 +50,7 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1dispose(
 {
     RendererDispose ();
     g_renderListener = nullptr;
-    slimesh::ImGui_Shutdown ();
+    lumeview::ImGui_Shutdown ();
     g_imguiListener = nullptr;
 } 
 

@@ -14,7 +14,7 @@
 #include "lume/file_io.h"
 
 using namespace std;
-using namespace slimesh;
+using namespace lumeview;
 using namespace lume;
 
 static WindowEventListener*	g_imguiListener = nullptr;
@@ -102,7 +102,7 @@ void InitImGui (GLFWwindow* window)
 	//	init IMGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    slimesh::ImGui_Init();
+    lumeview::ImGui_Init();
     g_imguiListener = ImGui_GetEventListener ();
 
     // Setup style
@@ -121,13 +121,6 @@ int main (int argc, char** argv)
 	int retVal = 0;
 
 	try {
-		for(int i = 1; i < argc; ++i) {
-			if (strcmp (argv[i], "-tests") == 0) {
-				if (!lume::tests::RunTests ())
-					THROW("lume::RunTests did not succeed!");
-			}
-		}
-
 		glfwSetErrorCallback (HandleGLFWError);
 		glfwInit ();
 		glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, USE_GL_VERSION_MAJOR);
@@ -141,7 +134,7 @@ int main (int argc, char** argv)
 		#endif
 
 	//	Set up window
-		GLFWwindow* window = glfwCreateWindow (800, 600, "slimesh", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow (800, 600, "lumeview", NULL, NULL);
 		COND_THROW (window == NULL, "GLFW::INIT\n" <<
 		            "Failed to create glfw window");
 
@@ -167,7 +160,7 @@ int main (int argc, char** argv)
 
 		while (!glfwWindowShouldClose (window))
 		{
-			slimesh::ImGui_NewFrame();
+			lumeview::ImGui_NewFrame();
 
 			ProcessInput (window);
 
@@ -190,7 +183,7 @@ int main (int argc, char** argv)
 		retVal = 1;
 	}
 
-	slimesh::ImGui_Shutdown ();
+	lumeview::ImGui_Shutdown ();
 	RendererDispose ();
 	glfwTerminate ();
 	return retVal;

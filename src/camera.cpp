@@ -1,7 +1,7 @@
 #include "camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace slimesh {
+namespace lumeview {
 
 Camera::Camera () :
 	m_scale (1.f, 1.f, 1.f),
@@ -113,5 +113,5 @@ view_matrix () const
 	return glm::lookAt (from(), to(), up());
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 

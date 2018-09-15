@@ -7,7 +7,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-namespace slimesh {
+namespace lumeview {
 
 class ArcBall
 {
@@ -56,6 +56,6 @@ class ArcBall
 	bool	m_dragging;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__arc_ball

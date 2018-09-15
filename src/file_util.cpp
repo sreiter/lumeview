@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace slimesh {
+namespace lumeview {
 
 string LoadStringFromFile (const char* filename)
 {
@@ -26,4 +26,4 @@ string LoadStringFromFile (const std::string& filename)
 	return LoadStringFromFile (filename.c_str());
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview

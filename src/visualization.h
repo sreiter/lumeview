@@ -12,7 +12,7 @@
 #include "shapes.h"
 #include "view.h"
 
-namespace slimesh {
+namespace lumeview {
 
 enum ShadingPreset {
 	NONE		= 0,
@@ -96,6 +96,6 @@ private:
 	std::string			m_shaderPath;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__visualization

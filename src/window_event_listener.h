@@ -7,7 +7,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
-namespace slimesh {
+namespace lumeview {
 
 enum MouseButton {
 	LEFT = 0,
@@ -76,6 +76,6 @@ private:
 	std::vector<MouseBtnInfo>	m_mouseBtnInfo;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__window_event_listener

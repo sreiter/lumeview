@@ -10,7 +10,7 @@
 #include "fwds.h"
 #include "camera.h"
 
-namespace slimesh {
+namespace lumeview {
 
 class View {
 public:
@@ -48,6 +48,6 @@ private:
     glm::vec2   m_zClipDists;
 };
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif  //__H__view

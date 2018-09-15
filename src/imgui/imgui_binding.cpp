@@ -1,4 +1,4 @@
-// This file is part of slimesh, a C++ mesh library
+// This file is part of lumeview, a C++ mesh library
 //
 // Copyright (C) 2017 Sebastian Reiter, G-CSC Frankfurt <s.b.reiter@gmail.com>
 
@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace slimesh {
+namespace lumeview {
 
 using clock = chrono::steady_clock;
 
@@ -379,4 +379,4 @@ void ImGui_NewFrame()
     ImGui::NewFrame();
 }
 
-}//	end of namespace slimesh
+}//	end of namespace lumeview

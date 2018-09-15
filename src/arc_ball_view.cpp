@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace slimesh {
+namespace lumeview {
 
 ArcBallView::ArcBallView ()
 {
@@ -121,5 +121,5 @@ void ArcBallView::mouse_scroll (const glm::vec2& o)
 	m_view.camera().scale (glm::vec3(s));
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace slimesh {
+namespace lumeview {
 
 View::View () :
     m_viewport (0, 0, 1, 1),
@@ -126,4 +126,4 @@ glm::vec2 View::z_clip_dists () const
 }
 
 
-}// end of namespace slimesh
+}// end of namespace lumeview

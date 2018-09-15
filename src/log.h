@@ -8,7 +8,7 @@
 #define LOG(msg) {std::stringstream ss; ss << msg; DefLog().add (ss.str().c_str()); std::cout << ss.str();}
 #define LOGT(tag, msg) {std::stringstream ss; ss << "<" << #tag << "> " << msg; DefLog().add (ss.str().c_str()); std::cout << ss.str();}
 
-namespace slimesh {
+namespace lumeview {
 
 struct AppLog
 {
@@ -78,6 +78,6 @@ inline AppLog& DefLog()
     return log;
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview
 
 #endif	//__H__imgui_log

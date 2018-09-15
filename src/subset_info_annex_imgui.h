@@ -1,12 +1,12 @@
-// This file is part of slimesh, a C++ mesh library
+// This file is part of lumeview, a C++ mesh library
 //
 // Copyright (C) 2018 Sebastian Reiter <s.b.reiter@gmail.com>
 
-#ifndef __H__slimesh_subset_info_annex_imgui
-#define __H__slimesh_subset_info_annex_imgui
+#ifndef __H__lumeview_subset_info_annex_imgui
+#define __H__lumeview_subset_info_annex_imgui
 
 #include "lume/subset_info_annex.h"
-namespace slimesh {
+namespace lumeview {
 
 void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProperties>& properties)
 {
@@ -42,6 +42,6 @@ void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProperties>
 	}
 }
 
-}//	end of namespace slimesh
+}//	end of namespace lumeview
 
-#endif	//__H__slimesh_subset_info_annex_imgui
+#endif	//__H__lumeview_subset_info_annex_imgui

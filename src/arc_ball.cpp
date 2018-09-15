@@ -1,7 +1,7 @@
 #include "arc_ball.h"
 #include <glm/gtc/quaternion.hpp>
 
-namespace slimesh {
+namespace lumeview {
 
 ArcBall::ArcBall() :
 	m_rotQuat (1.f, 0.f, 0.f, 0.f), // w = 1, rest 0
@@ -114,4 +114,4 @@ glm::quat ArcBall::get_quat_from_ball_points(const glm::vec3& from, const glm::v
 	return glm::normalize(quat);
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview

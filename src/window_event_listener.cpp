@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace slimesh {
+namespace lumeview {
 
 WindowEventListener::MouseBtnInfo::MouseBtnInfo () :
 		downPos (0),
@@ -102,4 +102,4 @@ void WindowEventListener::character (unsigned int c)
 {
 }
 
-}// end of namespace slimesh
+}// end of namespace lumeview
