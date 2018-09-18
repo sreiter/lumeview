@@ -20,6 +20,11 @@ ExtractGrobs (std::vector<SPMesh>& meshesInOut, const Mesh& mesh, grob_t grobTyp
 // Forward SubsetInfoAnnex to SubMeshes
 // Create a SubMeshInfoAnnex which stores the original mesh and an index
 
+class IVisualization;
+class MeshVisualization;
+class FaceColorVisualization;
+class WireFrameVisualization;
+
 class SubsetVisualization {
 public:
 	SubsetVisualization ();
@@ -27,6 +32,7 @@ public:
 	void set_mesh (SPMesh mesh, GrobSet grobSet)
 	{
 		m_mesh = mesh;
+		m_grobSet = grobSet;
 		m_subsetMeshes.clear();
 		
 		for(auto gt : grobSet) {
@@ -56,27 +62,21 @@ public:
 		m_rimMesh->set_coords (m_mesh->coords());
 
 	//	extract the rim of the visible elements
-		for(auto grobType : GrobSet (CELLS)) {
-			auto isVis = m_mesh->existing_annex <BoolArrayAnnex> ("visible", grobType);
-			// here we reuse the 'subset' annex to temporarily store the srcCellIndices.
-			// We will later replace those by the actual subset index.
-			auto srcCellIndexAnnex = m_rimMesh->annex <IndexArrayAnnex> ("subset", grobType);
-			srcCellIndexAnnex->resize (m_mesh->num (grobType));
+	//	AnnexTable: Allows lookup into annexes of different grobs of the same GrobSet based on a GrobIndex
+		isVis = ArrayAnnexTable <BoolArrayAnnex> (m_mesh, "visible", CELLS, false); // last param: createIfMissing==false
+		srcSubset = ArrayAnnexTable <IndexArrayAnnex> (m_mesh, "subset", CELLS, false); // last param: createIfMissing==false
+		rimSubset = ArrayAnnexTable <IndexArrayAnnex> (m_rimMesh, "subset", FACES, true); // last param: createIfMissing==true
 
-			if (isVis) {
-				CreateRimMesh (m_rimMesh, m_mesh,
-				               [&isVis] (const GrobIndex& gi) {return isVis [gi.index];},
-				               srcCellIndexAnnex);
-			}
-			else {
-				CreateRimMesh (m_rimMesh, m_mesh, srcCellIndexAnnex);
-			}
+		auto gotRimElem = [&srcSubset, &rimSubset] (const GrobIndex& srcGrob, const GrobIndex& rimGrob)
+						  {rimSubset.annex(rimGrob.grobType).push_back (srcSubset[srcGrob]);}
 
-		//	replace cellIndex with cellSubsetIndex
-			auto subset = srcCellIndexAnnex;
-			auto srcCellSubset = m_mesh->annex <IndexArrayAnnex> ("subset", grobType);
-			for(index_t i = 0; i < subset.size(); ++i)
-				subset [i] = srcCellSubset [subset[i]];
+		if (isVis) {
+			CreateRimMesh (m_rimMesh, m_mesh,
+			               [&isVis] (const GrobIndex& gi) {return isVis [gi];},
+			               gotRimElem);
+		}
+		else {
+			CreateRimMesh (m_rimMesh, m_mesh, srcCellIndexAnnex, gotRimElem);
 		}
 	}
 };

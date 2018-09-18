@@ -8,7 +8,6 @@
 #include "arc_ball_view.h"
 #include "cond_throw.h"
 #include "log.h"
-#include "renderer.h"
 #include "vec_math.h"
 
 using namespace std;

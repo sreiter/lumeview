@@ -1,16 +1,13 @@
 #include <jni.h>
 #include <iostream>
 #include "jni_event_listener.h"
-#include "../renderer.h"
-#include "imgui/imgui.h"
-#include "../imgui/imgui_binding.h"
 #include "../log.h"
+#include "../lumeview.h"
 
 using namespace std;
 using namespace lumeview;
 
-static WindowEventListener* g_imguiListener = nullptr;
-static WindowEventListener* g_renderListener = nullptr;
+Lumeview g_lumeview;
 
 static int MapButton (int btn)
 {
@@ -20,27 +17,13 @@ static int MapButton (int btn)
     return btn;
 }
 
-void InitImGui ()
-{
-    //  init IMGUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    lumeview::ImGui_Init();
-    g_imguiListener = ImGui_GetEventListener ();
-
-    // Setup style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
-}
-
 // JNI methods
 JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1init(
     JNIEnv *jEnv, jclass jcls)
 {
-    RendererInit ();
-    g_renderListener = RendererGetEventListener ();
-    InitImGui ();
+	lumeview::LumeviewInit();
+	g_lumeview.add_sample_scene ();
 }
 
 
@@ -48,10 +31,9 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1dispose(
     JNIEnv *jEnv, jclass jcls)
 {
-    RendererDispose ();
-    g_renderListener = nullptr;
-    lumeview::ImGui_Shutdown ();
-    g_imguiListener = nullptr;
+	cout << "DISPOSE\n";
+	g_lumeview.clear();
+	lumeview::LumeviewShutdown();
 } 
 
 
@@ -59,9 +41,8 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1display(
     JNIEnv *jEnv, jclass jcls)
 {
-    ImGui_NewFrame();
-    RendererDraw ();
-    RendererProcessGUI (true);
+	g_lumeview.process_gui ();
+	g_lumeview.render ();
 }
 
 
@@ -69,16 +50,9 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1reshape(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint w, jint h)
 {
-    if(g_imguiListener)
-        g_imguiListener->set_viewport (glm::ivec4(x, y, w, h));
+    g_lumeview.set_viewport (glm::ivec4(x, y, w, h));
 
-    if(g_renderListener)
-        g_renderListener->set_viewport (glm::ivec4(x, y, w, h));
-
-    // if (g_imguiListener) {
-    //     ImGui_NewFrame();
-    //     RendererProcessGUI (false);
-    // }
+    // think about calling g_lumeview.process_gui() here
 }
 
 
@@ -93,64 +67,36 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1move_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y)
 {
-    if(g_imguiListener)
-        g_imguiListener->mouse_move (glm::vec2(x, y));
+    g_lumeview.mouse_move (glm::vec2(x, y));
 
-    if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-        g_renderListener->mouse_move (glm::vec2(x, y));
-
-    // if (g_imguiListener) {
-    //     ImGui_NewFrame();
-    //     RendererProcessGUI (false);
-    // }
+    // think about calling g_lumeview.process_gui() here
 }
 
 JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1drag_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
-    if(g_imguiListener)
-        g_imguiListener->mouse_move (glm::vec2(x, y));
+    g_lumeview.mouse_move (glm::vec2(x, y));
 
-    if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-        g_renderListener->mouse_move (glm::vec2(x, y));
-
-    // if (g_imguiListener) {
-    //     ImGui_NewFrame();
-    //     RendererProcessGUI (false);
-    // }
+    // think about calling g_lumeview.process_gui() here
 }
 
 JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1press_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
-    if(g_imguiListener)
-        g_imguiListener->mouse_button (MapButton(btn), MouseButtonAction::DOWN, 0);
+    g_lumeview.mouse_button (MapButton(btn), MouseButtonAction::DOWN, 0);
 
-    if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-        g_renderListener->mouse_button (MapButton(btn), MouseButtonAction::DOWN, 0);
-
-    // if (g_imguiListener) {
-    //     ImGui_NewFrame();
-    //     RendererProcessGUI (false);
-    // }
+    // think about calling g_lumeview.process_gui() here
 }
 
 JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1release_1event(
     JNIEnv *jEnv, jclass jcls, jint x, jint y, jint btn)
 {
-    if(g_imguiListener)
-        g_imguiListener->mouse_button (MapButton(btn), MouseButtonAction::UP, 0);
+    g_lumeview.mouse_button (MapButton(btn), MouseButtonAction::UP, 0);
 
-    if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-        g_renderListener->mouse_button (MapButton(btn), MouseButtonAction::UP, 0);
-
-    // if (g_imguiListener) {
-    //     ImGui_NewFrame();
-    //     RendererProcessGUI (false);
-    // }
+    // think about calling g_lumeview.process_gui() here
 }
 
 JNIEXPORT void JNICALL
@@ -169,14 +115,7 @@ JNIEXPORT void JNICALL
 Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1mouse_1wheel_1event(
     JNIEnv *jEnv, jclass jcls, jdouble movement)
 {
-    if(g_imguiListener)
-        g_imguiListener->mouse_scroll (glm::vec2 (0, movement));
+    g_lumeview.mouse_scroll (glm::vec2 (0, movement));
 
-    if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-        g_renderListener->mouse_scroll (glm::vec2 (0, movement));
-
-    // if (g_imguiListener) {
-    //     ImGui_NewFrame();
-    //     RendererProcessGUI (false);
-    // }
+    // think about calling g_lumeview.process_gui() here
 }

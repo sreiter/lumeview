@@ -1,101 +1,25 @@
-#ifndef __H__visualization
-#define __H__visualization
+// This file is part of lumeview, a C++ mesh library
+//
+// Copyright (C) 2018 Sebastian Reiter <s.b.reiter@gmail.com>
 
-#include <map>
-#include <memory>
-#include <vector>
+#ifndef __H__lumeview_visualization
+#define __H__lumeview_visualization
 
-#include "gl_buffer.h"
-#include "lume/mesh.h"
-#include "shader.h"
-#include "vec_math.h"
-#include "shapes.h"
+#include "lume/annex.h"
 #include "view.h"
 
 namespace lumeview {
 
-enum ShadingPreset {
-	NONE		= 0,
-	FLAT		= 1,
-	SMOOTH		= 2,
-};
-
-static const index_t NUM_SHADING_PRESETS = 3;
-
-
-class Visualization {
+class Visualization : public lume::Annex {
 public:
-	Visualization();
-	Visualization(std::string shaderPath);
-	Visualization (const Visualization&) = delete;
-
-	void add_stage (std::string name,
-	                lume::SPMesh mesh,
-	                const lume::GrobSet grobSet,
-	                ShadingPreset shading);
-
-	size_t num_stages () const	{return m_stages.size();}
-	size_t last_stage () const	{return num_stages() ? num_stages() - 1 : 0;}
+	virtual void render (const View&) = 0;
 	
-	/// sets the color of the specified stage. If no stage is specified, the last one is used.
-	/** stageInd may be negative. In that case, -1 is the last, -2 the second to last, etc.*/
-	void stage_set_color (const glm::vec4& color, int stageInd = -1);
-
 	///	returns min (x) and max (y) z clip distances required to show all polygons.
-	glm::vec2 estimate_z_clip_dists (const View& view) const;
-
-	void render (const View& view);
-
-	void do_imgui (bool* pOpened = NULL);
-
-private:
-	Shader get_shader (const lume::GrobSet grobSet, ShadingPreset shading);
-	void prepare_buffers ();
-
-	struct Stage {
-		Stage ()	{glGenVertexArrays (1, &vao);}
-		Stage (const Stage&) = delete;
-		Stage (Stage&& s) :
-			name (std::move (s.name)),
-			mesh (std::move (s.mesh)),
-			shadingPreset (std::move (s.shadingPreset)),
-			color (std::move (s.color)),
-			zfacNear (std::move (s.zfacNear)),
-			zfacFar (std::move (s.zfacFar)),
-			vao (std::exchange (s.vao, 0)),
-			coordBuf (std::move (s.coordBuf)),
-			normBuf (std::move (s.normBuf)),
-			indBuf (std::move (s.indBuf)),
-			primType (std::move (s.primType)),
-			numInds (std::move (s.numInds)),
-			grobSet (std::move (s.grobSet)),
-			bndSphere (std::move (s.bndSphere))
-		{}
-
-		~Stage ()	{if (vao) glDeleteVertexArrays (1, &vao);}
-
-		std::string 				name;
-		lume::SPMesh				mesh;
-		ShadingPreset				shadingPreset;
-		glm::vec4					color;
-		float						zfacNear;
-		float						zfacFar;
-
-		uint 						vao;
-		std::shared_ptr <GLBuffer>	coordBuf;
-		std::shared_ptr <GLBuffer>	normBuf;
-		std::shared_ptr <GLBuffer>	indBuf;
-		GLenum						primType;
-		GLsizei						numInds;
-		lume::GrobSet				grobSet;
-		Sphere						bndSphere;
-	};
-
-	std::vector <Stage> m_stages;
-	Shader				m_shaders[lume::NUM_GROB_TYPES + 1][NUM_SHADING_PRESETS];
-	std::string			m_shaderPath;
+	virtual glm::vec2 estimate_z_clip_dists (const View& view) const = 0;
 };
 
-}// end of namespace lumeview
+using SPVisualization = std::shared_ptr <Visualization>;
 
-#endif	//__H__visualization
+}//	end of namespace lumeview
+
+#endif	//__H__lumeview_visualization

@@ -31,10 +31,11 @@ set (sources
     	src/arc_ball_view.cpp
     	src/camera.cpp
         src/file_util.cpp
+        src/lumeview.cpp
+        src/scene.cpp
         src/shapes.cpp
-        src/renderer.cpp
+        src/solid_visualization.cpp
         src/view.cpp
-        src/visualization.cpp
     	src/window_event_listener.cpp
 
         src/imgui/imgui_binding.cpp

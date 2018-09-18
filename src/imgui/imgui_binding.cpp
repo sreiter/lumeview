@@ -45,6 +45,10 @@ WindowEventListener* ImGui_GetEventListener ()
 
 bool ImGui_Init(const char* glsl_version)
 {
+
+	IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
     // Store GL version string so we can refer to it later in case we recreate shaders.
     if (glsl_version == nullptr)
         glsl_version = "#version 150";
@@ -52,8 +56,20 @@ bool ImGui_Init(const char* glsl_version)
     strcpy(g_GlslVersion, glsl_version);
     strcat(g_GlslVersion, "\n");
 
+    ImGui::StyleColorsDark();
+
     g_Time = clock::now();
     return true;
+}
+
+void ImGui_SetClipboardCallbacks (	const char* (*getText) (void* userData),
+                            		void (*setText) (void* userData, const char* text),
+                            		void* userData)
+{
+	ImGuiIO& io = ImGui::GetIO();
+    io.GetClipboardTextFn = getText;
+	io.SetClipboardTextFn = setText;
+    io.ClipboardUserData = userData;
 }
 
 
@@ -177,6 +193,13 @@ void ImGui_RenderDrawData(ImDrawData* draw_data)
     glPolygonMode(GL_FRONT_AND_BACK, (GLenum)last_polygon_mode[0]);
     glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
     glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
+}
+
+void ImGui_Display(ImDrawData* draw_data)
+{
+	if (!draw_data)
+		draw_data = ImGui::GetDrawData();
+	ImGui_RenderDrawData (draw_data);
 }
 
 bool ImGui_CreateFontsTexture()

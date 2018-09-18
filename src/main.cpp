@@ -8,17 +8,16 @@
 
 #include "log.h"
 #include "cond_throw.h"
-#include "renderer.h"
+#include "lumeview.h"
 
-#include "lume/tests.h"
 #include "lume/file_io.h"
 
 using namespace std;
 using namespace lumeview;
 using namespace lume;
 
-static WindowEventListener*	g_imguiListener = nullptr;
-static WindowEventListener*	g_renderListener = nullptr;
+Lumeview g_lumeview;
+
 static glm::vec2			g_pixelScale (1);
 
 void HandleGLFWError (int error, const char* description)
@@ -36,45 +35,22 @@ void FramebufferResized (GLFWwindow* window, int width, int height)
 		g_pixelScale = glm::vec2 ((float) width / (float) winWidth,
 		                          (float) height / (float) winHeight);
 
-	if(g_imguiListener)
-		g_imguiListener->set_viewport (glm::ivec4(0, 0, width, height));
-
-	if(g_renderListener)
-		g_renderListener->set_viewport (glm::ivec4(0, 0, width, height));
-}
-
-
-void ProcessInput (GLFWwindow* window)
-{
-	if (glfwGetKey (window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose (window, true);
+	g_lumeview.set_viewport (glm::ivec4(0, 0, width, height));
 }
 
 void CursorPositionCallback(GLFWwindow* window, double x, double y)
 {
-	if (g_imguiListener)
-		g_imguiListener->mouse_move (glm::vec2(x, y) * g_pixelScale);
-
-	if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-		g_renderListener->mouse_move (glm::vec2(x, y) * g_pixelScale);
+	g_lumeview.mouse_move (glm::vec2(x, y) * g_pixelScale);
 }
 
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (g_imguiListener)
-		g_imguiListener->mouse_button (button, action, mods);
-
-	if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-		g_renderListener->mouse_button (button, action, mods);
+	g_lumeview.mouse_button (button, action, mods);
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	if (g_imguiListener)
-		g_imguiListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
-
-	if(g_renderListener && !ImGui::GetIO().WantCaptureMouse)
-		g_renderListener->mouse_scroll (glm::vec2 (xoffset, yoffset));
+	g_lumeview.mouse_scroll (glm::vec2 (xoffset, yoffset));
 }
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -99,21 +75,9 @@ static void ImGui_SetClipboardText(void* user_data, const char* text)
 
 void InitImGui (GLFWwindow* window)
 {
-	//	init IMGUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    lumeview::ImGui_Init();
-    g_imguiListener = ImGui_GetEventListener ();
-
-    // Setup style
-    ImGui::StyleColorsDark();
-    // ImGui::StyleColorsLight();
-    // ImGui::StyleColorsClassic();
-
-    ImGuiIO& io = ImGui::GetIO();
-	io.SetClipboardTextFn = ImGui_SetClipboardText;
-    io.GetClipboardTextFn = ImGui_GetClipboardText;
-    io.ClipboardUserData = window;
+	ImGui_SetClipboardCallbacks (ImGui_GetClipboardText,
+	                             ImGui_SetClipboardText,
+	                             window);
 }
 
 int main (int argc, char** argv)
@@ -141,8 +105,8 @@ int main (int argc, char** argv)
 		glfwMakeContextCurrent (window);
 		glfwSwapInterval(1);
 
-		RendererInit ();
-	    g_renderListener = RendererGetEventListener ();
+		LumeviewInit ();
+		g_lumeview.add_sample_scene ();
 
 	    InitImGui (window);
 
@@ -160,13 +124,8 @@ int main (int argc, char** argv)
 
 		while (!glfwWindowShouldClose (window))
 		{
-			lumeview::ImGui_NewFrame();
-
-			ProcessInput (window);
-
-			RendererDraw ();
-
-			RendererProcessGUI (true);
+			g_lumeview.process_gui ();
+			g_lumeview.render ();
 			
 			glfwSwapBuffers (window);
 			glfwPollEvents ();
@@ -183,8 +142,8 @@ int main (int argc, char** argv)
 		retVal = 1;
 	}
 
-	lumeview::ImGui_Shutdown ();
-	RendererDispose ();
+	g_lumeview.clear();
+	lumeview::LumeviewShutdown ();
 	glfwTerminate ();
 	return retVal;
 }

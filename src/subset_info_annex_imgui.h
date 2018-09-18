@@ -8,7 +8,7 @@
 #include "lume/subset_info_annex.h"
 namespace lumeview {
 
-void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProperties>& properties)
+inline void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProperties>& properties)
 {
 	using namespace lume;
 	
