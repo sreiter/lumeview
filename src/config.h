@@ -5,10 +5,16 @@
 #ifndef __H__lumeview_config
 #define __H__lumeview_config
 
+#include <string>
 #include "lume/types.h"
 
-using lume::uint;
-using lume::index_t;
-using lume::real_t;
+namespace lumeview {
+	using lume::uint;
+	using lume::index_t;
+	using lume::real_t;
+
+	extern const std::string SHADER_PATH;
+	extern const std::string MESH_PATH;
+}// end of namespace
 
 #endif	//__H__lumeview_config

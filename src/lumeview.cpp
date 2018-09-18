@@ -16,7 +16,7 @@
 #include "imgui/imgui_binding.h"
 
 #include "shapes.h"
-#include "solid_visualization.h"
+#include "plain_visualization.h"
 #include "subset_info_annex_imgui.h"
 
 #include "lume/normals.h"
@@ -30,9 +30,6 @@ using namespace lume;
 
 
 namespace lumeview {
-
-static const string SHADER_PATH = string(RESOURCE_ROOT_PATH) + "/shaders/";
-static const string MESH_PATH = string(RESOURCE_ROOT_PATH) + "/meshes/";
 
 void LumeviewInit ()
 {
@@ -212,48 +209,48 @@ static void PrintMeshInfo (SPMesh mesh)
 
 void Lumeview::add_sample_scene ()
 {
-	auto vis = make_shared <SolidVisualization> (SHADER_PATH);
-
 	// const std::string filename = MESH_PATH + "tet.ugx";
 	const std::string filename = MESH_PATH + "elems_refined.ugx";
 	// const std::string filename = MESH_PATH + "tri_and_quad.ugx";
 	// const std::string filename = MESH_PATH + "bunny.stl";
-	auto mainMesh = CreateMeshFromFile (filename);
+	auto mesh = CreateMeshFromFile (filename);
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
-	PrintMeshInfo (mainMesh);
+	PrintMeshInfo (mesh);
 
-	const glm::vec4 solidColor (1.0f, 0.843f, 0.f, 1.0f);
-	const glm::vec4 wireColor (0.2f, 0.2f, 0.2f, 1.0f);
-	const glm::vec4 bndColor (1.0f, 0.2f, 0.2f, 1.0f);
+	// const glm::vec4 solidColor (1.0f, 0.843f, 0.f, 1.0f);
+	// const glm::vec4 wireColor (0.2f, 0.2f, 0.2f, 1.0f);
+	// const glm::vec4 bndColor (1.0f, 0.2f, 0.2f, 1.0f);
 
-	if (mainMesh->has (CELLS)) {
-		auto bndMesh = CreateBoundaryMesh (mainMesh, CELLS);
-		ComputeFaceVertexNormals3 (*bndMesh, "normals");
-		CreateEdgeInds (*bndMesh);
-		vis->add_stage ("solid", bndMesh, FACES, FLAT);
-		vis->stage_set_color (solidColor);
-		vis->add_stage ("wire", bndMesh, EDGES, FLAT);
-		vis->stage_set_color (wireColor);
-	}
-	else if (mainMesh->has (FACES)) {
-		ComputeFaceVertexNormals3 (*mainMesh, "normals");
-		CreateEdgeInds (*mainMesh);
-		vis->add_stage ("solid", mainMesh, FACES, FLAT);
-		vis->stage_set_color (solidColor);
-		vis->add_stage ("wire", mainMesh, EDGES, FLAT);
-		vis->stage_set_color (wireColor);
-		auto bndMesh = CreateBoundaryMesh (mainMesh, FACES);
-		vis->add_stage ("bnd", bndMesh, EDGES, NONE);
-		vis->stage_set_color (bndColor);
-	}
-	else if (mainMesh->has (EDGES)) {
-		ComputeFaceVertexNormals3 (*mainMesh, "normals");
-		vis->add_stage ("wire", mainMesh, EDGES, NONE);
-		vis->stage_set_color (wireColor);
-	}
+	// if (mainMesh->has (CELLS)) {
+	// 	auto bndMesh = CreateBoundaryMesh (mainMesh, CELLS);
+	// 	ComputeFaceVertexNormals3 (*bndMesh, "normals");
+	// 	CreateEdgeInds (*bndMesh);
+	// 	vis->add_stage ("solid", bndMesh, FACES, FLAT);
+	// 	vis->stage_set_color (solidColor);
+	// 	vis->add_stage ("wire", bndMesh, EDGES, FLAT);
+	// 	vis->stage_set_color (wireColor);
+	// }
+	// else if (mainMesh->has (FACES)) {
+	// 	ComputeFaceVertexNormals3 (*mainMesh, "normals");
+	// 	CreateEdgeInds (*mainMesh);
+	// 	vis->add_stage ("solid", mainMesh, FACES, FLAT);
+	// 	vis->stage_set_color (solidColor);
+	// 	vis->add_stage ("wire", mainMesh, EDGES, FLAT);
+	// 	vis->stage_set_color (wireColor);
+	// 	auto bndMesh = CreateBoundaryMesh (mainMesh, FACES);
+	// 	vis->add_stage ("bnd", bndMesh, EDGES, NONE);
+	// 	vis->stage_set_color (bndColor);
+	// }
+	// else if (mainMesh->has (EDGES)) {
+	// 	ComputeFaceVertexNormals3 (*mainMesh, "normals");
+	// 	vis->add_stage ("wire", mainMesh, EDGES, NONE);
+	// 	vis->stage_set_color (wireColor);
+	// }
 
+	auto vis = make_shared <PlainVisualization> ();
+	vis->set_mesh (mesh);
 	auto scene = make_shared <Scene>();
-	scene->add_entry (mainMesh, vis);
+	scene->add_entry (mesh, vis);
 	add_scene (scene);
 }
 }//	end of namespace lumeview

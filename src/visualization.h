@@ -5,12 +5,11 @@
 #ifndef __H__lumeview_visualization
 #define __H__lumeview_visualization
 
-#include "lume/annex.h"
 #include "view.h"
 
 namespace lumeview {
 
-class Visualization : public lume::Annex {
+class Visualization {
 public:
 	virtual void render (const View&) = 0;
 	

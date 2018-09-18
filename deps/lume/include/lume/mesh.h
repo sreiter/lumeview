@@ -51,15 +51,15 @@ class Mesh {
 public:
 
 	struct AnnexKey {
-		AnnexKey ()									: name (""), grobId (NO_GROB) {}
-		// AnnexKey (const char* _name)					: name (_name), grobId (NO_GROB) {}
-		// AnnexKey (std::string _name)					: name (std::move(_name)), grobId (NO_GROB) {}
-		AnnexKey (std::string _name, grob_t _grobId)	: name (std::move(_name)), grobId (_grobId) {}
-		bool operator < (const AnnexKey& key) const			{return grobId < key.grobId || (grobId == key.grobId && name < key.name);}
+		AnnexKey ()									: name (""), grobType (NO_GROB) {}
+		// AnnexKey (const char* _name)					: name (_name), grobType (NO_GROB) {}
+		// AnnexKey (std::string _name)					: name (std::move(_name)), grobType (NO_GROB) {}
+		AnnexKey (std::string _name, grob_t _grobType)	: name (std::move(_name)), grobType (_grobType) {}
+		bool operator < (const AnnexKey& key) const			{return grobType < key.grobType || (grobType == key.grobType && name < key.name);}
 		// std::ostream& operator << (std::ostream& out) const	{out << name; return out;}
 		
 		std::string name;
-		grob_t		grobId;
+		grob_t		grobType;
 	};
 
 	using annex_iterator_t = std::map <AnnexKey, SPAnnex>::iterator;
@@ -264,7 +264,7 @@ public:
 	{
 		auto& annexMap = m_annexStorage.annex_map();
 		for (auto& entry : annexMap) {
-			if (entry.first.grobId == gt) {
+			if (entry.first.grobType == gt) {
 				target.set_annex (entry.first, entry.second);
 			}
 		}

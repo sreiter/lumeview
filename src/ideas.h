@@ -78,5 +78,7 @@ public:
 		else {
 			CreateRimMesh (m_rimMesh, m_mesh, srcCellIndexAnnex, gotRimElem);
 		}
+
+		subsetMeshesFromGrobs (m_rimMesh, FACES);
 	}
 };

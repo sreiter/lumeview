@@ -1,5 +1,5 @@
-#ifndef __H__SolidVisualization
-#define __H__SolidVisualization
+#ifndef __H__Renderer
+#define __H__Renderer
 
 #include <map>
 #include <memory>
@@ -11,8 +11,6 @@
 #include "vec_math.h"
 #include "shapes.h"
 #include "view.h"
-#include "visualization.h"
-
 
 namespace lumeview {
 
@@ -25,13 +23,13 @@ enum ShadingPreset {
 static const index_t NUM_SHADING_PRESETS = 3;
 
 
-class SolidVisualization : public Visualization {
+class Renderer {
 public:
-	SolidVisualization();
-	SolidVisualization(std::string shaderPath);
-	SolidVisualization (const SolidVisualization&) = delete;
+	Renderer ();
+	Renderer (std::string shaderPath);
+	Renderer (const Renderer&) = delete;
 
-	const char* class_name() const override		{return "SolidVisualization";}
+	void clear ();
 	
 	void add_stage (std::string name,
 	                lume::SPMesh mesh,
@@ -46,7 +44,7 @@ public:
 	void stage_set_color (const glm::vec4& color, int stageInd = -1);
 
 	///	returns min (x) and max (y) z clip distances required to show all polygons.
-	glm::vec2 estimate_z_clip_dists (const View& view) const override;
+	glm::vec2 estimate_z_clip_dists (const View& view) const;
 
 	void render (const View& view);
 
@@ -102,4 +100,4 @@ private:
 
 }// end of namespace lumeview
 
-#endif	//__H__SolidVisualization
+#endif	//__H__Renderer

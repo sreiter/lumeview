@@ -42,9 +42,9 @@ void Scene::do_imgui (bool* pOpened)
 	for(auto& entry : m_entries) {
 		ImGui::PushID (entry.mesh.get());
 		if (ImGui::CollapsingHeader("entry")) {
-			if (entry.vis && entry.vis->has_imgui()) {
-				entry.vis->do_imgui();
-			}
+			// if (entry.vis && entry.vis->has_imgui()) {
+			// 	entry.vis->do_imgui();
+			// }
 
 			for (auto annexIter = entry.mesh->annex_begin();
 			     annexIter != entry.mesh->annex_end(); ++annexIter)

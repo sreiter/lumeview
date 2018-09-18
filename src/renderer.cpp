@@ -5,7 +5,8 @@
 #include <limits>
 #include <algorithm>
 
-#include "solid_visualization.h"
+#include "config.h"
+#include "renderer.h"
 #include "imgui/imgui.h"
 #include <glm/gtc/type_ptr.hpp>
 
@@ -15,17 +16,24 @@ namespace lumeview {
 
 static const char* shadingNames[] = {"none", "flat", "smooth"};
 
-SolidVisualization::
-SolidVisualization()	{}
+Renderer::
+Renderer() :
+	m_shaderPath (SHADER_PATH)
+{}
 
-SolidVisualization::
-SolidVisualization(std::string shaderPath) :
+Renderer::
+Renderer(std::string shaderPath) :
 	m_shaderPath (std::move (shaderPath))
 {
 }
 
+void Renderer::
+clear ()
+{
+	m_stages.clear();
+}
 
-void SolidVisualization::
+void Renderer::
 add_stage (	std::string name,
             SPMesh mesh,
             const GrobSet grobSet,
@@ -55,7 +63,7 @@ add_stage (	std::string name,
 			newStage.zfacFar = 1.0f;
 			break;
 		default:
-			THROW("SolidVisualization::add_stage: Unsupported grid object type in specified mesh.");
+			THROW("Renderer::add_stage: Unsupported grid object type in specified mesh.");
 	}
 
 	newStage.shadingPreset = shading;
@@ -68,7 +76,7 @@ add_stage (	std::string name,
 	m_stages.push_back (std::move(newStage));
 }
 
-void SolidVisualization::
+void Renderer::
 stage_set_color (const glm::vec4& color, int stageInd)
 {
 	if (stageInd < 0)
@@ -76,9 +84,9 @@ stage_set_color (const glm::vec4& color, int stageInd)
 	m_stages.at (stageInd).color = color;
 }
 
-// void SolidVisualization::
+// void Renderer::
 // provide_shading_requirements (Stage& stage)
-glm::vec2 SolidVisualization::
+glm::vec2 Renderer::
 estimate_z_clip_dists (const View& view) const
 {
 	using std::min;
@@ -105,7 +113,7 @@ estimate_z_clip_dists (const View& view) const
 	return zDist * glm::vec2(0.9f, 1.1f);
 }
 
-void SolidVisualization::
+void Renderer::
 prepare_buffers ()
 {
 	for(size_t istage = 0; istage < m_stages.size(); ++istage) {
@@ -227,7 +235,7 @@ prepare_buffers ()
 	}
 }
 
-void SolidVisualization::
+void Renderer::
 render (const View& view)
 {
 	prepare_buffers ();
@@ -250,7 +258,7 @@ render (const View& view)
 }
 
 
-Shader SolidVisualization::
+Shader Renderer::
 get_shader (const GrobSet grobSet, ShadingPreset shading)
 {
 	COND_THROW (grobSet.size() == 0, "Invalid grob set specified: " << grobSet.name());
@@ -306,10 +314,10 @@ get_shader (const GrobSet grobSet, ShadingPreset shading)
 }
 
 
-void SolidVisualization::do_imgui (bool* pOpened)
+void Renderer::do_imgui (bool* pOpened)
 {
 	ImGui::SetNextWindowSize(ImVec2(300,500), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin("SolidVisualization", pOpened, 0)) {
+    if (!ImGui::Begin("Renderer", pOpened, 0)) {
         // Early out if the window is collapsed, as an optimization.
         ImGui::End();
         return;
@@ -327,6 +335,6 @@ void SolidVisualization::do_imgui (bool* pOpened)
 	    }
     }
 
-    ImGui::End(); // SolidVisualization
+    ImGui::End(); // Renderer
 }
 }//	end of namespace lumeview

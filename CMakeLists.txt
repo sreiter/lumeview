@@ -30,11 +30,13 @@ set (sources
     	src/arc_ball.cpp
     	src/arc_ball_view.cpp
     	src/camera.cpp
+    	src/config.cpp
         src/file_util.cpp
         src/lumeview.cpp
+        src/plain_visualization.cpp
+        src/renderer.cpp
         src/scene.cpp
         src/shapes.cpp
-        src/solid_visualization.cpp
         src/view.cpp
     	src/window_event_listener.cpp
 
