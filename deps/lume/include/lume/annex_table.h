@@ -24,28 +24,59 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef __H__lume_annex_table
+#define __H__lume_annex_table
 
-#include "lume/custom_exception.h"
-#include "lume/tests.h"
+#include "grob.h"
+#include "mesh.h"
 
-#include <iostream>
+namespace lume {
 
-using namespace std;
-using namespace lume;
+template <class TAnnex>
+class AnnexTable {
+public:
+	
+	using SPTAnnex = std::shared_ptr <TAnnex>;
+	using CSPTAnnex = std::shared_ptr <const TAnnex>;
 
-int main (int argc, char** argv)
-{
-	int retVal = 0;
-
-	try {
-		if (!lume::tests::RunTests ())
-			throw LumeError ("lume::RunTests did not succeed!");
+	AnnexTable (SPMesh mesh, const std::string& annexName, GrobSet grobSet, bool createMissing)
+	{
+		for(auto gt : grobSet) {
+			if (createMissing || mesh->has_annex <TAnnex> (annexName))
+				m_annexes [gt] = mesh->annex <TAnnex> (annexName);
+		}
 	}
-	catch (std::exception& e) {
-		cout << "\nAn ERROR occurred during execution:\n";
-		cout << e.what() << endl << endl;
-		retVal = 1;
-	}
 
-	return retVal;
-}
+	SPTAnnex annex (const grob_t grobType)			{return m_annexes [grobType];}
+	CSPTAnnex annex (const grob_t grobType) const	{return m_annexes [grobType];}
+
+private:
+	SPTAnnex m_annexes [NUM_GROB_TYPES];
+};
+
+
+template <class TAnnex>
+class ArrayAnnexTable {
+public:
+	
+	using SPTAnnex = std::shared_ptr <TAnnex>;
+	using CSPTAnnex = std::shared_ptr <const TAnnex>;
+
+	ArrayAnnexTable (SPMesh mesh, const std::string& annexName, GrobSet grobSet, bool createMissing) :
+		m_annexTable (mesh, annexName, grobSet, createMissing)
+	{}
+
+	SPTAnnex annex (const grob_t grobType)			{return m_annexTable.annex (grobType);}
+	CSPTAnnex annex (const grob_t grobType) const	{return m_annexTable.annex (grobType);}
+
+	auto& operator [] (const GrobIndex& gi)				{return (*m_annexTable.annex (gi.grobType))[gi.index];}
+	const auto& operator [] (const GrobIndex& gi) const	{return (*m_annexTable.annex (gi.grobType))[gi.index];}
+
+private:
+	AnnexTable <TAnnex>	m_annexTable;
+};
+
+	
+}//	end of namespace lume
+
+#endif	//__H__lume_annex_table

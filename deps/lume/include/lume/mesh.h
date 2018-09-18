@@ -214,6 +214,22 @@ public:
 	std::shared_ptr <const T>
 	annex (const std::string& name, grob_t gt) const		{return annex <T> (AnnexKey (name, gt));}
 
+	template <class T>
+	std::shared_ptr <T>
+	optional_annex (const AnnexKey& key)						{return std::dynamic_pointer_cast<T> (m_annexStorage.optional_annex <T> (key));}
+
+	template <class T>
+	std::shared_ptr <T>
+	optional_annex (const std::string& name, grob_t gt)			{return optional_annex <T> (AnnexKey (name, gt));}
+
+	template <class T>
+	std::shared_ptr <const T>
+	optional_annex (const AnnexKey& key) const					{return std::dynamic_pointer_cast<const T> (m_annexStorage.optional_annex (key));}
+
+	template <class T>
+	std::shared_ptr <const T>
+	optional_annex (const std::string& name, grob_t gt) const	{return optional_annex <T> (AnnexKey (name, gt));}
+
 
 	///	explicitly set an annex for a mesh (old one will be replaced)
 	void set_annex (const AnnexKey& key,

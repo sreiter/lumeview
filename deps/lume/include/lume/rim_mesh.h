@@ -24,16 +24,41 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef __H__lume_rim_mesh
+#define __H__lume_rim_mesh
 
-#ifndef __H__lume_tests
-#define __H__lume_tests
+#include <functional>
+#include "mesh.h"
 
 namespace lume {
-namespace tests {
 
-bool RunTests ();
+void CreateRimMesh (SPMesh rimMeshOut,
+                    SPMesh mesh,
+                    GrobSet grobSet,
+                    const std::function <bool (const GrobIndex& gi)>&
+                    	visFunc = [](const GrobIndex&){return true;},
+                    const std::function <void (const GrobIndex& rimGrob, const GrobIndex& srcGrob)>&
+                      	gotRimGrobFunc = [](const GrobIndex&, const GrobIndex&){});
 
-}//	end of namespace tests
+
+void CreateRimMesh (SPMesh rimMeshOut,
+                    SPMesh mesh,
+                    GrobSet grobSet,
+                    const std::function <void (const GrobIndex& rimGrob, const GrobIndex& srcGrob)>& gotRimGrobFunc);
+
+SPMesh CreateRimMesh (SPMesh mesh,
+                      GrobSet grobSet,
+                      const std::function <bool (const GrobIndex& gi)>&
+                      	  visFunc = [](const GrobIndex&){return true;},
+                      const std::function <void (const GrobIndex& rimGrob, const GrobIndex& srcGrob)>&
+                          gotRimGrobFunc = [](const GrobIndex&, const GrobIndex&){});
+
+
+SPMesh CreateRimMesh (SPMesh mesh,
+                      GrobSet grobSet,
+                      const std::function <void (const GrobIndex& rimGrob, const GrobIndex& srcGrob)>& gotRimGrobFunc);
+
+
 }//	end of namespace lume
 
-#endif	//__H__lume_tests
+#endif	//__H__lume_rim_mesh
