@@ -17,6 +17,7 @@
 #include "cond_throw.h"
 #include "file_util.h"
 #include "config.h"
+#include "view.h"
 
 namespace lumeview {
 
@@ -31,6 +32,11 @@ public:
 	explicit operator bool () const	{return data().m_shaderProg != 0;}
 	bool operator ! () const		{return data().m_shaderProg == 0;}
 	
+	void set_view (const View& view) {
+	    set_uniform ("view", view.view_matrix());
+	    set_uniform ("projection", view.projection_matrix());
+	}
+
 	void use () {
 		if (!data().m_linked)
 			link ();

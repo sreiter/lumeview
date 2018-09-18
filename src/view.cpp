@@ -6,7 +6,6 @@
 
 #include "cond_throw.h"
 #include "view.h"
-#include "shader.h"
 
 using namespace std;
 
@@ -17,12 +16,10 @@ View::View () :
     m_zClipDists (1.e-3, 1.e2)
 {}
 
-void View::apply (const Shader& shader) const
+void View::apply () const
 {
-    const glm::ivec4& vp = m_viewport;
+	const glm::ivec4& vp = viewport();
     glViewport (vp.x, vp.y, vp.z, vp.w);
-    shader.set_uniform ("view", view_matrix());
-    shader.set_uniform ("projection", projection_matrix());
 }
 
 void View::set_viewport (const glm::ivec4& vp)

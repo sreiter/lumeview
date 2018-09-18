@@ -238,8 +238,9 @@ render (const View& view)
 
 	for(auto& stage : m_stages) {
 		Shader shader = get_shader (stage.grobSet, stage.shadingPreset);
+		view.apply ();
 		shader.use ();
-		view.apply (shader);
+		shader.set_view (view);
 		shader.set_uniform("color", stage.color);
 		shader.set_uniform("zfacNear", stage.zfacNear);
 		shader.set_uniform("zfacFar", stage.zfacFar);

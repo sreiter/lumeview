@@ -16,7 +16,7 @@ class View {
 public:
     View ();
     
-    void apply (const Shader& shader) const;
+    void apply () const;
 
     void                set_viewport (const glm::ivec4& vp);
     const glm::ivec4&   viewport () const;
