@@ -37,6 +37,7 @@ set (sources
         src/renderer.cpp
         src/scene.cpp
         src/shapes.cpp
+        src/subset_visualization.cpp
         src/view.cpp
     	src/window_event_listener.cpp
 
