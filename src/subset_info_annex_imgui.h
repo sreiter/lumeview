@@ -6,13 +6,20 @@
 #define __H__lumeview_subset_info_annex_imgui
 
 #include "lume/subset_info_annex.h"
+#include "imgui/imgui.h"
+#include "message_queue.h"
+#include "subset_info_annex_message.h"
+
 namespace lumeview {
 
-inline void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProperties>& properties)
+inline void SubsetInfoAnnex_ImGui (lume::SubsetInfoAnnex* sia)
 {
 	using namespace lume;
+
+	const index_t numSubs = sia->num_subset_properties ();
+
 	
-	if (!properties.empty()) {
+	if (numSubs > 0) {
 		ImGui::NewLine ();
 		ImGui::SameLine (60);
 		ImGui::Text ("name");
@@ -23,11 +30,14 @@ inline void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProp
 		ImGui::Separator();
 	}
 
-	for(size_t iprop = 0; iprop < properties.size(); ++iprop) {
-		SubsetInfoAnnex::SubsetProperties& prop = properties [iprop];
+	for(index_t isub = 0; isub < numSubs; ++isub) {
+		SubsetInfoAnnex::SubsetProperties& prop = sia->subset_properties (isub);
+		auto oldColor = prop.color;
+		bool oldVisible = prop.visible;
+
 		ImGui::PushID(&prop);
 		ImGui::AlignTextToFramePadding();
-	    ImGui::Text("%d:", iprop);
+	    ImGui::Text("%d:", isub);
 	    ImGui::SameLine(60);
 	    ImGui::Text(prop.name.c_str());
 		ImGui::SameLine(160);
@@ -35,10 +45,18 @@ inline void SubsetInfoAnnex_ImGui	(std::vector<lume::SubsetInfoAnnex::SubsetProp
 		ImGui::SameLine(210);
 		ImGui::Checkbox ("", &prop.visible);
 
-		if (iprop + 1 != properties.size())
+		if (isub + 1 != numSubs)
 			ImGui::Separator();
 
 		ImGui::PopID();
+
+		if (prop.color != oldColor || prop.visible != oldVisible) {
+			MessageQueue::post <SubsetInfoAnnexMessage> (
+					sia,
+					isub,
+					prop.color != oldColor,
+					prop.visible != oldVisible);
+		}
 	}
 }
 

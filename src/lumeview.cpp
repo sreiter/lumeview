@@ -172,6 +172,8 @@ void Lumeview::process_gui ()
 		m_activeScene->do_imgui (&m_guiShowScene);
 
 	ImGui::Render();
+
+	MessageQueue::dispatch ();
 }
 
 void Lumeview::render ()

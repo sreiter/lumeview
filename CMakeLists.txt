@@ -33,6 +33,8 @@ set (sources
     	src/config.cpp
         src/file_util.cpp
         src/lumeview.cpp
+        src/message_queue.cpp
+        src/message_receiver.cpp
         src/plain_visualization.cpp
         src/renderer.cpp
         src/scene.cpp

@@ -76,13 +76,42 @@ add_stage (	std::string name,
 	m_stages.push_back (std::move(newStage));
 }
 
+Renderer::Stage&
+Renderer::stage (int stageInd)
+{
+	if (stageInd < 0)
+		return m_stages.at ((int)m_stages.size() + stageInd);
+	return m_stages.at (stageInd);
+}
+
+const Renderer::Stage&
+Renderer::stage (int stageInd) const
+{
+	if (stageInd < 0)
+		return m_stages.at ((int)m_stages.size() + stageInd);
+	return m_stages.at (stageInd);
+}
+
 void Renderer::
 stage_set_color (const glm::vec4& color, int stageInd)
 {
 	if (stageInd < 0)
 		stageInd = (int)m_stages.size() + stageInd;
-	m_stages.at (stageInd).color = color;
+	stage (stageInd).color = color;
 }
+
+// void Renderer::
+// stage_set_color_ptr (const float* colorPtr, int stageInd)
+// {
+// 	stage (stageInd).colorPtr = colorPtr;
+// }
+
+// void Renderer::
+// stage_unset_color_ptr (int stageInd)
+// {
+// 	stage (stageInd).colorPtr = nullptr;
+// }
+
 
 // void Renderer::
 // provide_shading_requirements (Stage& stage)
@@ -249,7 +278,12 @@ render (const View& view)
 		view.apply ();
 		shader.use ();
 		shader.set_view (view);
-		shader.set_uniform("color", stage.color);
+		
+		// if (stage.colorPtr)
+		// 	shader.set_uniform_4fv("color", stage.colorPtr);
+		// else
+			shader.set_uniform("color", stage.color);
+		
 		shader.set_uniform("zfacNear", stage.zfacNear);
 		shader.set_uniform("zfacFar", stage.zfacFar);
 		glBindVertexArray (stage.vao);

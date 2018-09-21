@@ -132,6 +132,12 @@ public:
     	             1, glm::value_ptr(v));
 	}
 
+	void set_uniform_4fv (const char* name, const float* v) const
+	{
+    	glUniform4fv(glGetUniformLocation(data().m_shaderProg, name),
+    	             1, v);
+	}
+
 	void set_uniform (const char* name, const glm::mat4& m) const
 	{
     	glUniformMatrix4fv(glGetUniformLocation(data().m_shaderProg, name),

@@ -7,13 +7,15 @@
 #include "lume/normals.h"
 #include "lume/subset_info_annex.h"
 #include "lume/topology.h"
+#include "subset_info_annex_message.h"
 
 using namespace std;
 using namespace lume;
 
 namespace lumeview {
 
-SubsetVisualization::SubsetVisualization ()
+SubsetVisualization::SubsetVisualization () :
+	m_refreshRequired (false)
 {
 }
 
@@ -28,15 +30,16 @@ void SubsetVisualization::set_mesh (lume::SPMesh mesh)
 
 void SubsetVisualization::refresh ()
 {
+	m_refreshRequired = false;
+	m_subsetInfo.reset();
 	m_renderer.clear();
+
 	if (!m_mesh)
 		return;
 
 	GrobSet grobSet = m_mesh->grob_set_type_of_highest_dim ();
 		
 	refresh_subset_info_annex_name ();
-
-	cout << "m_subsetAnnexName: " << m_subsetAnnexName << endl;
 
 	if (m_subsetAnnexName.empty())
 		return;
@@ -57,6 +60,8 @@ void SubsetVisualization::refresh ()
 		            << m_mesh->num (gt));
 	}
 
+	m_subsetInfo = m_mesh->annex<SubsetInfoAnnex> (m_subsetAnnexName, NO_GROB);
+
 	if (grobSet == CELLS) {
 		subset_meshes_from_cell_rim ();
 	}
@@ -64,24 +69,25 @@ void SubsetVisualization::refresh ()
 		subset_meshes_from_grobs (grobSet);
 
 //todo: render subset meshes
-	cout << "m_subsetMeshes.size()" << m_subsetMeshes.size() << endl;
-
 	const glm::vec4 wireColor (0.2f, 0.2f, 0.2f, 1.0f);
-	auto subsetInfo = m_mesh->annex<SubsetInfoAnnex> (m_subsetAnnexName, NO_GROB);
-	index_t counter = 0;
+
+	index_t subsetIndex = 0;
+	m_subsetIndexToStageIndex.clear ();
 	for(auto mesh : m_subsetMeshes) {
+
+		m_subsetIndexToStageIndex.push_back ((int)m_renderer.num_stages());
+
 		if (mesh->has (FACES)) {
 			ComputeFaceVertexNormals3 (*mesh, "normals");
 			CreateEdgeInds (*mesh);
+
 			m_renderer.add_stage ("solid", mesh, FACES, FLAT);
-			
-			auto c = subsetInfo->subset_properties (counter).color;
-			const glm::vec4 subsetColor (c.r(), c.g(), c.b(), c.a());
-			m_renderer.stage_set_color (subsetColor);
+			m_renderer.stage_set_color (subset_color (subsetIndex));
+
 			m_renderer.add_stage ("wire", mesh, EDGES, FLAT);
 			m_renderer.stage_set_color (wireColor);
 		}
-		++counter;
+		++subsetIndex;
 	}
 }
 
@@ -103,6 +109,8 @@ void SubsetVisualization::refresh_subset_info_annex_name ()
 
 void SubsetVisualization::render (const View& view)
 {
+	if (m_refreshRequired)
+		refresh ();
 	m_renderer.render (view);
 }
 
@@ -132,7 +140,6 @@ void SubsetVisualization::subset_meshes_from_grobs (const GrobSet grobSet)
 		for(auto grob : m_mesh->grobs (grobType)) {
 			const index_t si = inds [counter];
 			maxSI = max (maxSI, (int)si);
-			cout << "inserting " << grob.desc().name() << " into subset mesh " << si << endl;
 			subset_mesh (si).insert (grob);
 			++counter;
 		}
@@ -156,6 +163,44 @@ Mesh& SubsetVisualization::subset_mesh (const index_t si)
 	return *m_subsetMeshes[si];
 }
 
+
+void SubsetVisualization::
+receive_message (const Message& msg)
+{
+	if (!m_subsetInfo || (msg.subject() != m_subsetInfo.get()))
+		return;
+
+	if (auto simsg = dynamic_cast <const SubsetInfoAnnexMessage*> (&msg)) {
+		COND_THROW (m_subsetInfo.get() != simsg->subset_info_annex(),
+		            "SubsetInfoAnnex instances do not match, even though the subject "
+		            "of the message indicates that they should match");
+
+		if (simsg->color_changed ()){
+			const index_t si = simsg->subset_index();
+			const int stageIndex = m_subsetIndexToStageIndex[si];
+			m_renderer.stage_set_color (subset_color (si), stageIndex);
+		}
+		if (simsg->visibility_changed ())
+			m_refreshRequired = true;
+	}
+}
+
+glm::vec4 SubsetVisualization::subset_color (const index_t si) const
+{
+	if (m_subsetInfo) {
+		auto c = m_subsetInfo->subset_properties (si).color;
+		return glm::vec4 (c.r(), c.g(), c.b(), c.a());
+	}
+	return glm::vec4 (0.f);
+}
+
+bool SubsetVisualization::subset_visible (const index_t si) const
+{
+	if (m_subsetInfo)
+		return m_subsetInfo->subset_properties (si).visible;
+
+	return false;
+}
 
 
 }//	end of namespace lumeview
