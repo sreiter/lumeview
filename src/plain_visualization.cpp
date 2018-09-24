@@ -36,7 +36,7 @@ refresh ()
 	if (m_mesh->has (CELLS)) {
 		auto bndMesh = CreateRimMesh (m_mesh, CELLS);
 		ComputeFaceVertexNormals3 (*bndMesh, "normals");
-		CreateEdgeInds (*bndMesh);
+		CreateSideGrobs (*bndMesh, 1);
 		m_renderer.add_stage ("solid", bndMesh, FACES, FLAT);
 		m_renderer.stage_set_color (solidColor);
 		m_renderer.add_stage ("wire", bndMesh, EDGES, FLAT);
@@ -44,7 +44,7 @@ refresh ()
 	}
 	else if (m_mesh->has (FACES)) {
 		ComputeFaceVertexNormals3 (*m_mesh, "normals");
-		CreateEdgeInds (*m_mesh);
+		CreateSideGrobs (*m_mesh, 1);
 		m_renderer.add_stage ("solid", m_mesh, FACES, FLAT);
 		m_renderer.stage_set_color (solidColor);
 		m_renderer.add_stage ("wire", m_mesh, EDGES, FLAT);
