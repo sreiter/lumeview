@@ -4,7 +4,9 @@
 
 #include <algorithm>
 #include "subset_visualization.h"
+#include "lume/annex_table.h"
 #include "lume/normals.h"
+#include "lume/rim_mesh.h"
 #include "lume/subset_info_annex.h"
 #include "lume/topology.h"
 #include "subset_info_annex_message.h"
@@ -23,6 +25,9 @@ SubsetVisualization::SubsetVisualization () :
 void SubsetVisualization::set_mesh (lume::SPMesh mesh)
 {
 	m_mesh = mesh;
+	GrobSet grobSet = m_mesh->grob_set_type_of_highest_dim ();
+	if (grobSet == CELLS)
+		m_neighborhoods.refresh (mesh, FACES, CELLS);
 	refresh ();
 }
 
@@ -71,7 +76,7 @@ void SubsetVisualization::create_subset_meshes (const GrobSet grobSet)
 	if (grobSet == CELLS)
 		subset_meshes_from_cell_rim ();
 	else
-		subset_meshes_from_grobs (grobSet);
+		subset_meshes_from_grobs (m_mesh, grobSet, false);
 }
 
 void SubsetVisualization::prepare_renderer ()
@@ -128,7 +133,8 @@ glm::vec2 SubsetVisualization::estimate_z_clip_dists (const View& view) const
 }
 
 
-void SubsetVisualization::subset_meshes_from_grobs (const GrobSet grobSet)
+void SubsetVisualization::
+subset_meshes_from_grobs (SPMesh mesh, const GrobSet grobSet, bool ignoreSubsetVisibilities)
 {
 //	reuse subset meshes to avoid reallocations
 	for (auto& m : m_subsetMeshes)
@@ -137,16 +143,20 @@ void SubsetVisualization::subset_meshes_from_grobs (const GrobSet grobSet)
 	int maxSI = -1;
 
 	for(auto grobType : grobSet) {
-		auto pinds = m_mesh->optional_annex <IndexArrayAnnex> (m_subsetAnnexName, grobType);
+		auto pinds = mesh->optional_annex <IndexArrayAnnex> (m_subsetAnnexName, grobType);
 		if (!pinds)
 			continue;
 
 		auto& inds = *pinds;
+		COND_THROW (inds.size () != mesh->num (grobType),
+		            "IndexArrayAnnex of subset indices has wrong size: " << inds.size()
+		            << " expected: " << mesh->num (grobType) << ")");
+
 		index_t counter = 0;
-		for(auto grob : m_mesh->grobs (grobType)) {
+		for(auto grob : mesh->grobs (grobType)) {
 			const index_t si = inds [counter];
 			maxSI = max (maxSI, (int)si);
-			if (m_subsetInfo->subset_properties (si).visible)
+			if (ignoreSubsetVisibilities || m_subsetInfo->subset_properties (si).visible)
 				subset_mesh (si).insert (grob);
 			++counter;
 		}
@@ -163,8 +173,27 @@ void SubsetVisualization::subset_meshes_from_grobs (const GrobSet grobSet)
 
 void SubsetVisualization::subset_meshes_from_cell_rim ()
 {
-	// m_neighborhood.refresh (m_mesh, FACES, CELLS);
+	if (!m_rimMesh)
+		m_rimMesh = make_shared <Mesh> ();
+	m_rimMesh->clear_grobs ();
+	m_rimMesh->set_annex (m_subsetAnnexName, NO_GROB, m_subsetInfo);
+
+	//	extract the rim of the visible elements
+	auto srcSubset = ArrayAnnexTable <IndexArrayAnnex> (m_mesh, m_subsetAnnexName, CELLS, false); // last param: createIfMissing==false
+	auto rimSubset = ArrayAnnexTable <IndexArrayAnnex> (m_rimMesh, m_subsetAnnexName, FACES, true); // last param: createIfMissing==true
+	rimSubset.clear_arrays ();
+
+	auto isVisible = [subsetInfo=m_subsetInfo, &srcSubset] (const GrobIndex& srcGrob)
+				 	 {return subsetInfo->subset_properties (srcSubset[srcGrob]).visible;};
+
+	auto gotRimElem = [&rimSubset, &srcSubset] (const GrobIndex& rimGrob, const GrobIndex& srcGrob)
+					  {rimSubset.annex(rimGrob.grobType)->push_back (srcSubset[srcGrob]);};
+
+	CreateRimMesh (m_rimMesh, m_mesh, CELLS, isVisible, gotRimElem, &m_neighborhoods);
+
+	subset_meshes_from_grobs (m_rimMesh, FACES, true);
 }
+
 
 Mesh& SubsetVisualization::subset_mesh (const index_t si)
 {

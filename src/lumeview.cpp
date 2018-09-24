@@ -213,10 +213,11 @@ static void PrintMeshInfo (SPMesh mesh)
 void Lumeview::add_sample_scene ()
 {
 	// const std::string filename = MESH_PATH + "tet.ugx";
-	// const std::string filename = MESH_PATH + "elems_refined.ugx";
+	const std::string filename = MESH_PATH + "elems_refined.ugx";
+	// const std::string filename = MESH_PATH + "bbox_jet.1.ugx";
 	// const std::string filename = MESH_PATH + "tri_and_quad.ugx";
 	// const std::string filename = MESH_PATH + "bunny.stl";
-	const std::string filename = MESH_PATH + "circle_with_subsets.ugx";
+	// const std::string filename = MESH_PATH + "circle_with_subsets.ugx";
 
 	auto mesh = CreateMeshFromFile (filename);
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");

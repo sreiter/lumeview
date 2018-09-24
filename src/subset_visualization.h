@@ -36,7 +36,9 @@ public:
 private:
 	void create_subset_meshes (const lume::GrobSet grobSet);
 	void prepare_renderer ();
-	void subset_meshes_from_grobs (const lume::GrobSet grobSet);
+	void subset_meshes_from_grobs (lume::SPMesh mesh,
+	                               const lume::GrobSet grobSet,
+	                               bool ignoreSubsetVisibilities);
 	void subset_meshes_from_cell_rim ();
 	void refresh_subset_info_annex_name ();
 	lume::Mesh& subset_mesh (const index_t si);
@@ -45,9 +47,10 @@ private:
 	bool subset_visible (const index_t si) const;
 
 	Renderer					m_renderer;
-	lume::Neighborhoods			m_neighborhood;
+	lume::Neighborhoods			m_neighborhoods;
 	lume::SPMesh				m_mesh;
 	std::shared_ptr<lume::SubsetInfoAnnex>		m_subsetInfo;
+	lume::SPMesh				m_rimMesh;
 	std::vector <lume::SPMesh>	m_subsetMeshes;
 	std::string					m_subsetAnnexName;
 	std::vector <int>			m_subsetIndexToStageIndex;
