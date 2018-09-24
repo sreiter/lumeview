@@ -52,6 +52,7 @@ add_stage (	std::string name,
 			newStage.color = glm::vec4 (0.2f, 0.2f, 1.0f, 0.5f);
 			newStage.zfacNear = 0.99f;
 			newStage.zfacFar = 1.f;
+			newStage.numInds = mesh->num_indices (EDGE);
 			break;
 		
 		case TRIS:
@@ -61,16 +62,14 @@ add_stage (	std::string name,
 			newStage.color = glm::vec4 (1.0f, 1.0f, 1.0f, 1.0f);
 			newStage.zfacNear = 1.0f;
 			newStage.zfacFar = 1.0f;
+			newStage.numInds = mesh->num_indices(TRI)
+					 		 + 3 * mesh->num_indices(QUAD) / 2;
 			break;
 		default:
 			THROW("Renderer::add_stage: Unsupported grid object type in specified mesh.");
 	}
 
 	newStage.shadingPreset = shading;
-	newStage.numInds = mesh->num_indices (EDGE)
-					 + mesh->num_indices(TRI)
-					 + 3 * mesh->num_indices(QUAD) / 2;
-
 	newStage.name = std::move (name);
 	newStage.grobSet = grobSet;
 	m_stages.push_back (std::move(newStage));
@@ -100,21 +99,6 @@ stage_set_color (const glm::vec4& color, int stageInd)
 	stage (stageInd).color = color;
 }
 
-// void Renderer::
-// stage_set_color_ptr (const float* colorPtr, int stageInd)
-// {
-// 	stage (stageInd).colorPtr = colorPtr;
-// }
-
-// void Renderer::
-// stage_unset_color_ptr (int stageInd)
-// {
-// 	stage (stageInd).colorPtr = nullptr;
-// }
-
-
-// void Renderer::
-// provide_shading_requirements (Stage& stage)
 glm::vec2 Renderer::
 estimate_z_clip_dists (const View& view) const
 {
@@ -278,12 +262,7 @@ render (const View& view)
 		view.apply ();
 		shader.use ();
 		shader.set_view (view);
-		
-		// if (stage.colorPtr)
-		// 	shader.set_uniform_4fv("color", stage.colorPtr);
-		// else
-			shader.set_uniform("color", stage.color);
-		
+		shader.set_uniform("color", stage.color);
 		shader.set_uniform("zfacNear", stage.zfacNear);
 		shader.set_uniform("zfacFar", stage.zfacFar);
 		glBindVertexArray (stage.vao);
