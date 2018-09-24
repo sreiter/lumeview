@@ -31,10 +31,11 @@ public:
 
 	glm::vec2 estimate_z_clip_dists (const View& view) const override;
 
-	
 	void receive_message (const Message& msg) override;
 
 private:
+	void create_subset_meshes (const lume::GrobSet grobSet);
+	void prepare_renderer ();
 	void subset_meshes_from_grobs (const lume::GrobSet grobSet);
 	void subset_meshes_from_cell_rim ();
 	void refresh_subset_info_annex_name ();

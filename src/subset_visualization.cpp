@@ -62,13 +62,20 @@ void SubsetVisualization::refresh ()
 
 	m_subsetInfo = m_mesh->annex<SubsetInfoAnnex> (m_subsetAnnexName, NO_GROB);
 
-	if (grobSet == CELLS) {
+	create_subset_meshes (grobSet);
+	prepare_renderer ();
+}
+
+void SubsetVisualization::create_subset_meshes (const GrobSet grobSet)
+{
+	if (grobSet == CELLS)
 		subset_meshes_from_cell_rim ();
-	}
 	else
 		subset_meshes_from_grobs (grobSet);
+}
 
-//todo: render subset meshes
+void SubsetVisualization::prepare_renderer ()
+{
 	const glm::vec4 wireColor (0.2f, 0.2f, 0.2f, 1.0f);
 
 	index_t subsetIndex = 0;
@@ -79,7 +86,7 @@ void SubsetVisualization::refresh ()
 
 		if (mesh->has (FACES)) {
 			ComputeFaceVertexNormals3 (*mesh, "normals");
-			CreateEdgeInds (*mesh);
+			CreateSideGrobs (*mesh, 1);
 
 			m_renderer.add_stage ("solid", mesh, FACES, FLAT);
 			m_renderer.stage_set_color (subset_color (subsetIndex));
@@ -90,7 +97,6 @@ void SubsetVisualization::refresh ()
 		++subsetIndex;
 	}
 }
-
 
 void SubsetVisualization::refresh_subset_info_annex_name ()
 {
@@ -140,11 +146,17 @@ void SubsetVisualization::subset_meshes_from_grobs (const GrobSet grobSet)
 		for(auto grob : m_mesh->grobs (grobType)) {
 			const index_t si = inds [counter];
 			maxSI = max (maxSI, (int)si);
-			subset_mesh (si).insert (grob);
+			if (m_subsetInfo->subset_properties (si).visible)
+				subset_mesh (si).insert (grob);
 			++counter;
 		}
 	}
 
+//	make sure that all subset meshes exist
+//	first add missing subset meshes (e.g. if the last subset is not visible)
+	for(int i = (int)m_subsetMeshes.size(); i <= maxSI; ++i)
+		subset_mesh (i);
+//	now remove subsets which were not required (e.g. because the number of subsets decreased)
 	m_subsetMeshes.resize (maxSI + 1);
 }
 
