@@ -53,30 +53,52 @@ namespace impl {
 }// end of namespace impl
 
 TotalToGrobIndexMap::
-TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs) :
-    m_grobSet (gs)
+TotalToGrobIndexMap (Mesh& mesh, const GrobSet& gs)
 {
-    if (gs.size() > MAX_GROB_SET_SIZE)
-    	LumeError ("Internal error: MAX_GROB_SET_SIZE is wrong!");
+	m_grobTypes.reserve (gs.size());
+	for(auto grobType : gs)
+		m_grobTypes.push_back (grobType);
+	
+	generate_base_inds (mesh);
+}
 
+
+TotalToGrobIndexMap::
+TotalToGrobIndexMap (Mesh& mesh, const std::vector <grob_t>& gs) :
+	m_grobTypes (gs)
+{
+	generate_base_inds (mesh);
+}
+
+TotalToGrobIndexMap::
+TotalToGrobIndexMap (Mesh& mesh, std::vector <grob_t>&& gs) :
+	m_grobTypes (std::move (gs))
+{
+	generate_base_inds (mesh);
+}
+
+
+void TotalToGrobIndexMap::
+generate_base_inds (Mesh& mesh)
+{
+	m_baseInds.resize(m_grobTypes.size() + 1);
     m_baseInds[0] = 0;
-    for(index_t i = 0; i < gs.size(); ++i) {
-     	m_baseInds [i+1] = m_baseInds [i] + mesh.num (gs.grob_type (i));
-    }
+    const size_t numGrobTypes = m_grobTypes.size();
+    for(size_t i = 0; i < numGrobTypes; ++i)
+     	m_baseInds [i+1] = m_baseInds [i] + mesh.num (m_grobTypes [i]);
 }
 
 GrobIndex TotalToGrobIndexMap::
 operator () (const index_t ind) const
 {
-    for(size_t i = 0; i < m_grobSet.size(); ++i) {
+	const size_t numGrobTypes = m_grobTypes.size();
+    for(size_t i = 0; i < numGrobTypes; ++i) {
       	if (ind >= m_baseInds [i] && ind < m_baseInds [i+1])
-        	return GrobIndex(m_grobSet.grob_type(index_t(i)), ind - m_baseInds[i]);
+        	return GrobIndex(m_grobTypes[i], ind - m_baseInds[i]);
     }
 
     throw LumeError (string("TotalToGrobIndexMap: Couldn't map index ").
-    					append (to_string(ind)).
-    					append (" to GrobSet ").
-    					append (m_grobSet.name()));
+    					append (to_string(ind)));
     return GrobIndex (NO_GROB, 0);
 }
 
@@ -159,26 +181,6 @@ void ComputeGrobValences (GrobHashMap <index_t>& valencesOut,
 }
 
 
-// index_t FindUniqueSides (GrobHash& sideHashInOut,
-//                          const index_t* cornerInds,
-//                          const index_t numCornerInds,
-//                          const grob_t grobType,
-//                          const index_t sideDim)
-// {
-// 	Grob grob (grobType, cornerInds);
-// 	const index_t numGrobCorners = grob.num_corners();
-// 	index_t numInsertions = 0;
-// 	for (index_t igrob = 0; igrob < numCornerInds; igrob += numGrobCorners)
-// 	{
-// 		grob.set_global_corner_array(cornerInds + igrob);
-// 		for(index_t iside = 0; iside < grob.num_sides(sideDim); ++iside) {
-// 			const auto r = sideHashInOut.insert(grob.side (sideDim, iside));
-// 			numInsertions += static_cast<index_t> (r.second);
-// 		}
-// 	}
-// 	return numInsertions;
-// }
-
 index_t FindUniqueSides (GrobHash& sideHashInOut,
                          Mesh& mesh,
                          const GrobSet grobSet,
@@ -202,7 +204,6 @@ index_t FindUniqueSides (GrobHash& sideHashInOut,
 }
 
 
-
 void CreateSideGrobs (Mesh& mesh, const index_t sideDim)
 {
 	const std::vector<grob_t> grobs = mesh.grob_types();
@@ -217,44 +218,5 @@ void CreateSideGrobs (Mesh& mesh, const index_t sideDim)
 	mesh.insert (hash.begin(), hash.end());
 }
 
-
-
-static void CopyGrobsByValence (SPMesh target,
-                                SPMesh source,
-                                GrobSet grobSet,
-                                Neighborhoods& srcGrobNeighborhoods,
-                                const int valence)
-{
-	for(auto grobType : grobSet) {
-		auto& elems = source->grobs (grobType);
-		auto& newElems = target->grobs (grobType);
-
-		index_t index = 0;
-		for(auto& grob : elems) {
-			const GrobIndex gi (grobType, index);
-			if (srcGrobNeighborhoods.num_neighbors (gi) == valence) {
-				newElems.push_back (grob);
-			}
-			++index;
-		}
-	}
-}
-
-
-SPMesh CreateBoundaryMesh (SPMesh mesh, GrobSet grobSet, const bool* visibilities)
-{
-	auto bndMesh = make_shared <Mesh> ();
-	mesh->share_annexes_with (*bndMesh);
-	
-	if (grobSet.dim() == 0)
-		return bndMesh;
-
-	GrobSet bndGrobSet = grobSet.side_set (grobSet.dim() - 1);
-	Neighborhoods neighborhoods (mesh, bndGrobSet, grobSet);
-
-	CopyGrobsByValence (bndMesh, mesh, bndGrobSet, neighborhoods, 1);
-
-	return bndMesh;
-}
 
 }//	end of namespace
