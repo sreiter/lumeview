@@ -26,6 +26,8 @@
 #include "lume/vec_math_raw.h"
 #include "lume/file_io.h"
 
+#include "profit/profit.h"
+
 using namespace std;
 using namespace lume;
 
@@ -212,6 +214,8 @@ static void PrintMeshInfo (SPMesh mesh)
 
 void Lumeview::add_sample_scene ()
 {
+	PROFIT_FUNC();
+
 	// const std::string filename = MESH_PATH + "tet.ugx";
 	const std::string filename = MESH_PATH + "elems_refined.ugx";
 	// const std::string filename = MESH_PATH + "bbox_jet.1.ugx";
@@ -219,10 +223,12 @@ void Lumeview::add_sample_scene ()
 	// const std::string filename = MESH_PATH + "bunny.stl";
 	// const std::string filename = MESH_PATH + "circle_with_subsets.ugx";
 
+	PROFIT(CreateMesh);
 	auto mesh = CreateMeshFromFile (filename);
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 	PrintMeshInfo (mesh);
-
+	PROFIT_END();
+	
 	auto vis = make_shared <SubsetVisualization> ();
 	vis->set_mesh (mesh);
 	auto scene = make_shared <Scene>();
