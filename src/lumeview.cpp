@@ -26,7 +26,7 @@
 #include "lume/vec_math_raw.h"
 #include "lume/file_io.h"
 
-#include "profit/profit.h"
+#include "pettyprof/pettyprof.h"
 
 using namespace std;
 using namespace lume;
@@ -214,20 +214,21 @@ static void PrintMeshInfo (SPMesh mesh)
 
 void Lumeview::add_sample_scene ()
 {
-	PROFIT_FUNC();
+	PEPRO_FUNC();
 
 	// const std::string filename = MESH_PATH + "tet.ugx";
 	const std::string filename = MESH_PATH + "elems_refined.ugx";
+	// const std::string filename = MESH_PATH + "2-spheres-tets.ugx";
 	// const std::string filename = MESH_PATH + "bbox_jet.1.ugx";
 	// const std::string filename = MESH_PATH + "tri_and_quad.ugx";
 	// const std::string filename = MESH_PATH + "bunny.stl";
 	// const std::string filename = MESH_PATH + "circle_with_subsets.ugx";
 
-	PROFIT(CreateMesh);
+	PEPRO_BEGIN(CreateMesh);
 	auto mesh = CreateMeshFromFile (filename);
 	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
 	PrintMeshInfo (mesh);
-	PROFIT_END();
+	PEPRO_END();
 	
 	auto vis = make_shared <SubsetVisualization> ();
 	vis->set_mesh (mesh);

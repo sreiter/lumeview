@@ -1,4 +1,4 @@
-// This file is part of profit, a very basic C++ profiler
+// This file is part of pettyprof, a very basic C++ profiler
 //
 // Copyright (C) 2018 Sebastian Reiter
 // Copyright (C) 2018 G-CSC, Goethe University Frankfurt
@@ -24,14 +24,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef __H__profit_profit
-#define __H__profit_profit
+#ifndef __H__pettyprof_pettyprof
+#define __H__pettyprof_pettyprof
 
 #include <chrono>
 #include <iostream>
 #include <stack>
 
-namespace profit {
+namespace pepro {
 
 namespace impl {
 
@@ -61,7 +61,7 @@ public:
 		const auto& e = stack.top();
 		const auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - e.start);
 		if (dur >= inst().m_outputThreshold)
-			std::cout << "PROFIT " << e.name << ":\t" << dur.count() / 1.e3 << " (s)" << std::endl;
+			std::cout << "PEPRO " << e.name << ":\t" << dur.count() / 1.e3 << " (s)" << std::endl;
 		e.mark->popOnDestruction = false;
 		stack.pop();
 	}
@@ -111,10 +111,10 @@ inline ProfileMark::~ProfileMark ()
 }
 
 }//	end of namespace impl
-}//	end of namespace profit
+}//	end of namespace pepro
 
-#define PROFIT_FUNC() profit::impl::ProfileMark profit_profMark_##__func__(__func__);
-#define PROFIT(id) profit::impl::ProfileMark profit_profMark_id(#id);
-#define PROFIT_END() profit::impl::ProfileStack::pop();
+#define PEPRO_FUNC() pepro::impl::ProfileMark peproMark_f_##__func__(__func__);
+#define PEPRO_BEGIN(id) pepro::impl::ProfileMark peproMark_##id(#id);
+#define PEPRO_END() pepro::impl::ProfileStack::pop();
 
-#endif	//__H__profit_profit
+#endif	//__H__pettyprof_pettyprof
