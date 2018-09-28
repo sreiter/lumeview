@@ -38,6 +38,7 @@ set (sources
         src/plain_visualization.cpp
         src/renderer.cpp
         src/scene.cpp
+        src/scene_util.cpp
         src/shapes.cpp
         src/subset_visualization.cpp
         src/view.cpp
@@ -91,7 +92,7 @@ if (MSVC)
 endif ()
 
 if (GLFW)
-    set (glfwSources    src/main.cpp
+    set (glfwSources    src/glfw_main.cpp
                         deps/imgui/imgui_impl_glfw_gl3.cpp
         )
 

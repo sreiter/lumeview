@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 #include "file_util.h"
-#include "cond_throw.h"
+#include "lumeview_error.h"
 
 using namespace std;
 

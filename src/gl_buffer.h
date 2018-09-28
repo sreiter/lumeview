@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>	// include before other OpenGL related includes
 #include "config.h"
-#include "cond_throw.h"
+#include "lumeview_error.h"
 
 namespace lumeview {
 

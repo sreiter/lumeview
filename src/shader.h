@@ -14,7 +14,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "cond_throw.h"
+#include "lumeview_error.h"
 #include "file_util.h"
 #include "config.h"
 #include "view.h"

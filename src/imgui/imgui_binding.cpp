@@ -17,7 +17,7 @@
 #include <chrono>
 
 #include "../window_event_listener.h"
-#include "../cond_throw.h"
+#include "../lumeview_error.h"
 
 using namespace std;
 

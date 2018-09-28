@@ -33,23 +33,19 @@ public:
   	void key (int key, int scancode, int action, int mods) override;
   	void character (unsigned int c) override;
 
-
-  	void add_scene (SPScene scene);
+  	void set_scene (const SPScene& scene);
 
   	void process_gui ();
 
   	void render ();
 
-  	void add_sample_scene ();
-  	
 private:
 	using base_t = WindowEventListener;
 
 	WindowEventListener* m_imguiListener;
 	ArcBallView			 m_arcBallView;
 
-	std::vector <SPScene>	m_scenes;
-	SPScene					m_activeScene;
+	SPScene				 m_scene;
 
 	bool	m_guiShowScene;
 	bool	m_guiShowLog;

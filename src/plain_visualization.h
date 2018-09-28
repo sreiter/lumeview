@@ -16,7 +16,9 @@ class PlainVisualization : public Visualization
 {
 public:
 	PlainVisualization ();
-	void set_mesh (lume::SPMesh mesh);
+	PlainVisualization (const lume::SPMesh& mesh);
+	
+	void set_mesh (const lume::SPMesh& mesh);
 
 	void refresh ();
 

@@ -60,8 +60,7 @@ void LumeviewShutdown ()
 
 void Lumeview::clear ()
 {
-	m_scenes.clear();
-	m_activeScene.reset();
+	m_scene.reset();
 }
 
 Lumeview::Lumeview () :
@@ -137,15 +136,9 @@ void Lumeview::character (unsigned int c)
 		m_arcBallView.character (c);
 }
 
-void Lumeview::add_scene (SPScene scene)
+void Lumeview::set_scene (const SPScene& scene)
 {
-	if (!scene)
-		return;
-
-	if (m_scenes.empty())
-		m_activeScene = scene;
-
-	m_scenes.push_back (scene);
+	m_scene = scene;
 }
 
 void Lumeview::process_gui ()
@@ -170,8 +163,8 @@ void Lumeview::process_gui ()
 	if (m_guiShowDemo)
 		ImGui::ShowDemoWindow (&m_guiShowDemo);
 
-	if (m_guiShowScene && m_activeScene)
-		m_activeScene->do_imgui (&m_guiShowScene);
+	if (m_guiShowScene && m_scene)
+		m_scene->do_imgui (&m_guiShowScene);
 
 	ImGui::Render();
 
@@ -185,10 +178,10 @@ void Lumeview::render ()
 	glClearColor (0.25f, 0.25f, 0.25f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (m_activeScene) {
-		const glm::vec2 clipDists = m_activeScene->estimate_z_clip_dists(m_arcBallView.view());
+	if (m_scene) {
+		const glm::vec2 clipDists = m_scene->estimate_z_clip_dists(m_arcBallView.view());
 		m_arcBallView.view().set_z_clip_dists (clipDists);
-		m_activeScene->render (m_arcBallView.view());
+		m_scene->render (m_arcBallView.view());
 	}
 
 	lumeview::ImGui_Display();
@@ -211,29 +204,4 @@ static void PrintMeshInfo (SPMesh mesh)
 	LOGT(mesh, "               -> max: " << box.maxCorner << std::endl);
 }
 
-
-void Lumeview::add_sample_scene ()
-{
-	PEPRO_FUNC();
-
-	// const std::string filename = MESH_PATH + "tet.ugx";
-	const std::string filename = MESH_PATH + "elems_refined.ugx";
-	// const std::string filename = MESH_PATH + "2-spheres-tets.ugx";
-	// const std::string filename = MESH_PATH + "bbox_jet.1.ugx";
-	// const std::string filename = MESH_PATH + "tri_and_quad.ugx";
-	// const std::string filename = MESH_PATH + "bunny.stl";
-	// const std::string filename = MESH_PATH + "circle_with_subsets.ugx";
-
-	PEPRO_BEGIN(CreateMesh);
-	auto mesh = CreateMeshFromFile (filename);
-	LOGT(mesh, "Loaded mesh '" << filename << "'\n");
-	PrintMeshInfo (mesh);
-	PEPRO_END();
-	
-	auto vis = make_shared <SubsetVisualization> ();
-	vis->set_mesh (mesh);
-	auto scene = make_shared <Scene>();
-	scene->add_entry (mesh, vis);
-	add_scene (scene);
-}
 }//	end of namespace lumeview

@@ -6,7 +6,7 @@
 #include <glm/gtx/io.hpp>
 
 #include "arc_ball_view.h"
-#include "cond_throw.h"
+#include "lumeview_error.h"
 #include "log.h"
 #include "vec_math.h"
 

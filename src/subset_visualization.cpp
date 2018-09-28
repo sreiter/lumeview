@@ -21,6 +21,12 @@ SubsetVisualization::SubsetVisualization () :
 {
 }
 
+SubsetVisualization::SubsetVisualization (lume::SPMesh mesh) :
+	m_refreshRequired (false)
+{
+	set_mesh (mesh);
+}
+
 
 void SubsetVisualization::set_mesh (lume::SPMesh mesh)
 {
@@ -47,7 +53,7 @@ void SubsetVisualization::refresh ()
 	refresh_subset_info_annex_name ();
 
 	if (m_subsetAnnexName.empty())
-		return;
+		throw (NoSubsetAnnexError ("Could not find any subset annex"));
 
 	for(auto gt : grobSet) {
 		if (!m_mesh->has (gt))

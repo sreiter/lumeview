@@ -3,6 +3,7 @@
 #include "jni_event_listener.h"
 #include "../log.h"
 #include "../lumeview.h"
+#include "../scene_util.h"
 
 using namespace std;
 using namespace lumeview;
@@ -23,7 +24,9 @@ Java_eu_mihosoft_vnativegl_NativeOpenGL_native_1gl_1init(
     JNIEnv *jEnv, jclass jcls)
 {
 	lumeview::LumeviewInit();
-	g_lumeview.add_sample_scene ();
+	g_lumeview.set_scene (CreateSampleScene ());
+	// you could also create a simple scene with one mesh from a file like this:
+	//	g_lumeview.set_scene (CreateSceneForMesh (filename));
 }
 
 

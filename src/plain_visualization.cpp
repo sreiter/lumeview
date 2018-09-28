@@ -17,8 +17,14 @@ PlainVisualization ()
 {
 }
 
+PlainVisualization::
+PlainVisualization (const lume::SPMesh& mesh)
+{
+	set_mesh (mesh);
+}
+
 void PlainVisualization::
-set_mesh (lume::SPMesh mesh)
+set_mesh (const lume::SPMesh& mesh)
 {
 	m_mesh = mesh;
 	refresh();
@@ -50,8 +56,10 @@ refresh ()
 		m_renderer.add_stage ("wire", m_mesh, EDGES, FLAT);
 		m_renderer.stage_set_color (wireColor);
 		auto bndMesh = CreateRimMesh (m_mesh, FACES);
-		m_renderer.add_stage ("bnd", bndMesh, EDGES, NONE);
-		m_renderer.stage_set_color (bndColor);
+		if (bndMesh->has (EDGES)) {
+			m_renderer.add_stage ("bnd", bndMesh, EDGES, NONE);
+			m_renderer.stage_set_color (bndColor);
+		}
 	}
 	else if (m_mesh->has (EDGES)) {
 		ComputeFaceVertexNormals3 (*m_mesh, "normals");

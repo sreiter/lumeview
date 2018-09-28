@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/io.hpp>
 
-#include "cond_throw.h"
+#include "lumeview_error.h"
 #include "view.h"
 
 using namespace std;

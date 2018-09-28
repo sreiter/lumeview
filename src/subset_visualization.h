@@ -8,6 +8,7 @@
 #include "lume/mesh.h"
 #include "lume/neighborhoods.h"
 
+#include "lumeview_error.h"
 #include "message_receiver.h"
 #include "renderer.h"
 #include "visualization.h"
@@ -19,10 +20,14 @@ namespace lume {
 
 namespace lumeview {
 
+DECLARE_CUSTOM_EXCEPTION (NoSubsetAnnexError, LumeviewError);
+
 class SubsetVisualization : public Visualization, public MessageReceiver
 {
 public:
 	SubsetVisualization ();
+	SubsetVisualization (lume::SPMesh mesh);
+	
 	void set_mesh (lume::SPMesh mesh);
 
 	void refresh ();

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <limits>
 #include <glm/gtc/type_ptr.hpp>
-#include "cond_throw.h"
+#include "lumeview_error.h"
 #include "shapes.h"
 #include "lume/vec_math_raw.h"
 

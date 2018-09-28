@@ -7,10 +7,11 @@
 #include "imgui/imgui_binding.h"
 
 #include "log.h"
-#include "cond_throw.h"
+#include "lumeview_error.h"
 #include "lumeview.h"
 
 #include "lume/file_io.h"
+#include "scene_util.h"
 
 using namespace std;
 using namespace lumeview;
@@ -106,7 +107,12 @@ int main (int argc, char** argv)
 		glfwSwapInterval(1);
 
 		LumeviewInit ();
-		g_lumeview.add_sample_scene ();
+		
+	//	if a filename was specified, we'll load that, if not, we'll create a sample scene
+		if (argc == 2)
+			g_lumeview.set_scene (CreateSceneForMesh (argv[1]));
+		else
+			g_lumeview.set_scene (CreateSampleScene ());
 
 	    InitImGui (window);
 
